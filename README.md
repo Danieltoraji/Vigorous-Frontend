@@ -3,6 +3,40 @@
 - 这里将会是我们的Web3D部分的源代码。
 - 我们的主项目中看到的Web3D部分其实是编译后的，因此需要将编译前的源代码开一个仓库，放在这里。
 - 运行开发服务器，请使用npm run dev或者yarn dev。如果提示项目依赖没有安装，请运行`yarn install`或者`npm install`。
+## 重要！暂定的后端返回数据
+- A 使用一次请求，返回所有项目数据。
+```jsx
+{
+    'Hajimi-123456': {
+      name: 'Vigorous-Test-Project',
+      user: 'Hajimi',
+      created_at: 'date1',
+      edited_at: 'date2',
+      id: 'Hajimi-123456',
+      description: 'Oiiaioiiiiai',
+      status: 'editable',
+      feature:{
+        shape: 'square',
+        size: 10,
+      },
+      project_tags: ['type1','type2'],
+    },
+    'Hajimi-456789': {
+      name: 'Vigorous-Test-Project',
+      user: 'Hajimi',
+      created_at: 'date3',
+      edited_at: 'date4',
+      id: 'Hajimi-456789',
+      description: '第二个测试项目',
+      status: 'archived',
+      feature:{
+        shape: 'square',
+        size: 10,
+      },
+      project_tags: ['type3','type4'],
+    },
+  }
+```
 ## 前端项目架构
 - 似乎除了src/目录下的文件都是自动生成的，我们只需要关注src/目录下的文件即可。
 - src/目录下的文件主要包括：
