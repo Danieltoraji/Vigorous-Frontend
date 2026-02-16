@@ -1,4 +1,4 @@
-import { useState, useContext, createContext } from 'react';
+import { useState, useContext, useEffect, createContext } from 'react';
 const ProjectContext = createContext(null);
 
 export function ProjectProvider({ children }) {
@@ -69,8 +69,8 @@ export function ProjectProvider({ children }) {
   };
   //B2' 组件加载时自动运行B2获取数据
   useEffect(() => {
-      fetchProjects();
-    }, []);
+    fetchProjects();
+  }, []);
 
   //B3 方法：刷新（从后端拉取）项目数据
   const refreshProjects = () => {
@@ -100,7 +100,7 @@ export function ProjectProvider({ children }) {
       throw err;
     }
   };
-  /*B4 使用注释
+  /*B4 注释
   发送到后端的请求格式
       POST /api/projects
       Content-Type: application/json
@@ -243,7 +243,7 @@ export function ProjectProvider({ children }) {
   };
   //C 这里是Context的结尾和Hook，后面是固定的。
   return (
-    <ProjectContext.Provider value={{ projectData, setProjectData }}>
+    <ProjectContext.Provider value={value}>
       {children}
     </ProjectContext.Provider>
   );
