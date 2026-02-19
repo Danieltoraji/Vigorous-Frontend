@@ -1,9 +1,9 @@
 import { useState, useContext, useEffect, createContext } from 'react';
-import useProject from './useProject.jsx';
-const { projectData } = useProject();
+import { useProject } from './useProject.jsx';
 const ChessContext = createContext(null);
 
 export function ChessProvider({ children }) {
+  const { projectData } = useProject();
 
   // A 初始化棋子数据。现在是模拟数据。以后会设为空对象。
   const [chessData, setChessData] = useState({

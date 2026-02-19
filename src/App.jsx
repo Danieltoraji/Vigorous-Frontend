@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import ExplorerProject from './Pages/explorer_project/explorer_project.jsx'
 import ExplorerTexture from './Pages/explorer_texture/explorer_texture.jsx'
 import ExplorerTemplates from './Pages/explorer_templates/explorer_templates.jsx'
+import ChessEditor from './Pages/chess_editor/chess_editor.jsx'
 import Test from './Pages/test.jsx'
 import AppBottom from './Components/Appbottom/Appbottom.jsx'
 
@@ -22,6 +23,7 @@ function App() {
             <Link to="/explorer-project">项目资源管理器</Link> | 
             <Link to="/explorer-texture">贴图资源管理器</Link> | 
             <Link to="/explorer-templates">模板资源管理器</Link> | 
+            <Link to="/chess-editor">棋子编辑器</Link> | 
             <Link to="/test">React Context测试页面</Link>
           </nav>
 
@@ -31,6 +33,7 @@ function App() {
             <Route path="/explorer-project" element={<ExplorerProject />} />
             <Route path="/explorer-texture" element={<ExplorerTexture />} />
             <Route path="/explorer-templates" element={<ExplorerTemplates />} />
+            <Route path="/chess-editor" element={<ChessEditor />} />
             <Route path="/test" element={<Test />} />
           </Routes>
         </div>
