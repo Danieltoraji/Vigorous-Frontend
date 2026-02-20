@@ -24,7 +24,7 @@ export function ChessProvider({ children }) {
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -48,7 +48,7 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            Color:"#FFFFFF",
             height:1,
           }
         },
@@ -59,7 +59,7 @@ export function ChessProvider({ children }) {
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -83,7 +83,7 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            Color:"#FFFFFF",
             height:1,
           }
         },
@@ -94,7 +94,7 @@ export function ChessProvider({ children }) {
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -118,7 +118,7 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            Color:"#FFFFFF",
             height:1,
           }
         },
@@ -129,7 +129,7 @@ export function ChessProvider({ children }) {
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -153,7 +153,7 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            Color:"#FFFFFF",
             height:1,
           }
         },
