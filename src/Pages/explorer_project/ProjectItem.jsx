@@ -6,6 +6,28 @@ function ProjectItem({ project, onEditProject }) {
     // 这里应该实现打开项目的逻辑
     alert('Testing')
   }
+  // 格式化日期
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === '无数据') return '无数据';
+
+    try {
+      const date = new Date(dateString);
+      // 检查日期是否有效
+      if (isNaN(date.getTime())) return dateString;
+
+
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
 
   return (
     <div className="project-item">
@@ -24,11 +46,11 @@ function ProjectItem({ project, onEditProject }) {
           </div>
           <div className="project-meta-item">
             <span className="meta-label">创建时间：</span>
-            <span className="meta-value">{project.created_at}</span>
+            <span className="meta-value">{formatDate(project.created_at)}</span>
           </div>
           <div className="project-meta-item">
             <span className="meta-label">修改时间：</span>
-            <span className="meta-value">{project.edited_at}</span>
+            <span className="meta-value">{formatDate(project.edited_at)}</span>
           </div>
         </div>
 
