@@ -3,40 +3,194 @@
 - 这里将会是我们的Web3D部分的源代码。
 - 我们的主项目中看到的Web3D部分其实是编译后的，因此需要将编译前的源代码开一个仓库，放在这里。
 - 运行开发服务器，请使用npm run dev或者yarn dev。如果提示项目依赖没有安装，请运行`yarn install`或者`npm install`。
-## 重要！暂定的后端返回数据
+## 目前假定的后端返回数据
 - A 使用一次请求，返回所有项目数据。
 ```jsx
 {
-    'Hajimi-123456': {
-      name: 'Vigorous-Test-Project',
-      user: 'Hajimi',
-      created_at: 'date1',
-      edited_at: 'date2',
-      id: 'Hajimi-123456',
-      description: 'Oiiaioiiiiai',
-      status: 'editable',
-      feature:{
-        shape: 'square',
-        size: 10,
-      },
-      project_tags: ['type1','type2'],
+  'Hajimi-123456': {
+    name: 'Vigorous-Test-Project',
+    user: 'Hajimi',
+    created_at: 'date1',
+    edited_at: 'date2',
+    id: 'Hajimi-123456',
+    description: 'Oiiaioiiiiai',
+    status: 'editable',
+    feature:{
+      shape: 'square',
+      size: 10,
     },
-    'Hajimi-456789': {
-      name: 'Vigorous-Test-Project',
-      user: 'Hajimi',
-      created_at: 'date3',
-      edited_at: 'date4',
-      id: 'Hajimi-456789',
-      description: '第二个测试项目',
-      status: 'archived',
-      feature:{
-        shape: 'square',
-        size: 10,
-      },
-      project_tags: ['type3','type4'],
+    project_tags: ['type1','type2'],
+  },
+  'Hajimi-456789': {
+    name: 'Vigorous-Test-Project',
+    user: 'Hajimi',
+    created_at: 'date3',
+    edited_at: 'date4',
+    id: 'Hajimi-456789',
+    description: '第二个测试项目',
+    status: 'archived',
+    feature:{
+      shape: 'square',
+      size: 10,
     },
-  }
+    project_tags: ['type3','type4'],
+  },
+}
 ```
+- B 使用一次请求，返回该项目下所有棋子信息。
+```jsx
+{
+  20001:{
+    name:"测试棋子1",
+    user:"Hajimi",
+    created_at:"2024-01-01",
+    edited_at:"2024-01-02",
+    id:20001,
+    project_id:"Hajimi-123456",
+    type:"type1",
+    piece_tags:["tag1","tag2"],
+    parts:{
+      '1':{
+        Appear:"False",
+        Shape:{
+          type:"Circle",
+          size1:15,
+          size2:15,
+          height:1,
+          color:"#FF0000",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          }
+        },
+        Texture:{
+          file:"",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          },
+          zoom:1,
+        },
+        Text:{
+          content:"THU",
+          size:10,
+          position:{
+            x:0,
+            y:0,
+          },
+          color:"#FFFFFF",
+          height:1,
+        }
+      },
+      '2':{
+        Appear:"False",
+        Shape:{
+          type:"Circle",
+          size1:15,
+          size2:15,
+          height:1,
+          color:"#FF0000",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          }
+        },
+        Texture:{
+          file:"",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          },
+          zoom:1,
+        },
+        Text:{
+          content:"THU",
+          size:10,
+          position:{
+            x:0,
+            y:0,
+          },
+          color:"#FFFFFF",
+          height:1,
+        }
+      },
+      '3':{
+        Appear:"False",
+        Shape:{
+          type:"Circle",
+          size1:15,
+          size2:15,
+          height:1,
+          color:"#FF0000",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          }
+        },
+        Texture:{
+          file:"",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          },
+          zoom:1,
+        },
+        Text:{
+          content:"THU",
+          size:10,
+          position:{
+            x:0,
+            y:0,
+          },
+          color:"#FFFFFF",
+          height:1,
+        }
+      },
+      '4':{
+        Appear:"False",
+        Shape:{
+          type:"Circle",
+          size1:15,
+          size2:15,
+          height:1,
+          color:"#FF0000",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          }
+        },
+        Texture:{
+          file:"",
+          position:{
+            x:0,
+            y:0,
+            z:0
+          },
+          zoom:1,
+        },
+        Text:{
+          content:"THU",
+          size:10,
+          position:{
+            x:0,
+            y:0,
+          },
+          color:"#FFFFFF",
+          height:1,
+        }
+      },
+    }
+  }
+}
+```
+
 ## 前端项目架构
 - 似乎除了src/目录下的文件都是自动生成的，我们只需要关注src/目录下的文件即可。
 - src/目录下的文件主要包括：
