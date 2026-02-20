@@ -18,13 +18,13 @@ export function ChessProvider({ children }) {
       piece_tags:["tag1","tag2"],
       parts:{
         '1':{
-          Appear:"True",
+          Appear:"False",
           Shape:{
-            type:"circle",
+            type:"Circle",
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -48,18 +48,18 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            color:"#FFFFFF",
             height:1,
           }
         },
         '2':{
-          Appear:"True",
+          Appear:"False",
           Shape:{
-            type:"circle",
+            type:"Circle",
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -83,18 +83,18 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            color:"#FFFFFF",
             height:1,
           }
         },
         '3':{
-          Appear:"True",
+          Appear:"False",
           Shape:{
-            type:"circle",
+            type:"Circle",
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -118,18 +118,18 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            color:"#FFFFFF",
             height:1,
           }
         },
         '4':{
-          Appear:"True",
+          Appear:"False",
           Shape:{
-            type:"circle",
+            type:"Circle",
             size1:15,
             size2:15,
             height:1,
-            color:"FF0000",
+            color:"#FF0000",
             position:{
               x:0,
               y:0,
@@ -153,7 +153,7 @@ export function ChessProvider({ children }) {
               x:0,
               y:0,
             },
-            Color:"FFFFFF",
+            color:"#FFFFFF",
             height:1,
           }
         },
