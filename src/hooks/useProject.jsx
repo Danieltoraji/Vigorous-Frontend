@@ -51,7 +51,8 @@ export function ProjectProvider({ children }) {
   };
 
   //B4 方法：创建项目（向后端发送）
-  const createProject = async (projectData) => {
+  const createProject = async () => {
+    const projectData = { "name": "新项目" };
     try {
       const response = await csrfapi.post('/projects/', projectData);
       const newProject = response.data;

@@ -12,7 +12,7 @@ import './explorer_project.css'
 
 function ExplorerProject() {
   const { userData, loading } = useUser()
-  const { projectData, setProjectData, updateProject, deleteProject } = useProject()
+  const { projectData, setProjectData, updateProject, deleteProject, createProject } = useProject()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentProject, setCurrentProject] = useState(null)
 
@@ -79,6 +79,7 @@ function ExplorerProject() {
         projects={projects}
         onEditProject={handleEditProject}
         onDeleteProject={deleteProject}
+        onCreateProject={createProject}
       />
 
       {isEditModalOpen && currentProject && (
