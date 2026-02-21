@@ -1,166 +1,150 @@
 import { useState, useContext, useEffect, createContext } from 'react';
+import api from '../utils/api.js';
 import { useProject } from './useProject.jsx';
+
 const ChessContext = createContext(null);
 
 export function ChessProvider({ children }) {
   const { projectData } = useProject();
-
   // A 初始化棋子数据。现在是模拟数据。以后会设为空对象。
   const [chessData, setChessData] = useState({
-    20001:{
-      name:"测试棋子1",
-      user:"Hajimi",
-      created_at:"2024-01-01",
-      edited_at:"2024-01-02",
-      id:20001,
-      project_id:"Hajimi-123456",
-      type:"type1",
-      piece_tags:["tag1","tag2"],
-      parts:{
-        '1':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
+    '1': {
+      Appear: "True",
+      Shape: {
+        type: "Box",
+        size1: 10,
+        size2: 10,
+        size3: 2,
+        color: "#0000FF",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      },
+      Texture: {
+        file: "",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
         },
-        '2':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
+        zoom: 1,
+      },
+      Text: {
+        content: "Tsinghua",
+        size: 15,
+        position: {
+          x: 0,
+          y: 0,
         },
-        '3':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '4':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
+        color: "#FFFFFF",
+        height: 1,
       }
-    }
+    },
+    '2': {
+      Appear: "False",
+      Shape: {
+        type: "Circle",
+        size1: 15,
+        size2: 15,
+        height: 1,
+        color: "#FF0000",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      },
+      Texture: {
+        file: "",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        zoom: 1,
+      },
+      Text: {
+        content: "THU",
+        size: 10,
+        position: {
+          x: 0,
+          y: 0,
+        },
+        color: "#FFFFFF",
+        height: 1,
+      }
+    },
+    '3': {
+      Appear: "True",
+      Shape: {
+        type: "Box",
+        size1: 10,
+        size2: 10,
+        size3: 2,
+        color: "#0000FF",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      },
+      Texture: {
+        file: "",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        zoom: 1,
+      },
+      Text: {
+        content: "Tsinghua",
+        size: 15,
+        position: {
+          x: 0,
+          y: 0,
+        },
+        color: "#FFFFFF",
+        height: 1,
+      }
+    },
+    '4': {
+      Appear: "False",
+      Shape: {
+        type: "Circle",
+        size1: 15,
+        size2: 15,
+        height: 1,
+        color: "#FF0000",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      },
+      Texture: {
+        file: "",
+        position: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        zoom: 1,
+      },
+      Text: {
+        content: "THU",
+        size: 10,
+        position: {
+          x: 0,
+          y: 0,
+        },
+        color: "#FFFFFF",
+        height: 1,
+      }
+    },
   })
-
 
   //B 这里要写逻辑和方法，从后端获取棋子数据，向后端同步数据。
   //B1 设置状态管理，包括加载中、错误、最后更新时间。默认：加载中、无错误、无最后更新时间
@@ -173,12 +157,9 @@ export function ChessProvider({ children }) {
     try {
       //B21 向后端请求
       setLoading(true);
-      const url = `/api/pieces/?project=${projectData['Hajimi-123456'].id}`;
-      const response = await fetch(url, {
-        method: 'GET',
-      });
-      if (!response.ok) throw new Error('获取棋子失败');
-      const data = await response.json();
+      const projectId = projectData['Hajimi-123456']?.id;
+      const response = await api.get(`/pieces/?project=${projectId}`);
+      const data = response.data;
       //B22 数据处理
       // 后端返回的数据格式假设是：[{ id: '...', name: '...' }, ...]
       // 要转换成你的格式：{ '棋子id': { ...棋子详情 } }
@@ -210,20 +191,15 @@ export function ChessProvider({ children }) {
   //B4 方法：创建棋子（向后端发送）
   const createChess = async (chessData) => {
     try {
-      const response = await fetch('/api/pieces/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(chessData)
-      });
-      if (!response.ok) throw new Error('创建棋子失败');
-      const newChess = await response.json();
-      
+      const response = await api.post('/pieces/', chessData);
+      const newChess = response.data;
+
       // 后端返回的新棋子应该包含 id
       setChessData(prev => ({
         ...prev,
         [newChess.id]: newChess
       }));
-      
+
       return newChess;
     } catch (err) {
       console.error('创建棋子失败:', err);
@@ -235,7 +211,7 @@ export function ChessProvider({ children }) {
   const updateChess = async (chessId, updatedData) => {
     // 先保存旧值（万一失败要恢复）
     const oldData = chessData[chessId];
-    
+
     // 乐观更新：立即更新界面
     setChessData(prev => ({
       ...prev,
@@ -244,25 +220,19 @@ export function ChessProvider({ children }) {
         ...updatedData
       }
     }));
-    
+
     try {
-      const response = await fetch(`/api/pieces/${chessId}/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)//这里粗暴地将所有字段都发送给后端，无论改没改
-      });
-      
-      if (!response.ok) throw new Error('更新棋子失败');
-      
+      const response = await api.patch(`/pieces/${chessId}/`, updatedData);
+
       // 后端可能返回更新后的完整数据
-      const updatedFromServer = await response.json();
-      
+      const updatedFromServer = response.data;
+
       // 用后端返回的数据再次更新（确保一致）
       setChessData(prev => ({
         ...prev,
         [chessId]: updatedFromServer
       }));
-      
+
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复旧数据
@@ -280,23 +250,18 @@ export function ChessProvider({ children }) {
     // 先保存旧值
     const oldData = { ...chessData };
     const chessExists = chessId in chessData;
-    
+
     if (!chessExists) return;
-    
+
     // 乐观更新：立即从界面移除
     setChessData(prev => {
       const newData = { ...prev };
       delete newData[chessId];
       return newData;
     });
-    
+
     try {
-      const response = await fetch(`/api/pieces/${chessId}/`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('删除棋子失败');
-      
+      await api.delete(`/pieces/${chessId}/`);
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复被删除的棋子
@@ -313,16 +278,16 @@ export function ChessProvider({ children }) {
     loading,
     error,
     lastUpdated,
-    
+
     // 读取方法
     fetchChess,
     refreshChess,
-    
+
     // 修改方法
     createChess,
     updateChess,
     deleteChess,
-    
+
     // 如果你还想保留原始的 setChessData（用于特殊情况）
     setChessData
   };
@@ -334,7 +299,7 @@ export function ChessProvider({ children }) {
   );
 }
 
-  //D 这里是Hook，用于在组件中使用棋子数据。
+//D 这里是Hook，用于在组件中使用棋子数据。
 export function useChess() {
   const context = useContext(ChessContext);
   if (!context) {

@@ -2,204 +2,152 @@
  * 这是DeepSeek提供的，用来实现和后端通信的文件。
  */
 
-import { useState, useContext, createContext, useEffect } from 'react';
+import { useState, useContext, useEffect, createContext } from 'react';
+import api from '../utils/api.js';
 
-const ProjectContext = createContext(null);
+// 创建Context
+const ExampleContext = createContext(null);
 
-export function ProjectProvider({ children }) {
-  // 1. 初始状态改成空对象（等后端来填）
-  const [projectData, setProjectData] = useState({});
-  
-  // 2. 加三个新状态：加载中、错误、最后更新时间
-  const [loading, setLoading] = useState(true);
+// Provider组件
+export function ExampleProvider({ children }) {
+  // 状态管理
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
 
-  // 3. 从后端获取所有项目（页面一加载就执行）
-  const fetchProjects = async () => {
+  // 获取数据的方法
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/projects'); // 你的后端接口地址
-      if (!response.ok) throw new Error('获取项目失败');
-      const data = await response.json();
-      
-      // 后端返回的数据格式假设是：[{ id: '...', name: '...' }, ...]
-      // 要转换成你的格式：{ '项目id': { ...项目详情 } }
-      const projectsMap = {};
-      data.forEach(project => {
-        projectsMap[project.id] = project;
-      });
-      
-      setProjectData(projectsMap);
-      setLastUpdated(new Date().toISOString());
       setError(null);
+      
+      // 使用axios替代fetch
+      const response = await api.get('/projects');
+      setData(response.data);
+      
     } catch (err) {
       setError(err.message);
-      console.error('获取项目失败:', err);
+      console.error('获取数据失败:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 4. 组件加载时自动获取数据
-  useEffect(() => {
-    fetchProjects();
-  }, []); // 空数组，只在第一次加载时执行
-
-  // 5. 获取单个项目（如果需要）
-  const fetchProject = async (projectId) => {
+  // 获取单个项目的详细信息
+  const fetchProjectDetail = async (projectId) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}`);
-      if (!response.ok) throw new Error('获取项目详情失败');
-      const project = await response.json();
+      setLoading(true);
+      setError(null);
       
-      // 更新这个项目的数据
-      setProjectData(prev => ({
-        ...prev,
-        [projectId]: project
-      }));
+      // 使用axios替代fetch
+      const response = await api.get(`/projects/${projectId}`);
+      return response.data;
+      
     } catch (err) {
+      setError(err.message);
       console.error('获取项目详情失败:', err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 6. 创建新项目
+  // 创建新项目
   const createProject = async (projectData) => {
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData)
-      });
-      if (!response.ok) throw new Error('创建项目失败');
-      const newProject = await response.json();
+      setLoading(true);
+      setError(null);
       
-      // 后端返回的新项目应该包含 id
-      setProjectData(prev => ({
-        ...prev,
-        [newProject.id]: newProject
-      }));
+      // 使用axios替代fetch
+      const response = await api.post('/projects', projectData);
+      const newProject = response.data;
       
+      // 更新本地数据
+      setData(prev => [...prev, newProject]);
       return newProject;
+      
     } catch (err) {
+      setError(err.message);
       console.error('创建项目失败:', err);
-      throw err; // 让组件知道失败了
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 7. 更新项目（核心的双向通信！）
+  // 更新项目
   const updateProject = async (projectId, updatedData) => {
-    // 先保存旧值（万一失败要恢复）
-    const oldData = projectData[projectId];
-    
-    // 乐观更新：立即更新界面
-    setProjectData(prev => ({
-      ...prev,
-      [projectId]: {
-        ...prev[projectId],
-        ...updatedData
-      }
-    }));
-    
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)
-      });
+      setLoading(true);
+      setError(null);
       
-      if (!response.ok) throw new Error('更新项目失败');
+      // 使用axios替代fetch
+      const response = await api.patch(`/projects/${projectId}`, updatedData);
+      const updatedProject = response.data;
       
-      // 后端可能返回更新后的完整数据
-      const updatedFromServer = await response.json();
+      // 更新本地数据
+      setData(prev => 
+        prev.map(item => 
+          item.id === projectId ? updatedProject : item
+        )
+      );
       
-      // 用后端返回的数据再次更新（确保一致）
-      setProjectData(prev => ({
-        ...prev,
-        [projectId]: updatedFromServer
-      }));
+      return updatedProject;
       
-      setLastUpdated(new Date().toISOString());
     } catch (err) {
-      // 失败：恢复旧数据
-      setProjectData(prev => ({
-        ...prev,
-        [projectId]: oldData
-      }));
+      setError(err.message);
       console.error('更新项目失败:', err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 8. 删除项目
+  // 删除项目
   const deleteProject = async (projectId) => {
-    // 先保存旧值
-    const oldData = { ...projectData };
-    const projectExists = projectId in projectData;
-    
-    if (!projectExists) return;
-    
-    // 乐观更新：立即从界面移除
-    setProjectData(prev => {
-      const newData = { ...prev };
-      delete newData[projectId];
-      return newData;
-    });
-    
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'DELETE'
-      });
+      setLoading(true);
+      setError(null);
       
-      if (!response.ok) throw new Error('删除项目失败');
+      // 使用axios替代fetch
+      await api.delete(`/projects/${projectId}`);
       
-      setLastUpdated(new Date().toISOString());
+      // 更新本地数据
+      setData(prev => prev.filter(item => item.id !== projectId));
+      
     } catch (err) {
-      // 失败：恢复被删除的项目
-      setProjectData(oldData);
+      setError(err.message);
       console.error('删除项目失败:', err);
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 9. 手动刷新（用户下拉刷新时用）
-  const refreshProjects = () => {
-    fetchProjects();
-  };
-
-  // 10. 提供给组件的数据和方法
+  // Context值
   const value = {
-    // 数据
-    projectData,
+    data,
     loading,
     error,
-    lastUpdated,
-    
-    // 读取方法
-    getProject: (id) => projectData[id],
-    refreshProjects,
-    fetchProject,
-    
-    // 修改方法
+    fetchData,
+    fetchProjectDetail,
     createProject,
     updateProject,
-    deleteProject,
-    
-    // 如果你还想保留原始的 setProjectData（用于特殊情况）
-    setProjectData
+    deleteProject
   };
 
   return (
-    <ProjectContext.Provider value={value}>
+    <ExampleContext.Provider value={value}>
       {children}
-    </ProjectContext.Provider>
+    </ExampleContext.Provider>
   );
 }
 
-export function useProject() {
-  const context = useContext(ProjectContext);
+// Hook
+export function useExample() {
+  const context = useContext(ExampleContext);
   if (!context) {
-    throw new Error('useProject must be used within a ProjectProvider');
+    throw new Error('useExample must be used within an ExampleProvider');
   }
   return context;
 }

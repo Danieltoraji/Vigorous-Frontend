@@ -1,39 +1,22 @@
+import axios from 'axios';
+
+// 创建 axios 实例
+const api = axios.create({
+  baseURL: '/api', // 所有请求都会加上这个前缀
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export default api;
 import { useState, useContext, useEffect, createContext } from 'react';
 const ProjectContext = createContext(null);
+import api from '../utils/api';
 
 export function ProjectProvider({ children }) {
 
   // A 初始化项目数据。现在是模拟数据。以后会设为空对象。
-  const [projectData, setProjectData] = useState({
-    'Hajimi-123456': {
-      name: 'Vigorous-Test-Project',
-      user: 'Hajimi',
-      created_at: 'date1',
-      edited_at: 'date2',
-      id: 'Hajimi-123456',
-      description: 'Oiiaioiiiiai',
-      status: 'editable',
-      feature: {
-        shape: 'square',
-        size: 10,
-      },
-      project_tags: ['type1', 'type2'],
-    },
-    'Hajimi-456789': {
-      name: 'Vigorous-Test-Project',
-      user: 'Hajimi',
-      created_at: 'date3',
-      edited_at: 'date4',
-      id: 'Hajimi-456789',
-      description: '第二个测试项目',
-      status: 'archived',
-      feature: {
-        shape: 'square',
-        size: 10,
-      },
-      project_tags: ['type3', 'type4'],
-    },
-  });
+  const [projectData, setProjectData] = useState({});
 
   //B 这里要写逻辑和方法，从后端获取项目数据，向后端同步数据。
   //B1 设置状态管理，包括加载中、错误、最后更新时间。默认：加载中、无错误、无最后更新时间
@@ -47,11 +30,8 @@ export function ProjectProvider({ children }) {
       //B21 向后端请求
       setLoading(true);
       console.log('开始获取项目数据...');
-      const response = await fetch('/api/projects/', {
-        method: 'GET',
-      });
-      if (!response.ok) throw new Error('获取项目失败');
-      const data = await response.json();
+      const response = await api.get('/projects/');
+      const data = response.data;
       //B22 数据处理
       // 后端返回的数据格式假设是：[{ id: '...', name: '...' }, ...]
       // 要转换成你的格式：{ '项目id': { ...项目详情 } }
@@ -83,13 +63,8 @@ export function ProjectProvider({ children }) {
   //B4 方法：创建项目（向后端发送）
   const createProject = async (projectData) => {
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData)
-      });
-      if (!response.ok) throw new Error('创建项目失败');
-      const newProject = await response.json();
+      const response = await api.post('/projects', projectData);
+      const newProject = response.data;
 
       // 后端返回的新项目应该包含 id
       setProjectData(prev => ({
@@ -151,6 +126,7 @@ export function ProjectProvider({ children }) {
 
   //B5 方法：更新项目（修改项目字段后向后端发送）
   const updateProject = async (projectId, updatedData) => {
+    console.log('开始更新项目数据...');
     // 先保存旧值（万一失败要恢复）
     const oldData = projectData[projectId];
 
@@ -164,16 +140,11 @@ export function ProjectProvider({ children }) {
     }));
 
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)//这里粗暴地将所有字段都发送给后端，无论改没改
-      });
 
-      if (!response.ok) throw new Error('更新项目失败');
-
+      const response = await api.patch(`/projects/${projectId}`, updatedData);
+      
       // 后端可能返回更新后的完整数据
-      const updatedFromServer = await response.json();
+      const updatedFromServer = response.data;
 
       // 用后端返回的数据再次更新（确保一致）
       setProjectData(prev => ({
@@ -209,11 +180,7 @@ export function ProjectProvider({ children }) {
     });
 
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) throw new Error('删除项目失败');
+      await api.delete(`/projects/${projectId}`);
 
       setLastUpdated(new Date().toISOString());
     } catch (err) {

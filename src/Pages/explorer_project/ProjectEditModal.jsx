@@ -55,60 +55,60 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
             ×
           </button>
         </div>
-        
+
         <form className="modal-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="name" className="form-label">项目名称</label>
-            <input 
-              type="text" 
-              id="name" 
-              name="name" 
-              className="form-input" 
-              value={formData.name} 
-              onChange={handleChange} 
+            <input
+              type="text"
+              id="name"
+              name="name"
+              className="form-input"
+              value={formData.name}
+              onChange={handleChange}
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="description" className="form-label">项目描述</label>
-            <textarea 
-              id="description" 
-              name="description" 
-              className="form-textarea" 
-              value={formData.description} 
-              onChange={handleChange} 
+            <textarea
+              id="description"
+              name="description"
+              className="form-textarea"
+              value={formData.description}
+              onChange={handleChange}
               rows="4"
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="status" className="form-label">项目状态</label>
-            <select 
-              id="status" 
-              name="status" 
-              className="form-input" 
-              value={formData.status} 
-              onChange={handleChange} 
+            <select
+              id="status"
+              name="status"
+              className="form-input"
+              value={formData.status}
+              onChange={handleChange}
             >
               <option value="Editable">Editable</option>
               <option value="Archieved">Archieved</option>
               <option value="Protected">Protected</option>
             </select>
           </div>
-          
+
           <div className="form-group">
-            <label htmlFor="tags" className="form-label">项目标签（用逗号分隔）</label>
-            <input 
-              type="text" 
-              id="tags" 
-              name="tags" 
-              className="form-input" 
-              value={formData.project_tags.join(', ')} 
-              onChange={handleTagChange} 
+            <label htmlFor="tags" className="form-label">项目标签（用英文逗号分隔）</label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              className="form-input"
+              value={formData.project_tags.join(', ')}
+              onChange={handleTagChange}
             />
           </div>
-          
+
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               取消

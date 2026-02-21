@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, createContext, use } from 'react';
-
+import api from '../utils/api.js';
 
 const UserContext = createContext(null);
 
@@ -12,13 +12,9 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     // 从后端获取用户数据
-    fetch('/api/getuser/')
-      .then(res => {
-        if (!res.ok) throw new Error('未登录');
-        return res.json();
-      })
-      .then(data => {
-        setUserData(data);
+    api.get('/getuser/')
+      .then(response => {
+        setUserData(response.data);
         setLoading(false);
       })
       .catch(error => {
