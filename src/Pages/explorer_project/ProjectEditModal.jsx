@@ -91,9 +91,9 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
               value={formData.status}
               onChange={handleChange}
             >
-              <option value="Editable">Editable</option>
-              <option value="Archieved">Archieved</option>
-              <option value="Protected">Protected</option>
+              <option value="editable">可编辑</option>
+              <option value="archived">已归档</option>
+              <option value="protected">锁定</option>
             </select>
           </div>
 
