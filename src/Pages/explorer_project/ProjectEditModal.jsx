@@ -8,15 +8,18 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
     status: '',
     project_tags: []
   })
+  const [tagInput, setTagInput] = useState('')
 
   useEffect(() => {
     if (project) {
+      const tags = Array.isArray(project.project_tags) ? [...project.project_tags] : [project.project_tags].filter(Boolean)
       setFormData({
         name: project.name,
         description: project.description,
         status: project.status,
-        project_tags: Array.isArray(project.project_tags) ? [...project.project_tags] : [project.project_tags].filter(Boolean)
+        project_tags: tags
       })
+      setTagInput(tags.join(', '))
     }
   }, [project])
 
@@ -29,11 +32,16 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
   }
 
   const handleTagChange = (e) => {
-    const project_tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+    setTagInput(e.target.value)
+  }
+
+  const handleTagBlur = () => {
+    const project_tags = tagInput.split(',').map(tag => tag.trim()).filter(tag => tag)
     setFormData(prev => ({
       ...prev,
       project_tags
     }))
+    setTagInput(project_tags.join(', '))
   }
 
   const handleSubmit = (e) => {
@@ -104,8 +112,9 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
               id="tags" 
               name="tags" 
               className="form-input" 
-              value={formData.project_tags.join(', ')} 
-              onChange={handleTagChange} 
+              value={tagInput} 
+              onChange={handleTagChange}
+              onBlur={handleTagBlur}
             />
           </div>
           
