@@ -20,7 +20,7 @@ function App() {
         <div>
           {/* 2. 导航菜单 - 像饭店的菜单列表 */}
           <nav>
-            <Link to="/">功能菜单</Link> |
+            <Link to="/menu">功能菜单</Link> |
             <Link to="/explorer-project">项目资源管理器</Link> |
             <Link to="/explorer-texture">贴图资源管理器</Link> |
             <Link to="/explorer-templates">模板资源管理器</Link> |
@@ -29,7 +29,7 @@ function App() {
 
           {/* 3. 路由规则 - 告诉 React 哪个地址显示哪个页面 */}
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/menu" element={<Home />} />
             <Route path="/explorer-project" element={<ExplorerProject />} />
             <Route path="/explorer-texture" element={<ExplorerTexture />} />
             <Route path="/explorer-templates" element={<ExplorerTemplates />} />
