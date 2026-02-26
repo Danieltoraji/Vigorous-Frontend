@@ -6,8 +6,8 @@ function ProjectItem({ project, onEditProject, onDeleteProject }) {
   const navigate = useNavigate()
 
   const handleOpenProject = () => {
-    // 导航到项目编辑器页面，并传递项目ID
-    navigate('/project-editor', { state: { projectId: project.id } })
+    // 导航到项目编辑器页面，并使用url传递项目ID
+    navigate(`/project-editor/${project.id}`);
   }
   // 格式化日期
   const formatDate = (dateString) => {

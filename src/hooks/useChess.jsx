@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, createContext } from 'react';
+import { useState, useContext, useEffect, createContext, useCallback } from 'react';
 import csrfapi from '../utils/csrfapi.js';
 import { useProject } from './useProject.jsx';
 
@@ -325,8 +325,7 @@ export function ChessProvider({ children }) {
     try {
       //B21 向后端请求
       setLoading(true);
-      const projectId = projectData['Hajimi-123456']?.id;
-      const response = await csrfapi.get(`/pieces/?project=${projectId}`);
+      const response = await csrfapi.get(`/pieces`);
       const data = response.data;
       //B22 数据处理
       // 后端返回的数据格式假设是：[{ id: '...', name: '...' }, ...]
@@ -341,33 +340,31 @@ export function ChessProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取棋子失败:', err);
+      console.error('获取所有棋子失败:', err);
     } finally {
       setLoading(false);
     }
   }
 
   //B2.1 方法：按项目获取棋子列表
-  const getPiecesByProject = async (projectId, filters = {}) => {
+  const getPiecesByProject = useCallback(async (projectId, filters = {}) => {
     try {
       setLoading(true);
-      // 构建查询参数
-      const queryParams = new URLSearchParams({ project: projectId });
-      if (filters.type) queryParams.append('type', filters.type);
-      if (filters.tags) {
-        filters.tags.forEach(tag => queryParams.append('tags', tag));
-      }
-      if (filters.sortBy) queryParams.append('sort_by', filters.sortBy);
-      if (filters.sortOrder) queryParams.append('sort_order', filters.sortOrder);
-      if (filters.page) queryParams.append('page', filters.page);
-      if (filters.pageSize) queryParams.append('page_size', filters.pageSize);
 
-      const url = `/api/pieces/?${queryParams.toString()}`;
-      const response = await fetch(url, {
-        method: 'GET',
+      // 使用 Axios 的 params 对象，它会自动处理 URL 编码，比 URLSearchParams 更简洁
+      const response = await csrfapi.get('/pieces/', {
+        params: {
+          project: projectId,
+          type: filters.type,
+          tags: filters.tags, // Axios 支持数组转换
+          sort_by: filters.sortBy,
+          sort_order: filters.sortOrder,
+          page: filters.page,
+          page_size: filters.pageSize
+        }
       });
-      if (!response.ok) throw new Error('获取棋子列表失败');
-      const data = await response.json();
+
+      const data = response.data;
 
       // 处理数据
       const chessMap = {};
@@ -381,22 +378,24 @@ export function ChessProvider({ children }) {
       return data;
     } catch (err) {
       setError(err.message);
-      console.error('获取棋子列表失败:', err);
+      console.error('获取项目棋子列表失败:', err);
       // 过滤本地数据作为 fallback
       const filteredData = Object.values(chessData).filter(piece => piece.project_id === projectId);
       return filteredData;
     } finally {
       setLoading(false);
     }
-  }
+  }, [])
   //B2' 组件加载时自动运行B2获取数据
   useEffect(() => {
-    fetchChess();
+    // fetchChess();  
+    // 先只获取指定项目的棋子
   }, []);
 
   //B3 方法：刷新（从后端拉取）棋子数据
   const refreshChess = () => {
-    fetchChess();
+    // fetchChess();
+    // 先只获取指定项目的棋子
   };
 
   //B4 方法：创建棋子（向后端发送）

@@ -35,6 +35,7 @@ function App() {
             <Route path="/explorer-templates" element={<ExplorerTemplates />} />
             <Route path="/chess-editor" element={<ChessEditor />} />
             <Route path="/project-editor" element={<ProjectEditor />} />
+            <Route path="/project-editor/:id" element={<ProjectEditor />} />
             <Route path="/test" element={<Test />} />
           </Routes>
         </div>
