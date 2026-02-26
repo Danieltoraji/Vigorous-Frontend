@@ -115,10 +115,7 @@ const ChessPieces = ({ projectId }) => {
         <h2>棋子管理</h2>
         <div className="chess-pieces-controls">
           <button className="create-button" onClick={() => {
-            createChess({
-              name: '新棋子',
-              project: projectId
-            })
+            createChess(projectId);
           }}>+ 创建新棋子</button>
           <ViewControls
             viewMode={viewMode}
@@ -141,14 +138,16 @@ const ChessPieces = ({ projectId }) => {
         </div>
       </div>
 
-      {showFilter && (
-        <FilterPanel
-          selectedTags={selectedTags}
-          onTagsChange={setSelectedTags}
-          filterLogic={filterLogic}
-          onLogicChange={setFilterLogic}
-        />
-      )}
+      {
+        showFilter && (
+          <FilterPanel
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            filterLogic={filterLogic}
+            onLogicChange={setFilterLogic}
+          />
+        )
+      }
 
       <div className="chess-pieces-content">
         {loading ? (
@@ -180,22 +179,26 @@ const ChessPieces = ({ projectId }) => {
         onPageSizeChange={setPageSize}
       />
 
-      {editingPiece && (
-        <EditChessModal
-          piece={editingPiece}
-          onSave={handleSaveEdit}
-          onCancel={() => setEditingPiece(null)}
-        />
-      )}
+      {
+        editingPiece && (
+          <EditChessModal
+            piece={editingPiece}
+            onSave={handleSaveEdit}
+            onCancel={() => setEditingPiece(null)}
+          />
+        )
+      }
 
-      {deletingPiece && (
-        <DeleteConfirmModal
-          piece={deletingPiece}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setDeletingPiece(null)}
-        />
-      )}
-    </div>
+      {
+        deletingPiece && (
+          <DeleteConfirmModal
+            piece={deletingPiece}
+            onConfirm={handleConfirmDelete}
+            onCancel={() => setDeletingPiece(null)}
+          />
+        )
+      }
+    </div >
   );
 };
 

@@ -399,8 +399,12 @@ export function ChessProvider({ children }) {
   };
 
   //B4 方法：创建棋子（向后端发送）
-  const createChess = async (chessData) => {
+  const createChess = async (projectId) => {
     try {
+      const chessData = {
+        name: '新棋子',
+        project: projectId
+      }
       const response = await csrfapi.post('/pieces/', chessData);
       const newChess = response.data;
 

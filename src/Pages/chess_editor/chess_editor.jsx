@@ -11,13 +11,13 @@ function ChessEditor() {
   const [currentChess, setCurrentChess] = useState(location.state?.piece || Object.values(chessData)[0] || null);
   const [selectedPart, setSelectedPart] = useState('1'); // 默认选中
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
-  
+
   // 拖拽相关状态
   const [leftWidth, setLeftWidth] = useState(200); // 左侧面板宽度
   const [rightWidth, setRightWidth] = useState(350); // 右侧面板宽度
   const [isDraggingLeft, setIsDraggingLeft] = useState(false); // 左侧拖拽状态
   const [isDraggingRight, setIsDraggingRight] = useState(false); // 右侧拖拽状态
-  
+
   // 引用
   const editorContentRef = useRef(null);
 
@@ -45,20 +45,20 @@ function ChessEditor() {
 
     // 深度克隆当前数据
     const updatedChess = JSON.parse(JSON.stringify(currentChess));
-    
+
     // 根据路径更新数据
     const keys = path.split('.');
     let target = updatedChess;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       target = target[keys[i]];
     }
-    
+
     target[keys[keys.length - 1]] = value;
 
     // 更新本地状态
     setCurrentChess(updatedChess);
-    
+
     // 更新全局状态
     setChessData(prev => ({
       ...prev,
@@ -69,11 +69,11 @@ function ChessEditor() {
   // 处理保存
   const handleSave = async () => {
     if (!currentChess) return;
-    
+
     try {
       // 调用updateChess方法向后端保存数据
       await updateChess(currentChess.id, currentChess);
-      
+
       // 更新保存时间
       setLastSaved(new Date().toLocaleString());
       alert('保存成功！');
@@ -94,28 +94,28 @@ function ChessEditor() {
       state: { projectId: currentChess?.project_id || 'Hajimi-123456' }
     });
   };
-  
+
   // 拖拽处理函数
   const handleMouseDownLeft = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingLeft(true);
   };
-  
+
   const handleMouseDownRight = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingRight(true);
   };
-  
+
   const handleMouseMove = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!editorContentRef.current) return;
-    
+
     const containerRect = editorContentRef.current.getBoundingClientRect();
-    
+
     if (isDraggingLeft) {
       const newWidth = e.clientX - containerRect.left;
       // 设置最小和最大宽度限制
@@ -123,7 +123,7 @@ function ChessEditor() {
         setLeftWidth(newWidth);
       }
     }
-    
+
     if (isDraggingRight) {
       const newWidth = containerRect.right - e.clientX;
       // 设置最小和最大宽度限制
@@ -132,18 +132,18 @@ function ChessEditor() {
       }
     }
   };
-  
+
   const handleMouseUp = () => {
     setIsDraggingLeft(false);
     setIsDraggingRight(false);
   };
-  
+
   // 添加全局鼠标事件监听器
   useEffect(() => {
     if (isDraggingLeft || isDraggingRight) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      
+
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
@@ -153,35 +153,99 @@ function ChessEditor() {
 
   // 渲染数据编辑控件
   const renderDataEditor = () => {
-    if (!currentChess || !currentChess.parts[selectedPart]) return null;
+    if (!currentChess) {
+      console.error('当前棋子数据为空');
+      return null
+    };
+
+    // 检查并初始化parts数据
+    if (!currentChess.parts || Object.keys(currentChess.parts).length === 0) {
+      console.warn('当前棋子数据缺少部件数据，正在初始化默认值');
+
+      // 创建默认的部件数据结构
+      const defaultParts = {};
+      for (let i = 1; i <= 4; i++) {
+        defaultParts[i.toString()] = {
+          Appear: "False",
+          Shape: {
+            type: "Circle",
+            size1: 15,
+            size2: 15,
+            height: 1,
+            color: "#FF0000",
+            position: {
+              x: 0,
+              y: 0,
+              z: 0
+            }
+          },
+          Texture: {
+            file: "",
+            position: {
+              x: 0,
+              y: 0,
+              z: 0
+            },
+            zoom: 1,
+          },
+          Text: {
+            content: "THU",
+            size: 10,
+            position: {
+              x: 0,
+              y: 0,
+            },
+            color: "#FFFFFF",
+            height: 1,
+          }
+        };
+      }
+
+      // 更新当前棋子数据
+      const updatedChess = {
+        ...currentChess,
+        parts: defaultParts
+      };
+
+      setCurrentChess(updatedChess);
+
+      // 同时更新全局状态
+      setChessData(prev => ({
+        ...prev,
+        [currentChess.id]: updatedChess
+      }));
+
+      // 由于状态更新是异步的，这里返回null让组件重新渲染
+      return null;
+    }
 
     const partData = currentChess.parts[selectedPart];
-    
+
     const getSafeValue = (value, defaultValue) => {// 安全获取值，处理undefined和null的情况。当值为null或undefined时，返回默认值。
       return value !== undefined && value !== null ? value : defaultValue;
     };
-    
+
     const shape = partData.Shape || {};
     const shapePosition = shape.position || {};
     const texture = partData.Texture || {};
     const texturePosition = texture.position || {};
     const text = partData.Text || {};
     const textPosition = text.position || {};
-    
-    const partnames = ['基座层','地面层','支撑杆','空中层']
+
+    const partnames = ['基座层', '地面层', '支撑杆', '空中层']
 
     return (
       <div className="data-editor">
         <h3>参数调节</h3>
-        <h2>{selectedPart} {partnames[selectedPart-1]}</h2>
-        
+        <h2>{selectedPart} {partnames[selectedPart - 1]}</h2>
+
         {/* Appear开关 */}
         <div style={{ marginTop: '10px' }}></div>
         <div className="editor-item">
           <label>启用：</label>
           <div className="toggle-switch">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               id={`appear-toggle-${selectedPart}`}
               checked={partData.Appear === "True"}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Appear`, e.target.checked ? "True" : "False")}
@@ -193,11 +257,11 @@ function ChessEditor() {
         {/* Shape部分 */}
         <div className={`editor-section ${partData.Appear === "True" ? "visible" : "hidden"}`}>
           <h4>形状</h4>
-          
+
           <div className="editor-item">
             <label>类型：</label>
-            <select 
-              value={getSafeValue(shape.type, 'Circle')} 
+            <select
+              value={getSafeValue(shape.type, 'Circle')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.type`, e.target.value)}
             >
               <option value="Circle">圆形</option>
@@ -210,18 +274,18 @@ function ChessEditor() {
 
           <div className="editor-item">
             <label>X大小：</label>
-            <input 
-              type="range" 
-              min="1" 
-              max="50" 
-              value={getSafeValue(shape.size1, 15)} 
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={getSafeValue(shape.size1, 15)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.size1`, parseInt(e.target.value))}
             />
-            <input 
-              type="number" 
-              min="1" 
-              max="50" 
-              value={getSafeValue(shape.size1, 15)} 
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={getSafeValue(shape.size1, 15)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.size1`, parseInt(e.target.value))}
               className="number-input"
             />
@@ -229,18 +293,18 @@ function ChessEditor() {
 
           <div className="editor-item">
             <label>Z大小（仅对矩形生效）：</label>
-            <input 
-              type="range" 
-              min="1" 
-              max="50" 
-              value={getSafeValue(shape.size2, 15)} 
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={getSafeValue(shape.size2, 15)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.size2`, parseInt(e.target.value))}
             />
-            <input 
-              type="number" 
-              min="1" 
-              max="50" 
-              value={getSafeValue(shape.size2, 15)} 
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={getSafeValue(shape.size2, 15)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.size2`, parseInt(e.target.value))}
               className="number-input"
             />
@@ -248,20 +312,20 @@ function ChessEditor() {
 
           <div className="editor-item">
             <label>高度：</label>
-            <input 
-              type="range" 
-              min="0.1" 
-              max="20" 
-              step="0.1" 
-              value={getSafeValue(shape.height, 1)} 
+            <input
+              type="range"
+              min="0.1"
+              max="20"
+              step="0.1"
+              value={getSafeValue(shape.height, 1)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.height`, parseFloat(e.target.value))}
             />
-            <input 
-              type="number" 
-              min="0.1" 
-              max="20" 
-              step="0.1" 
-              value={getSafeValue(shape.height, 1)} 
+            <input
+              type="number"
+              min="0.1"
+              max="20"
+              step="0.1"
+              value={getSafeValue(shape.height, 1)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.height`, parseFloat(e.target.value))}
               className="number-input"
             />
@@ -269,15 +333,15 @@ function ChessEditor() {
 
           <div className="editor-item">
             <label>颜色：</label>
-            <input 
-              type="color" 
-              value={getSafeValue(shape.color, '#FF0000')} 
+            <input
+              type="color"
+              value={getSafeValue(shape.color, '#FF0000')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.color`, e.target.value)}
               className="color-picker"
             />
-            <input 
-              type="text" 
-              value={getSafeValue(shape.color, '#FF0000')} 
+            <input
+              type="text"
+              value={getSafeValue(shape.color, '#FF0000')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.color`, e.target.value.startsWith('#') ? e.target.value.toUpperCase() : '#' + e.target.value.toUpperCase())}
               className="color-input"
             />
@@ -288,54 +352,54 @@ function ChessEditor() {
             <h5>位置</h5>
             <div className="editor-item">
               <label>X：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(shapePosition.x, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(shapePosition.x, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.position.x`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(shapePosition.x, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(shapePosition.x, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.position.x`, parseInt(e.target.value))}
                 className="number-input"
               />
             </div>
             <div className="editor-item">
               <label>Y：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(shapePosition.y, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(shapePosition.y, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.position.y`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(shapePosition.y, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(shapePosition.y, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.position.y`, parseInt(e.target.value))}
                 className="number-input"
               />
             </div>
             <div className="editor-item">
               <label>Z：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(shapePosition.z, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(shapePosition.z, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.position.z`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(shapePosition.z, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(shapePosition.z, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Shape.position.z`, parseInt(e.target.value))}
                 className="number-input"
               />
@@ -348,28 +412,28 @@ function ChessEditor() {
           <h4>贴图</h4>
           <div className="editor-item">
             <label>文件：</label>
-            <input 
-              type="text" 
-              value={getSafeValue(texture.file, '')} 
+            <input
+              type="text"
+              value={getSafeValue(texture.file, '')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.file`, e.target.value)}
             />
           </div>
           <div className="editor-item">
             <label>缩放：</label>
-            <input 
-              type="range" 
-              min="0.1" 
-              max="5" 
-              step="0.1" 
-              value={getSafeValue(texture.zoom, 1)} 
+            <input
+              type="range"
+              min="0.1"
+              max="5"
+              step="0.1"
+              value={getSafeValue(texture.zoom, 1)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.zoom`, parseFloat(e.target.value))}
             />
-            <input 
-              type="number" 
-              min="0.1" 
-              max="5" 
-              step="0.1" 
-              value={getSafeValue(texture.zoom, 1)} 
+            <input
+              type="number"
+              min="0.1"
+              max="5"
+              step="0.1"
+              value={getSafeValue(texture.zoom, 1)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.zoom`, parseFloat(e.target.value))}
               className="number-input"
             />
@@ -379,36 +443,36 @@ function ChessEditor() {
             <h5>位置</h5>
             <div className="editor-item">
               <label>X：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(texturePosition.x, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(texturePosition.x, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.position.x`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(texturePosition.x, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(texturePosition.x, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.position.x`, parseInt(e.target.value))}
                 className="number-input"
               />
             </div>
             <div className="editor-item">
               <label>Y：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(texturePosition.y, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(texturePosition.y, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.position.y`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(texturePosition.y, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(texturePosition.y, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Texture.position.y`, parseInt(e.target.value))}
                 className="number-input"
               />
@@ -421,61 +485,61 @@ function ChessEditor() {
           <h4>文字</h4>
           <div className="editor-item">
             <label>内容：</label>
-            <input 
-              type="text" 
-              value={getSafeValue(text.content, '')} 
+            <input
+              type="text"
+              value={getSafeValue(text.content, '')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.content`, e.target.value)}
             />
           </div>
           <div className="editor-item">
             <label>大小：</label>
-            <input 
-              type="range" 
-              min="1" 
-              max="20" 
-              value={getSafeValue(text.size, 10)} 
+            <input
+              type="range"
+              min="1"
+              max="20"
+              value={getSafeValue(text.size, 10)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.size`, parseInt(e.target.value))}
             />
-            <input 
-              type="number" 
-              min="1" 
-              max="20" 
-              value={getSafeValue(text.size, 10)} 
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={getSafeValue(text.size, 10)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.size`, parseInt(e.target.value))}
               className="number-input"
             />
           </div>
           <div className="editor-item">
             <label>颜色：</label>
-            <input 
-              type="color" 
-              value={getSafeValue(text.color || text.Color, '#FFFFFF')} 
+            <input
+              type="color"
+              value={getSafeValue(text.color || text.Color, '#FFFFFF')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.color`, e.target.value)}
               className="color-picker"
             />
-            <input 
-              type="text" 
-              value={getSafeValue(text.color || text.Color, '#FFFFFF')} 
+            <input
+              type="text"
+              value={getSafeValue(text.color || text.Color, '#FFFFFF')}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.color`, e.target.value.startsWith('#') ? e.target.value.toUpperCase() : '#' + e.target.value.toUpperCase())}
               className="color-input"
             />
           </div>
           <div className="editor-item">
             <label>高度：</label>
-            <input 
-              type="range" 
-              min="0.1" 
-              max="5" 
-              step="0.1" 
-              value={getSafeValue(text.height, 1)} 
+            <input
+              type="range"
+              min="0.1"
+              max="5"
+              step="0.1"
+              value={getSafeValue(text.height, 1)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.height`, parseFloat(e.target.value))}
             />
-            <input 
-              type="number" 
-              min="0.1" 
-              max="5" 
-              step="0.1" 
-              value={getSafeValue(text.height, 1)} 
+            <input
+              type="number"
+              min="0.1"
+              max="5"
+              step="0.1"
+              value={getSafeValue(text.height, 1)}
               onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.height`, parseFloat(e.target.value))}
               className="number-input"
             />
@@ -485,36 +549,36 @@ function ChessEditor() {
             <h5>位置</h5>
             <div className="editor-item">
               <label>X：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(textPosition.x, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(textPosition.x, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.position.x`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(textPosition.x, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(textPosition.x, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.position.x`, parseInt(e.target.value))}
                 className="number-input"
               />
             </div>
             <div className="editor-item">
               <label>Y：</label>
-              <input 
-                type="range" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(textPosition.y, 0)} 
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                value={getSafeValue(textPosition.y, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.position.y`, parseInt(e.target.value))}
               />
-              <input 
-                type="number" 
-                min="-50" 
-                max="50" 
-                value={getSafeValue(textPosition.y, 0)} 
+              <input
+                type="number"
+                min="-50"
+                max="50"
+                value={getSafeValue(textPosition.y, 0)}
                 onChange={(e) => handleDataUpdate(`parts.${selectedPart}.Text.position.y`, parseInt(e.target.value))}
                 className="number-input"
               />
@@ -545,25 +609,25 @@ function ChessEditor() {
         <aside className="part-selector" style={{ width: `${leftWidth}px` }}>
           <h3>部件选择</h3>
           <div className="part-buttons">
-            <button 
+            <button
               className={`part-button ${selectedPart === '4' ? 'active' : ''}`}
               onClick={() => handlePartSelect('4')}
             >
               空中层
             </button>
-            <button 
+            <button
               className={`part-button ${selectedPart === '3' ? 'active' : ''}`}
               onClick={() => handlePartSelect('3')}
             >
               支撑杆
             </button>
-            <button 
+            <button
               className={`part-button ${selectedPart === '2' ? 'active' : ''}`}
               onClick={() => handlePartSelect('2')}
             >
               地面层
             </button>
-            <button 
+            <button
               className={`part-button ${selectedPart === '1' ? 'active' : ''}`}
               onClick={() => handlePartSelect('1')}
             >
@@ -572,9 +636,9 @@ function ChessEditor() {
             <p>棋子数据临时概览：{JSON.stringify(chessData)}</p>
           </div>
         </aside>
-        
+
         {/* 左侧拖拽手柄 */}
-        <div 
+        <div
           className={`resize-handle resize-handle-left ${isDraggingLeft ? 'dragging' : ''}`}
           onMouseDown={handleMouseDownLeft}
         ></div>
@@ -583,9 +647,9 @@ function ChessEditor() {
         <main className="preview-area">
           <ModelRenderer chess={currentChess} />
         </main>
-        
+
         {/* 右侧拖拽手柄 */}
-        <div 
+        <div
           className={`resize-handle resize-handle-right ${isDraggingRight ? 'dragging' : ''}`}
           onMouseDown={handleMouseDownRight}
         ></div>
