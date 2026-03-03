@@ -4,10 +4,7 @@ import csrfapi from '../utils/csrfapi.js';
 const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
-  const [userData, setUserData] = useState({
-    id: '31415926',
-    username: 'Hajimi',
-  });
+  const [userData, setUserData] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
