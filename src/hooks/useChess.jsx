@@ -93,6 +93,13 @@ export function ChessProvider({ children }) {
     // 先只获取指定项目的棋子
   };
 
+  //B3.5 根据棋子id获取数据
+  // 由于刷新会掉state，故考虑将信息存储在url
+  const getChessById = async (chessId) => {
+    const response = await csrfapi.get(`/pieces/${chessId}/`);
+    return response.data;
+  };
+
   //B4 方法：创建棋子（向后端发送）
   const createChess = async (projectId) => {
     try {
@@ -191,6 +198,7 @@ export function ChessProvider({ children }) {
     // 读取方法
     fetchChess,
     refreshChess,
+    getChessById,
     getPiecesByProject,
 
     // 修改方法

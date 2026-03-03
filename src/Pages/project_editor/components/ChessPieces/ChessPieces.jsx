@@ -104,9 +104,7 @@ const ChessPieces = ({ projectId }) => {
 
   // 打开棋子（导航到编辑器）
   const handleOpenPiece = (piece) => {
-    navigate('/chess-editor', {
-      state: { piece }
-    });
+    navigate(`/chess-editor/${piece.id}`, { state: { piece } });
   };
 
   return (

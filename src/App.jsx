@@ -33,8 +33,7 @@ function App() {
             <Route path="/explorer-project" element={<ExplorerProject />} />
             <Route path="/explorer-texture" element={<ExplorerTexture />} />
             <Route path="/explorer-templates" element={<ExplorerTemplates />} />
-            <Route path="/chess-editor" element={<ChessEditor />} />
-            <Route path="/project-editor" element={<ProjectEditor />} />
+            <Route path="/chess-editor/:id" element={<ChessEditor />} />
             <Route path="/project-editor/:id" element={<ProjectEditor />} />
             <Route path="/test" element={<Test />} />
           </Routes>

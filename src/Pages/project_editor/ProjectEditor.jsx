@@ -12,7 +12,7 @@ const ProjectEditor = () => {
   const { getProjectById, updateProject } = useProject();
   const { getPiecesByProject } = useChess();
 
-  const { id: projectId = 'Hajimi-123456' } = useParams();
+  const { id: projectId } = useParams();
   const [currentProject, setCurrentProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,7 +20,7 @@ const ProjectEditor = () => {
 
   useEffect(() => {
 
-    console.log('开始获取项目棋子：', projectId);
+    console.log('开始获取项目', projectId, "的棋子");
     const init = async () => {
       try {
         setIsLoading(true);

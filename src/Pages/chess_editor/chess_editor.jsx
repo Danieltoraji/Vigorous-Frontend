@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './chess_editor.css';
 import { useChess } from '../../hooks/useChess.jsx';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './modelrenderer/modelrenderer.jsx';
 
 function ChessEditor() {
-  const { chessData, updateChess, setChessData } = useChess();
+  const { chessData, updateChess, setChessData, getChessById } = useChess();
   const navigate = useNavigate();
   const location = useLocation();
+  const { id: pieceId } = useParams();
   const [currentChess, setCurrentChess] = useState(location.state?.piece || Object.values(chessData)[0] || null);
   const [selectedPart, setSelectedPart] = useState('1'); // 默认选中
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
@@ -23,16 +24,26 @@ function ChessEditor() {
 
   // 当chessData或location.state变化时更新currentChess
   useEffect(() => {
-    try {
-      if (!location.state?.piece) {
-        throw new Error('请从项目列表页面打开棋子编辑器');
+    const fetchData = async () => {
+      try {
+        console.log('正在获取棋子：', pieceId);
+        const fetchedData = await getChessById(pieceId);
+
+        if (fetchedData) {
+          console.log('获取成功：', fetchedData);
+          setCurrentChess(fetchedData);
+        }
+      } catch (error) {
+        console.error('获取失败:', error);
+        alert(error.message);
+        navigate(-1);
       }
-      setCurrentChess(location.state.piece);
-    } catch (error) {
-      alert(error.message);
-      navigate(-1);
+    };
+
+    if (pieceId) {
+      fetchData();
     }
-  }, [location.state, navigate]);
+  }, [pieceId, navigate]);
 
   // 处理部件选择
   const handlePartSelect = (partIndex) => {
@@ -90,9 +101,8 @@ function ChessEditor() {
 
   // 处理返回
   const handleBack = () => {
-    navigate('/project-editor', {
-      state: { projectId: currentChess?.project_id || 'Hajimi-123456' }
-    });
+    const projectId = currentChess.project;
+    navigate(`/project-editor/${projectId}`);
   };
 
   // 拖拽处理函数
