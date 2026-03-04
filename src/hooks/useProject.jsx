@@ -1,38 +1,12 @@
 import { useState, useContext, useEffect, createContext } from 'react';
+import csrfapi from '../utils/csrfapi.js';
+
 const ProjectContext = createContext(null);
 
 export function ProjectProvider({ children }) {
 
   // A 初始化项目数据。现在是模拟数据。以后会设为空对象。
   const [projectData, setProjectData] = useState({
-    'Hajimi-123456': {
-      name: 'Vigorous-Test-Project',
-      user: 'Hajimi',
-      created_at: 'date1',
-      edited_at: 'date2',
-      id: 'Hajimi-123456',
-      description: 'Oiiaioiiiiai',
-      status: 'editable',
-      feature:{
-        shape: 'square',
-        size: 10,
-      },
-      project_tags: ['type1','type2'],
-    },
-    'Hajimi-456789': {
-      name: 'Vigorous-Test-Project002',
-      user: 'Hajimi',
-      created_at: 'date3',
-      edited_at: 'date4',
-      id: 'Hajimi-456789',
-      description: '第二个测试项目',
-      status: 'archived',
-      feature:{
-        shape: 'square',
-        size: 10,
-      },
-      project_tags: ['type3','type4'],
-    },
   });
 
   //B 这里要写逻辑和方法，从后端获取项目数据，向后端同步数据。
@@ -46,11 +20,9 @@ export function ProjectProvider({ children }) {
     try {
       //B21 向后端请求
       setLoading(true);
-      const response = await fetch('/api/projects/', {
-        method: 'GET',
-      });
-      if (!response.ok) throw new Error('获取项目失败');
-      const data = await response.json();
+      console.log('开始获取项目数据...');
+      const response = await csrfapi.get('/projects/');
+      const data = response.data;
       //B22 数据处理
       // 后端返回的数据格式假设是：[{ id: '...', name: '...' }, ...]
       // 要转换成你的格式：{ '项目id': { ...项目详情 } }
@@ -80,22 +52,18 @@ export function ProjectProvider({ children }) {
   };
 
   //B4 方法：创建项目（向后端发送）
-  const createProject = async (projectData) => {
+  const createProject = async () => {
+    const projectData = { "name": "新项目" };
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData)
-      });
-      if (!response.ok) throw new Error('创建项目失败');
-      const newProject = await response.json();
-      
+      const response = await csrfapi.post('/projects/', projectData);
+      const newProject = response.data;
+
       // 后端返回的新项目应该包含 id
       setProjectData(prev => ({
         ...prev,
         [newProject.id]: newProject
       }));
-      
+
       return newProject;
     } catch (err) {
       console.error('创建项目失败:', err);
@@ -150,9 +118,10 @@ export function ProjectProvider({ children }) {
 
   //B5 方法：更新项目（修改项目字段后向后端发送）
   const updateProject = async (projectId, updatedData) => {
+    console.log('开始更新项目数据...');
     // 先保存旧值（万一失败要恢复）
     const oldData = projectData[projectId];
-    
+
     // 乐观更新：立即更新界面
     setProjectData(prev => ({
       ...prev,
@@ -161,25 +130,19 @@ export function ProjectProvider({ children }) {
         ...updatedData
       }
     }));
-    
+
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)//这里粗暴地将所有字段都发送给后端，无论改没改
-      });
-      
-      if (!response.ok) throw new Error('更新项目失败');
-      
+      const response = await csrfapi.patch(`/projects/${projectId}/`, updatedData);
+
       // 后端可能返回更新后的完整数据
-      const updatedFromServer = await response.json();
-      
+      const updatedFromServer = response.data;
+
       // 用后端返回的数据再次更新（确保一致）
       setProjectData(prev => ({
         ...prev,
         [projectId]: updatedFromServer
       }));
-      
+
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复旧数据
@@ -197,23 +160,18 @@ export function ProjectProvider({ children }) {
     // 先保存旧值
     const oldData = { ...projectData };
     const projectExists = projectId in projectData;
-    
+
     if (!projectExists) return;
-    
+
     // 乐观更新：立即从界面移除
     setProjectData(prev => {
       const newData = { ...prev };
       delete newData[projectId];
       return newData;
     });
-    
+
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('删除项目失败');
-      
+      await csrfapi.delete(`/projects/${projectId}/`);
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复被删除的项目
@@ -230,13 +188,13 @@ export function ProjectProvider({ children }) {
       const response = await fetch(`/api/projects/${projectId}/`);
       if (!response.ok) throw new Error('获取项目详情失败');
       const data = await response.json();
-      
+
       // 更新本地状态
       setProjectData(prev => ({
         ...prev,
         [projectId]: data
       }));
-      
+
       setLastUpdated(new Date().toISOString());
       setError(null);
       return data;
@@ -260,17 +218,17 @@ export function ProjectProvider({ children }) {
     loading,
     error,
     lastUpdated,
-    
+
     // 读取方法
     fetchProjects,
     refreshProjects,
     getProjectById,
-    
+
     // 修改方法
     createProject,
     updateProject,
     deleteProject,
-    
+
     // 如果你还想保留原始的 setProjectData（用于特殊情况）
     setProjectData
   };
@@ -282,7 +240,7 @@ export function ProjectProvider({ children }) {
   );
 }
 
-  //D 这里是Hook，用于在组件中使用项目数据。
+//D 这里是Hook，用于在组件中使用项目数据。
 export function useProject() {
   const context = useContext(ProjectContext);
   if (!context) {

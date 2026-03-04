@@ -1,6 +1,27 @@
 import React from 'react';
 import './views.css';
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString || dateString === '无数据') return '无数据';
 
+  try {
+    const date = new Date(dateString);
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) return dateString;
+
+
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch (e) {
+    return dateString;
+  }
+};
 const ListView = ({ pieces, onEdit, onOpen, onDelete }) => {
   return (
     <div className="list-view">
@@ -35,22 +56,22 @@ const ListView = ({ pieces, onEdit, onOpen, onDelete }) => {
                   )}
                 </div>
               </td>
-              <td>{piece.created_at}</td>
-              <td>{piece.edited_at}</td>
+              <td>{formatDate(piece.created_at)}</td>
+              <td>{formatDate(piece.edited_at)}</td>
               <td className="action-buttons">
-                <button 
+                <button
                   className="action-button edit-button"
                   onClick={() => onEdit(piece)}
                 >
                   编辑
                 </button>
-                <button 
+                <button
                   className="action-button open-button"
                   onClick={() => onOpen(piece)}
                 >
                   打开
                 </button>
-                <button 
+                <button
                   className="action-button delete-button"
                   onClick={() => onDelete(piece)}
                 >

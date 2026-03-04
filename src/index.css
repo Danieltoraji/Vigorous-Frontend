@@ -31,7 +31,7 @@ body {
   color: var(--fluent-text);
   background: var(--fluent-background-gradient);
   line-height: 1.5;
-  overflow: hidden;
+  overflow-y: auto;
   height: 100vh;
 }
 

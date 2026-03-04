@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useProject } from '../../hooks/useProject';
 import { useChess } from '../../hooks/useChess';
 import HeaderBar from './components/HeaderBar/HeaderBar';
@@ -8,31 +8,33 @@ import ChessPieces from './components/ChessPieces/ChessPieces';
 import './ProjectEditor.css';
 
 const ProjectEditor = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { getProjectById, updateProject } = useProject();
   const { getPiecesByProject } = useChess();
-  
-  const projectId = location.state?.projectId || 'Hajimi-123456';
+
+  const { id: projectId } = useParams();
   const [currentProject, setCurrentProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const project = await getProjectById(projectId);
-      setCurrentProject(project);
-      await getPiecesByProject(projectId);
-    } catch (error) {
-      console.error('加载数据失败:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [projectId]);
+
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+
+    console.log('开始获取项目', projectId, "的棋子");
+    const init = async () => {
+      try {
+        setIsLoading(true);
+        const project = await getProjectById(projectId);
+        setCurrentProject(project);
+        await getPiecesByProject(projectId);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    init();
+  }, [projectId])
 
   const handleSaveProject = async (updatedData) => {
     try {
@@ -56,14 +58,14 @@ const ProjectEditor = () => {
 
   return (
     <div className="project-editor">
-      <HeaderBar 
-        project={currentProject} 
+      <HeaderBar
+        project={currentProject}
         onSave={() => handleSaveProject(currentProject)}
         onBack={() => navigate('/explorer-project')}
       />
       <div className="project-editor-content">
-        <ProjectDetails 
-          project={currentProject} 
+        <ProjectDetails
+          project={currentProject}
           onUpdate={setCurrentProject}
           onSave={handleSaveProject}
         />

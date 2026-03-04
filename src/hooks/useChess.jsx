@@ -1,470 +1,13 @@
-import { useState, useContext, useEffect, createContext } from 'react';
+import { useState, useContext, useEffect, createContext, useCallback } from 'react';
+import csrfapi from '../utils/csrfapi.js';
 import { useProject } from './useProject.jsx';
+
 const ChessContext = createContext(null);
 
 export function ChessProvider({ children }) {
   const { projectData } = useProject();
-
   // A 初始化棋子数据。现在是模拟数据。以后会设为空对象。
-  const [chessData, setChessData] = useState({
-    20001:{
-      name:"测试棋子1",
-      user:"Hajimi",
-      created_at:"2024-01-01",
-      edited_at:"2024-01-02",
-      id:20001,
-      project_id:"Hajimi-123456",
-      type:"type1",
-      piece_tags:["tag1","tag2"],
-      parts:{
-        '1':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '2':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '3':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '4':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-      }
-    },
-    20002:{
-      name:"测试棋子二",
-      user:"Hajimi",
-      created_at:"2026-01-01",
-      edited_at:"2026-02-25",
-      id:20002,
-      project_id:"Hajimi-123456",
-      type:"type1",
-      piece_tags:["tag1","tag2","tag3","tag4"],
-      parts:{
-        '1':{
-          Appear:"False",
-          Shape:{
-            type:"Hexagon",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '2':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '3':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '4':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-      }
-    },
-    20003:{
-      name:"测试棋子1145",
-      user:"Hajimi",
-      created_at:"2026-01-01",
-      edited_at:"2026-02-25",
-      id:20003,
-      project_id:"Hajimi-456789",
-      type:"type1",
-      piece_tags:["tag1","tag2","tag3","tag4"],
-      parts:{
-        '1':{
-          Appear:"False",
-          Shape:{
-            type:"Hexagon",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '2':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '3':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-        '4':{
-          Appear:"False",
-          Shape:{
-            type:"Circle",
-            size1:15,
-            size2:15,
-            height:1,
-            color:"#FF0000",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            }
-          },
-          Texture:{
-            file:"",
-            position:{
-              x:0,
-              y:0,
-              z:0
-            },
-            zoom:1,
-
-          },
-          Text:{
-            content:"THU",
-            size:10,
-            position:{
-              x:0,
-              y:0,
-            },
-            color:"#FFFFFF",
-            height:1,
-          }
-        },
-      }
-    }
-  })
-
+  const [chessData, setChessData] = useState({});
 
   //B 这里要写逻辑和方法，从后端获取棋子数据，向后端同步数据。
   //B1 设置状态管理，包括加载中、错误、最后更新时间。默认：加载中、无错误、无最后更新时间
@@ -477,12 +20,8 @@ export function ChessProvider({ children }) {
     try {
       //B21 向后端请求
       setLoading(true);
-      const url = `/api/pieces/?project=${projectData['Hajimi-123456'].id}`;
-      const response = await fetch(url, {
-        method: 'GET',
-      });
-      if (!response.ok) throw new Error('获取棋子失败');
-      const data = await response.json();
+      const response = await csrfapi.get(`/pieces`);
+      const data = response.data;
       //B22 数据处理
       // 后端返回的数据格式假设是：[{ id: '...', name: '...' }, ...]
       // 要转换成你的格式：{ '棋子id': { ...棋子详情 } }
@@ -496,33 +35,31 @@ export function ChessProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取棋子失败:', err);
+      console.error('获取所有棋子失败:', err);
     } finally {
       setLoading(false);
     }
   }
 
   //B2.1 方法：按项目获取棋子列表
-  const getPiecesByProject = async (projectId, filters = {}) => {
+  const getPiecesByProject = useCallback(async (projectId, filters = {}) => {
     try {
       setLoading(true);
-      // 构建查询参数
-      const queryParams = new URLSearchParams({ project: projectId });
-      if (filters.type) queryParams.append('type', filters.type);
-      if (filters.tags) {
-        filters.tags.forEach(tag => queryParams.append('tags', tag));
-      }
-      if (filters.sortBy) queryParams.append('sort_by', filters.sortBy);
-      if (filters.sortOrder) queryParams.append('sort_order', filters.sortOrder);
-      if (filters.page) queryParams.append('page', filters.page);
-      if (filters.pageSize) queryParams.append('page_size', filters.pageSize);
 
-      const url = `/api/pieces/?${queryParams.toString()}`;
-      const response = await fetch(url, {
-        method: 'GET',
+      // 使用 Axios 的 params 对象，它会自动处理 URL 编码，比 URLSearchParams 更简洁
+      const response = await csrfapi.get('/pieces/', {
+        params: {
+          project: projectId,
+          type: filters.type,
+          tags: filters.tags, // Axios 支持数组转换
+          sort_by: filters.sortBy,
+          sort_order: filters.sortOrder,
+          page: filters.page,
+          page_size: filters.pageSize
+        }
       });
-      if (!response.ok) throw new Error('获取棋子列表失败');
-      const data = await response.json();
+
+      const data = response.data;
 
       // 处理数据
       const chessMap = {};
@@ -536,41 +73,49 @@ export function ChessProvider({ children }) {
       return data;
     } catch (err) {
       setError(err.message);
-      console.error('获取棋子列表失败:', err);
+      console.error('获取项目棋子列表失败:', err);
       // 过滤本地数据作为 fallback
       const filteredData = Object.values(chessData).filter(piece => piece.project_id === projectId);
       return filteredData;
     } finally {
       setLoading(false);
     }
-  }
+  }, [])
   //B2' 组件加载时自动运行B2获取数据
   useEffect(() => {
-    fetchChess();
+    // fetchChess();  
+    // 先只获取指定项目的棋子
   }, []);
 
   //B3 方法：刷新（从后端拉取）棋子数据
   const refreshChess = () => {
-    fetchChess();
+    // fetchChess();
+    // 先只获取指定项目的棋子
+  };
+
+  //B3.5 根据棋子id获取数据
+  // 由于刷新会掉state，故考虑将信息存储在url
+  const getChessById = async (chessId) => {
+    const response = await csrfapi.get(`/pieces/${chessId}/`);
+    return response.data;
   };
 
   //B4 方法：创建棋子（向后端发送）
-  const createChess = async (chessData) => {
+  const createChess = async (projectId) => {
     try {
-      const response = await fetch('/api/pieces/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(chessData)
-      });
-      if (!response.ok) throw new Error('创建棋子失败');
-      const newChess = await response.json();
-      
+      const chessData = {
+        name: '新棋子',
+        project: projectId
+      }
+      const response = await csrfapi.post('/pieces/', chessData);
+      const newChess = response.data;
+
       // 后端返回的新棋子应该包含 id
       setChessData(prev => ({
         ...prev,
         [newChess.id]: newChess
       }));
-      
+
       return newChess;
     } catch (err) {
       console.error('创建棋子失败:', err);
@@ -582,7 +127,7 @@ export function ChessProvider({ children }) {
   const updateChess = async (chessId, updatedData) => {
     // 先保存旧值（万一失败要恢复）
     const oldData = chessData[chessId];
-    
+
     // 乐观更新：立即更新界面
     setChessData(prev => ({
       ...prev,
@@ -591,25 +136,19 @@ export function ChessProvider({ children }) {
         ...updatedData
       }
     }));
-    
+
     try {
-      const response = await fetch(`/api/pieces/${chessId}/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)//这里粗暴地将所有字段都发送给后端，无论改没改
-      });
-      
-      if (!response.ok) throw new Error('更新棋子失败');
-      
+      const response = await csrfapi.patch(`/pieces/${chessId}/`, updatedData);
+
       // 后端可能返回更新后的完整数据
-      const updatedFromServer = await response.json();
-      
+      const updatedFromServer = response.data;
+
       // 用后端返回的数据再次更新（确保一致）
       setChessData(prev => ({
         ...prev,
         [chessId]: updatedFromServer
       }));
-      
+
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复旧数据
@@ -627,23 +166,18 @@ export function ChessProvider({ children }) {
     // 先保存旧值
     const oldData = { ...chessData };
     const chessExists = chessId in chessData;
-    
+
     if (!chessExists) return;
-    
+
     // 乐观更新：立即从界面移除
     setChessData(prev => {
       const newData = { ...prev };
       delete newData[chessId];
       return newData;
     });
-    
+
     try {
-      const response = await fetch(`/api/pieces/${chessId}/`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('删除棋子失败');
-      
+      await csrfapi.delete(`/pieces/${chessId}/`);
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复被删除的棋子
@@ -660,17 +194,18 @@ export function ChessProvider({ children }) {
     loading,
     error,
     lastUpdated,
-    
+
     // 读取方法
     fetchChess,
     refreshChess,
+    getChessById,
     getPiecesByProject,
-    
+
     // 修改方法
     createChess,
     updateChess,
     deleteChess,
-    
+
     // 如果你还想保留原始的 setChessData（用于特殊情况）
     setChessData
   };
@@ -682,7 +217,7 @@ export function ChessProvider({ children }) {
   );
 }
 
-  //D 这里是Hook，用于在组件中使用棋子数据。
+//D 这里是Hook，用于在组件中使用棋子数据。
 export function useChess() {
   const context = useContext(ChessContext);
   if (!context) {

@@ -11,16 +11,24 @@ import ExplorerBottom from './ExplorerBottom.jsx'
 import './explorer_project.css'
 
 function ExplorerProject() {
-  const { userData } = useUser()
-  const { projectData, setProjectData, updateProject } = useProject()
+  const { userData, loading } = useUser()
+  const { projectData, setProjectData, updateProject, deleteProject, createProject } = useProject()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentProject, setCurrentProject] = useState(null)
-  
+
+  if (loading || !userData) {
+    console.log('正在加载用户信息...')
+    return <div className="loading-container">正在加载用户信息...</div>
+  }
+
   // 从 ProjectContext 获取项目数据
-  const projects = userData.projects.map(projectId => {
-    // 根据 projectId 从 ProjectContext 获取详细信息
-    return projectData[projectId] || {
-      id: projectId,
+  /** @type {Project<projectId: int, project: dict>: dict}  */
+  // Object.values()将字典转换为数组
+  const projects = Object.values(projectData || {}).map(project => {
+    console.log('获取了一个项目：', project.id, project.name)
+    // 返回项目详细信息
+    return project || {
+      id: 1,
       name: '未知项目',
       description: '暂无描述',
       user: '未知',
@@ -60,20 +68,22 @@ function ExplorerProject() {
         <h1>项目资源管理器</h1>
         <p>欢迎您！{userData.username}</p>
       </div>
-      
-      <ProjectList 
-        projects={projects} 
-        onEditProject={handleEditProject} 
+
+      <ProjectList
+        projects={projects}
+        onEditProject={handleEditProject}
+        onDeleteProject={deleteProject}
+        onCreateProject={createProject}
       />
-      
+
       {isEditModalOpen && currentProject && (
-        <ProjectEditModal 
-          project={currentProject} 
-          onClose={handleCloseEditModal} 
-          onUpdate={handleUpdateProject} 
+        <ProjectEditModal
+          project={currentProject}
+          onClose={handleCloseEditModal}
+          onUpdate={handleUpdateProject}
         />
       )}
-      
+
       <ExplorerBottom />
     </div>
   )

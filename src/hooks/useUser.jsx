@@ -1,28 +1,42 @@
-import { useState, useContext, createContext } from 'react';
+import { useState, useEffect, useContext, createContext, use } from 'react';
+import csrfapi from '../utils/csrfapi.js';
 
 const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
-  const [userData, setUserData] = useState({
-    id: '31415926',
-    username: 'Hajimi',
-    projects: ['Hajimi-123456', 'Hajimi-456789'],
-  });
+  const [userData, setUserData] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 从后端获取用户数据
+    csrfapi.get('/getuser/')
+      .then(response => {
+        setUserData(response.data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('获取用户数据失败:', error);
+        setLoading(false);
+      });
+  }, []);
 
   // 用于更新用户数据的函数，确保id和username不可修改
   const updateUserData = (updatedData) => {
-    setUserData(prev => ({
-      ...prev,
-      ...updatedData,
-      // 保留原始的id和username
-      id: prev.id,
-      username: prev.username
-    }));
+    setUserData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        ...updatedData,
+        id: prev.id,           // 强制保留 id
+        username: prev.username // 强制保留 username
+      };
+    });
   };
 
   return (
     <UserContext.Provider value={{ userData, updateUserData }}>
-      {children}
+      {/* 在数据加载完成前，可以选渲染加载动画，防止子组件报错 */}
+      {!loading ? children : <div>Loading...</div>}
     </UserContext.Provider>
   );
 }

@@ -1,27 +1,26 @@
 import ProjectItem from './ProjectItem.jsx'
 import './ProjectList.css'
 
-function ProjectList({ projects, onEditProject }) {
-  const handleAddProject = () => {
-    // 这里应该实现添加新项目的逻辑
-    console.log('Add new project')
-  }
+function ProjectList({ projects, onEditProject, onDeleteProject, onCreateProject }) {
+
 
   return (
     <div className="project-list">
       <div className="project-list-header">
         <h2>我的项目</h2>
-        <button className="btn btn-primary" onClick={handleAddProject}>
+        <button className="btn btn-primary" onClick={onCreateProject}>
           添加新项目
         </button>
       </div>
-      
+
       <div className="project-grid">
-        {projects.map(project => (
-          <ProjectItem 
-            key={project.id} 
-            project={project} 
-            onEditProject={onEditProject} 
+        {/* 问号保证projects不存在时不报错 */}
+        {projects?.map(project => (
+          <ProjectItem
+            key={project.id}
+            project={project}
+            onEditProject={onEditProject}
+            onDeleteProject={onDeleteProject}
           />
         ))}
       </div>
