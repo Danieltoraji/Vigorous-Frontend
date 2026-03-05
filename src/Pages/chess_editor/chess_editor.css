@@ -109,34 +109,85 @@
   margin-top: 60px;
   height: calc(100vh - 60px);
   overflow: hidden;
+  position: relative;
 }
 
-/* 左侧部件选择面板 */
+/* 中间预览区域 */
+.preview-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  transition: var(--fluent-transition);
+  /* 移除背景色，让 Canvas 显示 */
+}
+
+/* 让 Canvas 元素扩展到整个 editor-content 区域 */
+.preview-area canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* 左侧部件选择面板 - 覆盖在 Canvas 上方 */
 .part-selector {
-  background: var(--fluent-acrylic-sidebar);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-right: 1px solid var(--fluent-border);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
   padding: 20px;
   overflow-y: auto;
   transition: var(--fluent-transition);
-  height: 100%;
   min-width: 150px;
 }
 
-/* 右侧数据调节面板 */
+/* 右侧数据调节面板 - 覆盖在 Canvas 上方 */
 .data-panel {
-  background: var(--fluent-acrylic-sidebar);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-left: 1px solid var(--fluent-border);
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 20px;
   transition: var(--fluent-transition);
-  height: 100%;
   min-height: 0;
-  flex: 0 0 auto;
+}
+
+/* 左侧拖拽手柄 */
+.resize-handle-left {
+  position: absolute;
+  left: 200px; /* 默认左侧面板宽度 */
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 6px;
+  cursor: col-resize;
+  transition: var(--fluent-transition);
+}
+
+/* 右侧拖拽手柄 */
+.resize-handle-right {
+  position: absolute;
+  right: 400px; /* 默认右侧面板宽度 */
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  width: 6px;
+  cursor: col-resize;
+  transition: var(--fluent-transition);
 }
 
 .data-panel::-webkit-scrollbar {
@@ -240,33 +291,21 @@
   cursor: col-resize;
   transition: var(--fluent-transition);
   position: relative;
+  z-index: 20;
 }
 
-/* 左侧拖拽手柄 */
-.resize-handle-left {
-  background-color: transparent;
-  border-right: 1px solid var(--fluent-border);
-}
-
-.resize-handle-left:hover {
-  background-color: rgba(0, 120, 212, 0.1);
-}
-
-.resize-handle-left.dragging {
-  background-color: rgba(0, 120, 212, 0.3);
-  width: 8px;
-}
-
-/* 右侧拖拽手柄 */
+/* 拖拽手柄视觉样式 */
+.resize-handle-left,
 .resize-handle-right {
   background-color: transparent;
-  border-left: 1px solid var(--fluent-border);
 }
 
+.resize-handle-left:hover,
 .resize-handle-right:hover {
   background-color: rgba(0, 120, 212, 0.1);
 }
 
+.resize-handle-left.dragging,
 .resize-handle-right.dragging {
   background-color: rgba(0, 120, 212, 0.3);
   width: 8px;
@@ -353,13 +392,20 @@
 /* 中间预览区域 */
 .preview-area {
   flex: 1;
-  background: var(--fluent-background-gradient);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
   transition: var(--fluent-transition);
+  /* 移除背景色，让 Canvas 显示 */
+}
+
+/* 让 Canvas 元素扩展到整个 editor-content 区域 */
+.preview-area canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
 /* 右侧数据调节面板 */

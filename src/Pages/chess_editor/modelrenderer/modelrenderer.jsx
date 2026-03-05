@@ -394,7 +394,12 @@ function ModelRenderer({ chess }) {
     };
 
   return (
-    <Canvas camera={{ position: [40, 40, 40] }} shadows>
+    <Canvas 
+      camera={{ position: [40, 40, 40] }} 
+      shadows
+      style={{ background: 'transparent' }}
+      gl={{ alpha: true, premultipliedAlpha: false }}
+    >
       <OrbitControls />
       
       {/* 基础环境光 */}
