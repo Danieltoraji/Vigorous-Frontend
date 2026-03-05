@@ -5,8 +5,7 @@ import { OrbitControls, Text, Text3D } from '@react-three/drei';
 import { AxesHelper } from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 function ModelRenderer({ chess }) {
-    const [font, setFont] = useState(null);
-      
+   
     // 添加安全检查，防止 undefined 错误
     if (!chess) {
         console.warn('Chess data is invalid:', chess);
@@ -129,7 +128,13 @@ function ModelRenderer({ chess }) {
                         curveSegments= {12}
                         >
                           {pattern.content}
-                          <meshNormalMaterial />
+                          <meshStandardMaterial 
+                            color="#CD853F" 
+                            metalness={material.metalness}
+                            roughness={material.roughness}
+                            clearcoat={material.clearcoat}
+                            clearcoatRoughness={material.clearcoatRoughness}
+                        />
                         </Text3D>
                     </mesh>
                 );
@@ -156,7 +161,6 @@ function ModelRenderer({ chess }) {
         const pattern = column.pattern || { shape: 'none' };
         let bodyelement = null;
         switch (type) {
-            //主体部分
             case 'cylinder':
                 bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
@@ -197,6 +201,19 @@ function ModelRenderer({ chess }) {
                         />
                     </mesh>
                 );break;
+                const baseSides = baseShape.sides || 6;
+                bodyelement = (
+                    <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
+                        <cylinderGeometry args={[size1, size2, height, baseSides]} />
+                        <meshStandardMaterial 
+                            color="#8B4513" 
+                            metalness={material.metalness}
+                            roughness={material.roughness}
+                            clearcoat={material.clearcoat}
+                            clearcoatRoughness={material.clearcoatRoughness}
+                        />
+                    </mesh>
+                );break;
             case 'special': // 异形类型
                 const columnCustomShape = column.customShape || { profilePoints: [], pathPoints: [] };
                 bodyelement = (
@@ -226,22 +243,25 @@ function ModelRenderer({ chess }) {
         switch (pattern.shape){
             case 'text':
                 patternelement = (
-                    <Text
-                        position={[pattern.position.x, 5, pattern.position.z]}
-                        fontSize={pattern.size || 1}
-                        color="#000000"
-                        anchorX="center"      // 水平居中
-                        anchorY="middle"       // 垂直居中
-                        maxWidth={10}          // 可选，限制宽度自动换行
-                        lineHeight={1}         // 行高
-                        letterSpacing={0.02}   // 字间距
-                        textAlign="center"     // 对齐方式
-                        castShadow
-                        receiveShadow
-                    >
-                        {pattern.content}
-                    </Text>
-                );break;
+                    <mesh position={[pattern.position?.x || 0, position.y + height, pattern.position?.z || 0]} rotation={[-Math.PI/2,0,0]} castShadow receiveShadow>
+                        <Text3D 
+                        font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
+                        size= {pattern.size || 5}
+                        height= {pattern.depth || 1}
+                        curveSegments= {12}
+                        >
+                          {pattern.content}
+                          <meshStandardMaterial 
+                            color="#CD853F" 
+                            metalness={material.metalness}
+                            roughness={material.roughness}
+                            clearcoat={material.clearcoat}
+                            clearcoatRoughness={material.clearcoatRoughness}
+                        />
+                        </Text3D>
+                    </mesh>
+                );
+                break;
             case 'geometry':
                 patternelement = null;break;
             case 'none':
