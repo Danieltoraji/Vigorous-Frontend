@@ -197,7 +197,6 @@ export function ChessProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取棋子失败:', err);
     } finally {
       setLoading(false);
     }
@@ -237,7 +236,6 @@ export function ChessProvider({ children }) {
       return data;
     } catch (err) {
       setError(err.message);
-      console.error('获取棋子列表失败:', err);
       // 过滤本地数据作为 fallback
       const filteredData = Object.values(chessData).filter(piece => piece.project_id === projectId);
       return filteredData;
@@ -276,7 +274,6 @@ export function ChessProvider({ children }) {
       
       return newChess;
     } catch (err) {
-      console.error('创建棋子失败:', err);
       throw err;
     }
   };
@@ -320,7 +317,6 @@ export function ChessProvider({ children }) {
         ...prev,
         [chessId]: oldData
       }));
-      console.error('更新棋子失败:', err);
       throw err;
     }
   };
@@ -351,7 +347,6 @@ export function ChessProvider({ children }) {
     } catch (err) {
       // 失败：恢复被删除的棋子
       setChessData(oldData);
-      console.error('删除棋子失败:', err);
       throw err;
     }
   };

@@ -64,7 +64,6 @@ export function ProjectProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取项目失败:', err);
     } finally {
       setLoading(false);
     }
@@ -101,7 +100,6 @@ export function ProjectProvider({ children }) {
       
       return newProject;
     } catch (err) {
-      console.error('创建项目失败:', err);
       throw err;
     }
   };
@@ -190,7 +188,6 @@ export function ProjectProvider({ children }) {
         ...prev,
         [projectId]: oldData
       }));
-      console.error('更新项目失败:', err);
       throw err;
     }
   };
@@ -221,7 +218,6 @@ export function ProjectProvider({ children }) {
     } catch (err) {
       // 失败：恢复被删除的项目
       setProjectData(oldData);
-      console.error('删除项目失败:', err);
       throw err;
     }
   };
@@ -245,7 +241,6 @@ export function ProjectProvider({ children }) {
       return data;
     } catch (err) {
       setError(err.message);
-      console.error('获取项目详情失败:', err);
       // 如果本地有数据，返回本地数据
       if (projectData[projectId]) {
         return projectData[projectId];

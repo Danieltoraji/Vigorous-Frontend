@@ -45,11 +45,9 @@ function ExplorerProject() {
     try {
       // 调用 updateProject 方法向后端同步数据
       await updateProject(updatedProject.id, updatedProject)
-      console.log('Updated project:', updatedProject)
       setIsEditModalOpen(false)
       setCurrentProject(null)
     } catch (error) {
-      console.error('更新项目失败:', error)
       alert('更新失败，请重试')
     }
   }

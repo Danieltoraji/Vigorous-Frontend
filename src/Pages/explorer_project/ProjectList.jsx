@@ -3,8 +3,7 @@ import './ProjectList.css'
 
 function ProjectList({ projects, onEditProject }) {
   const handleAddProject = () => {
-    // 这里应该实现添加新项目的逻辑
-    console.log('Add new project')
+    // TODO: 实现添加新项目逻辑
   }
 
   return (

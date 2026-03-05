@@ -6,7 +6,7 @@ function Home() {
   const { userData } = useUser();
 
   const handleQuickAction = (action) => {
-    alert(`${action}功能正在开发中，敬请期待！`);
+    // TODO: 实现快捷操作功能
   };
 
   return (

@@ -56,7 +56,7 @@ function ProjectItem({ project, onEditProject }) {
         <ProjectActions 
           onEdit={() => onEditProject(project)} 
           onOpen={handleOpenProject} 
-          onDelete={() => console.log('Delete project:', project.id)} 
+          onDelete={() => {}} 
         />
       </div>
     </div>

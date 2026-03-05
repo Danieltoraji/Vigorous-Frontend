@@ -24,7 +24,7 @@ const ProjectEditor = () => {
       setCurrentProject(project);
       await getPiecesByProject(projectId);
     } catch (error) {
-      console.error('加载数据失败:', error);
+      // 静默处理错误
     } finally {
       setIsLoading(false);
     }
@@ -37,10 +37,7 @@ const ProjectEditor = () => {
   const handleSaveProject = async (updatedData) => {
     try {
       await updateProject(projectId, updatedData);
-      // 保存成功提示
-      alert('项目保存成功！');
     } catch (error) {
-      console.error('保存项目失败:', error);
       alert('保存失败，请重试');
     }
   };

@@ -153,9 +153,7 @@ function ChessEditor() {
       
       // 更新保存时间
       setLastSaved(new Date().toLocaleString());
-      alert('保存成功！');
     } catch (error) {
-      console.error('保存失败:', error);
       alert('保存失败：' + (error.message || '未知错误'));
     }
   }, [currentChess, updateChess]);
@@ -166,7 +164,7 @@ function ChessEditor() {
   }, []);
   
   const handleExport = useCallback(() => {
-    alert('开发中');
+    // TODO: 实现导出功能
   }, []);
 
   // 处理返回 - 使用 useCallback

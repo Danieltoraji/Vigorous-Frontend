@@ -294,27 +294,6 @@
   max-height: none;
 }
 
-/* 异形生成器包装器样式 */
-.custom-revolution-wrapper {
-  margin-top: 15px;
-  padding: 15px;
-  background: rgba(78, 205, 196, 0.1);
-  border-radius: var(--fluent-radius);
-  border: 1px solid rgba(78, 205, 196, 0.3);
-}
-
-/* 当形状容器包含异形生成器时，应用特殊高度 */
-.editor-section:has(.custom-revolution-wrapper) {
-  min-height: 650px;
-  max-height: 800px;
-  overflow: visible;
-}
-
-.editor-section:has(.custom-revolution-wrapper).visible {
-  min-height: 650px;
-  max-height: 800px;
-}
-
 /* 异形生成器可滚动容器 */
 .custom-revolution-scroll-container {
   max-height: none;
@@ -339,17 +318,6 @@
 
 .custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(78, 205, 196, 0.8);
-}
-
-/* 自定义旋转体生成器样式 */
-.custom-revolution-panel {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 10px;
-  border: 1px solid rgba(78, 205, 196, 0.3);
-  min-height: 500px;
-  height: auto;
 }
 
 /* 右侧拖拽手柄样式 */
@@ -394,38 +362,6 @@
   opacity: 1;
 }
 
-/* 右侧拖拽手柄指示器 */
-.resize-handle::before {
-  left: 2px;
-  transform: translateY(-50%);
-}
-
-
-
-/* 中间预览区域 */
-.preview-area {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  transition: var(--fluent-transition);
-  /* 移除背景色，让 Canvas 显示 */
-}
-
-/* 让 Canvas 元素扩展到整个 editor-content 区域 */
-.preview-area canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-/* 右侧数据调节面板 */
-.data-panel {
-  width: 350px;
-  transition: var(--fluent-transition);
-}
 
 .data-editor h3 {
   font-size: 16px;
@@ -440,19 +376,6 @@
   background: rgba(255, 255, 255, 0.5);
   border-radius: var(--fluent-radius);
   border: 1px solid var(--fluent-border);
-}
-
-/* 异形生成器包装器样式 */
-.custom-revolution-wrapper {
-  margin-top: 15px;
-  padding: 15px;
-  background: rgba(78, 205, 196, 0.1);
-  border-radius: var(--fluent-radius);
-  border: 1px solid rgba(78, 205, 196, 0.3);
-}
-
-.editor-section:last-child {
-  border-bottom: none;
 }
 
 .editor-section h4 {
@@ -713,9 +636,42 @@ input:checked + .toggle-label:before {
   transform: translateY(0);
 }
 
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  /* 移除固定宽度，使用状态控制的宽度 */
+/* 当形状容器包含异形生成器时，应用特殊高度 */
+.editor-section:has(.custom-revolution-wrapper) {
+  min-height: 650px;
+  max-height: 800px;
+  overflow: visible;
+}
+
+.editor-section:has(.custom-revolution-wrapper).visible {
+  min-height: 650px;
+  max-height: 800px;
+}
+
+/* 异形生成器可滚动容器 */
+.custom-revolution-scroll-container {
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: hidden;
+  padding-right: 5px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(78, 205, 196, 0.5);
+  border-radius: 3px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(78, 205, 196, 0.8);
 }
 
 /* 自定义旋转体生成器样式 */
@@ -725,8 +681,11 @@ input:checked + .toggle-label:before {
   padding: 12px;
   margin-top: 10px;
   border: 1px solid rgba(78, 205, 196, 0.3);
+  min-height: 500px;
+  height: auto;
 }
 
+/* 响应式设计 */
 .panel-section h3 {
   margin: 0 0 6px 0;
   color: var(--fluent-text);
@@ -888,6 +847,50 @@ input:checked + .toggle-label:before {
   font-size: 11px;
 }
 
+/* 方程输入框样式优化 */
+.equation-input-small {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.equation-input-small input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--fluent-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fluent-text);
+  font-size: 12px;
+}
+
+.equation-input-small input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.equation-input-small button {
+  background: var(--fluent-primary);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  min-width: 60px;
+}
+
+.equation-input-small button:hover {
+  background: var(--fluent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.equation-input-small button:active {
+  transform: translateY(0);
+}
+
+/* 响应式设计 */
 @media (max-width: 992px) {
   .canvases-row {
     flex-direction: column;
@@ -937,45 +940,3 @@ input:checked + .toggle-label:before {
   max-width: 100%;
 }
 
-/* 方程输入框样式优化 */
-.equation-input-small {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
-.equation-input-small input {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid var(--fluent-border);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--fluent-text);
-  font-size: 12px;
-}
-
-.equation-input-small input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.equation-input-small button {
-  background: var(--fluent-primary);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: var(--fluent-transition);
-  min-width: 60px;
-}
-
-.equation-input-small button:hover {
-  background: var(--fluent-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.equation-input-small button:active {
-  transform: translateY(0);
-}

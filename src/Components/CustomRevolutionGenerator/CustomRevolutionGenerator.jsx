@@ -9,46 +9,21 @@ const SimpleCanvas = ({
   title, 
   onPointsChange,
   equationPlaceholder,
-  className = "",
-  initialPoints = [] // 新增：接收初始点数据
+  className = ""
 }) => {
   const canvasRef = useRef(null);
-  const [points, setPoints] = useState(initialPoints); // 使用传入的初始值
+  const [points, setPoints] = useState([]); // 完全独立管理状态
   const [isDrawing, setIsDrawing] = useState(false);
   const [equation, setEquation] = useState('');
-  const isFirstRender = useRef(true); // 记录是否首次渲染
+  const isInitialMount = useRef(true); // 标记是否是首次挂载
 
-  // 当外部 initialPoints 变化时，同步更新内部状态并重新绘制
+  // 只在组件挂载时绘制一次（如果有初始数据）
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    if (initialPoints && initialPoints.length > 0) {
-      setPoints(initialPoints);
-      // 重新绘制已有的点
-      initialPoints.forEach((point, index) => {
-        ctx.fillStyle = '#ff6b6b';
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-        
-        if (index > 0) {
-          const prevPoint = initialPoints[index - 1];
-          ctx.strokeStyle = '#4ecdc4';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(prevPoint.x, prevPoint.y);
-          ctx.lineTo(point.x, point.y);
-          ctx.stroke();
-        }
-      });
-    } else {
-      setPoints([]);
+    if (isInitialMount.current && onPointsChange) {
+      // 首次挂载，不触发回调，避免循环
+      isInitialMount.current = false;
     }
-  }, [initialPoints]);
+  }, []);
 
   const drawPoint = useCallback((x, y) => {
     const canvas = canvasRef.current;
@@ -75,6 +50,9 @@ const SimpleCanvas = ({
   }, []);
 
   const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -137,7 +115,11 @@ const SimpleCanvas = ({
   useEffect(() => {
     if (!isDrawing && points.length > 0 && onPointsChange) {
       // 只在停止绘制且有点数时触发回调
-      onPointsChange(points);
+      // 使用 requestAnimationFrame 避免在渲染期间更新状态
+      const animationId = requestAnimationFrame(() => {
+        onPointsChange(points);
+      });
+      return () => cancelAnimationFrame(animationId);
     }
   }, [isDrawing, points, onPointsChange]);
 
@@ -184,7 +166,7 @@ const SimpleCanvas = ({
             }
           }
         } catch (error) {
-          console.warn('方程计算错误:', error);
+          // 方程计算错误，跳过该点
         }
       }
       
@@ -194,7 +176,7 @@ const SimpleCanvas = ({
         onPointsChange(newPoints);
       }
     } catch (error) {
-      console.error('方程解析错误:', error);
+      // 方程解析错误，静默处理
     }
   }, [equation, drawPoint, drawLine, onPointsChange]);
 
@@ -404,7 +386,6 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         };
       }
     } catch (error) {
-      console.error('几何体生成错误:', error);
       return null;
     }
   }, [profilePoints, pathPoints]);
@@ -515,7 +496,6 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
             onPointsChange={handleProfileChange}
             equationPlaceholder="例如：2*Math.sin(x)+1"
             className="profile-canvas"
-            initialPoints={profilePoints}
           />
                   
           <SimpleCanvas
@@ -523,7 +503,6 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
             onPointsChange={handlePathChange}
             equationPlaceholder="例如：Math.cos(x)"
             className="path-canvas"
-            initialPoints={pathPoints}
           />
         </div>
       </div>

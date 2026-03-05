@@ -222,7 +222,6 @@ function processEdgeGeometry(componentData, mode, depth, componentType) {
                 </mesh>
             );
         } catch (error) {
-            console.error('❌ 多边形几何体创建失败:', error);
             // 降级到普通圆柱
             return renderComponent(componentType, 'cylinder', size1, size2, height, position, material, color, null);
         }
@@ -252,7 +251,6 @@ function processEdgeGeometry(componentData, mode, depth, componentType) {
  */
 function renderComponent(componentType, shape, size1, size2, height, position, material, color, sides) {
     if (shape === 'special') {
-        console.log('⚠️ 异形，返回 null');
         return null; // 异形由其他逻辑处理
     }
     
@@ -303,7 +301,6 @@ function renderComponent(componentType, shape, size1, size2, height, position, m
 function ModelRenderer({ chess }) {
     // 添加安全检查，防止 undefined 错误
     if (!chess) {
-        console.warn('Chess data is invalid:', chess);
         return (
             <Canvas camera={{ position: [40, 40, 40] }}>
                 <OrbitControls />

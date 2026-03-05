@@ -35,7 +35,6 @@ export function ProjectProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取项目失败:', err);
     } finally {
       setLoading(false);
     }
@@ -59,7 +58,7 @@ export function ProjectProvider({ children }) {
         [projectId]: project
       }));
     } catch (err) {
-      console.error('获取项目详情失败:', err);
+      // 静默处理
     }
   };
 
@@ -82,7 +81,6 @@ export function ProjectProvider({ children }) {
       
       return newProject;
     } catch (err) {
-      console.error('创建项目失败:', err);
       throw err; // 让组件知道失败了
     }
   };
@@ -126,7 +124,6 @@ export function ProjectProvider({ children }) {
         ...prev,
         [projectId]: oldData
       }));
-      console.error('更新项目失败:', err);
       throw err;
     }
   };
@@ -157,7 +154,6 @@ export function ProjectProvider({ children }) {
     } catch (err) {
       // 失败：恢复被删除的项目
       setProjectData(oldData);
-      console.error('删除项目失败:', err);
       throw err;
     }
   };
