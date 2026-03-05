@@ -5,8 +5,8 @@ import { CatmullRomCurve3, Vector3, LatheGeometry, TubeGeometry, Shape, ExtrudeG
 import * as THREE from 'three';
 
 // 简化的 2D 画布组件
-const SimpleCanvas = ({ 
-  title, 
+const SimpleCanvas = ({
+  title,
   onPointsChange,
   equationPlaceholder,
   className = "",
@@ -22,10 +22,10 @@ const SimpleCanvas = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     if (initialPoints && initialPoints.length > 0) {
       setPoints(initialPoints);
       // 重新绘制已有的点
@@ -34,7 +34,7 @@ const SimpleCanvas = ({
         ctx.beginPath();
         ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
         ctx.fill();
-        
+
         if (index > 0) {
           const prevPoint = initialPoints[index - 1];
           ctx.strokeStyle = '#4ecdc4';
@@ -53,7 +53,7 @@ const SimpleCanvas = ({
   const drawPoint = useCallback((x, y) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ff6b6b';
     ctx.beginPath();
@@ -64,7 +64,7 @@ const SimpleCanvas = ({
   const drawLine = useCallback((fromX, fromY, toX, toY) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.strokeStyle = '#4ecdc4';
     ctx.lineWidth = 2;
@@ -77,19 +77,19 @@ const SimpleCanvas = ({
   const handleMouseDown = useCallback((e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     // 计算缩放比例
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
+
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
-    
+
     setIsDrawing(true);
     const newPoint = { x, y };
     setPoints([newPoint]);
-    
+
     // 直接绘制，不依赖外部函数
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ff6b6b';
@@ -100,18 +100,18 @@ const SimpleCanvas = ({
 
   const handleMouseMove = useCallback((e) => {
     if (!isDrawing) return;
-    
+
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     // 计算缩放比例
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
+
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
-    
+
     const lastPoint = points[points.length - 1];
     if (lastPoint) {
       // 直接绘制，不依赖外部函数
@@ -123,7 +123,7 @@ const SimpleCanvas = ({
       ctx.lineTo(x, y);
       ctx.stroke();
     }
-    
+
     const newPoint = { x, y };
     setPoints(prev => [...prev, newPoint]);
   }, [isDrawing, points]);
@@ -132,6 +132,7 @@ const SimpleCanvas = ({
     setIsDrawing(false);
     // 绘制完成后立即触发回调
     if (onPointsChange && points.length > 0) {
+      console.log("绘制完成");
       onPointsChange(points);
     }
   }, [onPointsChange, points]);
@@ -139,12 +140,12 @@ const SimpleCanvas = ({
   const clearCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setPoints([]);
     setEquation('');
-    
+
     if (onPointsChange) {
       onPointsChange([]);
     }
@@ -152,27 +153,27 @@ const SimpleCanvas = ({
 
   const generateFromEquation = useCallback(() => {
     if (!equation.trim()) return;
-    
+
     try {
       const newPoints = [];
       const canvas = canvasRef.current;
       if (!canvas) return;
-      
+
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       for (let i = 0; i <= canvas.width; i += 3) {
         const normalizedX = (i / canvas.width) * 20 - 10;
         let y;
-        
+
         try {
           y = eval(equation.replace(/x/g, `(${normalizedX})`));
           const canvasY = canvas.height / 2 - (y * 15);
-          
+
           if (canvasY >= 0 && canvasY <= canvas.height) {
             newPoints.push({ x: i, y: canvasY });
             drawPoint(i, canvasY);
-            
+
             if (newPoints.length > 1) {
               const prevPoint = newPoints[newPoints.length - 2];
               drawLine(prevPoint.x, prevPoint.y, i, canvasY);
@@ -182,10 +183,11 @@ const SimpleCanvas = ({
           console.warn('方程计算错误:', error);
         }
       }
-      
+
       setPoints(newPoints);
       // 立即调用回调，确保数据被保存
       if (onPointsChange) {
+        console.log("绘制完成");
         onPointsChange(newPoints);
       }
     } catch (error) {
@@ -199,7 +201,7 @@ const SimpleCanvas = ({
         <h4>{title}</h4>
         <button className="clear-btn" onClick={clearCanvas}>清空</button>
       </div>
-      
+
       <div className="equation-input-small">
         <input
           type="text"
@@ -210,7 +212,7 @@ const SimpleCanvas = ({
         />
         <button onClick={generateFromEquation}>生成</button>
       </div>
-      
+
       <div style={{ position: 'relative', display: 'inline-block' }}>
         <canvas
           ref={canvasRef}
@@ -245,7 +247,7 @@ const SimpleCanvas = ({
           transform: 'translateY(-0.5px)'
         }} />
       </div>
-      
+
       <div className="points-count">
         点数：{points.length}
       </div>
@@ -257,7 +259,7 @@ const SimpleCanvas = ({
 export const ModelPreview = ({ profilePoints, pathPoints }) => {
   const geometries = useMemo(() => {
     if (!profilePoints || profilePoints.length < 3) return null;
-    
+
     try {
       // ========== 1. 处理轮廓曲线 ==========
       // Canvas 中心点：(140, 75)
@@ -266,13 +268,13 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
       // 转换规则：
       //   - canvasX - 140 -> 3D 的半径（距离中心线的水平距离）
       //   - -(canvasY - 75) -> 3D 的 y（高度，canvas 向下 y 增大，3D 向上 y 增大，所以取负）
-      
+
       const profile2D = profilePoints.map(point => {
         const radius = (point.x - 140) / 8;      // 半径（可能为负，取绝对值）
         const height = -(point.y - 75) / 8;      // 高度
         return { radius: Math.abs(radius), height };
       });
-      
+
       // 计算轮廓曲线的最高点
       let maxY = -Infinity;
       let minY = Infinity;
@@ -280,10 +282,10 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         maxY = Math.max(maxY, point.height);
         minY = Math.min(minY, point.height);
       }
-      
+
       // ========== 2. 处理路径曲线 ==========
       const hasPath = pathPoints && pathPoints.length >= 3;
-      
+
       if (hasPath) {
         // ========== 扫掠异形生成逻辑（新增） ==========
         // 几何定义：
@@ -294,7 +296,7 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         //   Y = n
         //   Z = (1 + m) * z
         // 其中：(m,n) 为轮廓曲线上的点，(x,y) 为路径曲线上的点，(X,Y,Z) 为三维空间中的对应顶点
-        
+
         // 关键代码标注：轮廓 - 路径映射实现
         const profile3D = profilePoints.map(point => {
           // 轮廓曲线坐标转换 (canvas -> (m,n))
@@ -302,24 +304,24 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
           const n = (point.y - 75) / 8;         // 高度
           return { m, n };
         });
-        
+
         // 路径曲线坐标转换 (canvas -> (x,z))
         const path3D = pathPoints.map(point => {
           const x = (point.x - 140) / 8;   // canvas x -> 3D x
           const z = -(point.y - 75) / 8;   // canvas y -> 3D z
           return { x, z };
         });
-        
+
         // 关键代码标注：顶点计算
         // 创建扫掠几何体的顶点
         const vertices = [];
         const profileSteps = profile3D.length;
         const pathSteps = path3D.length;
-                    
+
         // 沿着路径曲线的每个点
         for (let i = 0; i < pathSteps; i++) {
           const pathPoint = path3D[i];
-                      
+
           // 在路径点上应用轮廓曲线的缩放
           for (let j = 0; j < profileSteps; j++) {
             const profilePoint = profile3D[j];
@@ -329,21 +331,21 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
             const X = factor * profilePoint.m * pathPoint.x;
             const Y = factor * (-profilePoint.n);
             const Z = factor * profilePoint.m * pathPoint.z;
-                        
+
             vertices.push(new Vector3(X, Y, Z));
           }
         }
-        
+
         // 关键代码标注：参数绑定
         // 使用计算出的顶点直接构建 BufferGeometry
         const positions = [];
         const indices = [];
-        
+
         // 填充顶点位置
         for (const vertex of vertices) {
           positions.push(vertex.x, vertex.y, vertex.z);
         }
-        
+
         // 构建索引（连接顶点形成面）
         // 每个路径点对应 profileSteps 个轮廓点
         for (let i = 0; i < pathSteps - 1; i++) {
@@ -352,18 +354,18 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
             const b = i * profileSteps + (j + 1);
             const c = (i + 1) * profileSteps + j;
             const d = (i + 1) * profileSteps + (j + 1);
-            
+
             // 两个三角形组成一个四边形
             indices.push(a, b, c);
             indices.push(c, b, d);
           }
         }
-        
+
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
         geometry.setIndex(indices);
         geometry.computeVertexNormals();
-        
+
         // 计算路径中心点（用于后续可能的底面定位）
         let pathCenterX = 0;
         let pathCenterZ = 0;
@@ -373,7 +375,7 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         }
         pathCenterX /= path3D.length;
         pathCenterZ /= path3D.length;
-        
+
         return {
           sweep: geometry,
           bottomY: minY,
@@ -382,13 +384,13 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
           centerZ: pathCenterZ,
           vertices: vertices
         };
-        
+
       } else {
         // 没有路径曲线：使用旋转体（绕 Y 轴旋转）
-        const profile3D = profile2D.map(p => 
+        const profile3D = profile2D.map(p =>
           new Vector3(p.radius, p.height, 0)
         );
-        
+
         return {
           main: new LatheGeometry(
             profile3D,
@@ -403,9 +405,9 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
       return null;
     }
   }, [profilePoints, pathPoints]);
-  
+
   if (!geometries) return null;
-  
+
   // 如果有路径曲线（扫掠异形）
   if (geometries.sweep) {
     return (
@@ -413,15 +415,15 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         {/* 扫掠异形 - 轮廓曲线沿路径曲线扫掠 */}
         <mesh castShadow receiveShadow>
           <primitive object={geometries.sweep} />
-          <meshStandardMaterial 
-            color="#4ecdc4" 
+          <meshStandardMaterial
+            color="#4ecdc4"
             wireframe={false}
             metalness={0.5}
             roughness={0.3}
             side={THREE.DoubleSide}
           />
         </mesh>
-        
+
         {/* 调试辅助：显示顶点（可选） */}
         {/* geometries.vertices && geometries.vertices.map((vertex, idx) => (
           <mesh key={idx} position={vertex}>
@@ -432,7 +434,7 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
       </group>
     );
   }
-  
+
   // 如果有路径曲线（旧版挤压，保留兼容性）
   if (geometries.solid) {
     return (
@@ -440,8 +442,8 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         {/* 实心体 - 轮廓曲线沿路径挤压 */}
         <mesh castShadow receiveShadow>
           <primitive object={geometries.solid} />
-          <meshStandardMaterial 
-            color="#ff6b6b" 
+          <meshStandardMaterial
+            color="#ff6b6b"
             wireframe={false}
             metalness={0.5}
             roughness={0.3}
@@ -451,14 +453,14 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
       </group>
     );
   }
-  
+
   // 如果没有路径曲线（只有旋转体）
   if (geometries.main) {
     return (
       <mesh castShadow receiveShadow>
         <primitive object={geometries.main} />
-        <meshStandardMaterial 
-          color="#4ecdc4" 
+        <meshStandardMaterial
+          color="#4ecdc4"
           wireframe={false}
           metalness={0.5}
           roughness={0.3}
@@ -467,17 +469,17 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
       </mesh>
     );
   }
-  
+
   return null;
 };
 
 // 集成到棋子编辑器的简化版本
 const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleDataUpdate }) => {
   // 直接从棋子数据中获取自定义形状数据，不使用内部状态
-  const currentCustomShape = selectedComponent === 'base' 
-    ? currentChess?.components?.base?.customShape 
-    : currentChess?.components?.column?.customShape;
-  
+  const currentCustomShape = selectedComponent === 'base'
+    ? currentChess?.parts?.base?.customShape
+    : currentChess?.parts?.column?.customShape;
+
   const profilePoints = currentCustomShape?.profilePoints || [];
   const pathPoints = currentCustomShape?.pathPoints || [];
 
@@ -485,14 +487,16 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
   const handleProfileChange = useCallback((points) => {
     // 直接更新棋子数据
     if (handleDataUpdate) {
-      handleDataUpdate(`components.${selectedComponent}.customShape.profilePoints`, points);
+      console.log('正在更新异形数据：', `parts.${selectedComponent}.customShape.profilePoints`);
+      handleDataUpdate(`parts.${selectedComponent}.customShape.profilePoints`, points);
     }
   }, [selectedComponent, handleDataUpdate]);
 
   const handlePathChange = useCallback((points) => {
     // 直接更新棋子数据
     if (handleDataUpdate) {
-      handleDataUpdate(`components.${selectedComponent}.customShape.pathPoints`, points);
+      console.log('正在更新异形数据：', `parts.${selectedComponent}.customShape.pathPoints`);
+      handleDataUpdate(`parts.${selectedComponent}.customShape.pathPoints`, points);
     }
   }, [selectedComponent, handleDataUpdate]);
 
@@ -503,7 +507,7 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
           <h3>异形生成器</h3>
           <p className="panel-description">绘制轮廓曲线生成自定义 3D 形状</p>
         </div>
-        
+
         <div className="canvases-row">
           <SimpleCanvas
             title="轮廓曲线"
@@ -512,7 +516,7 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
             className="profile-canvas"
             initialPoints={profilePoints}
           />
-                  
+
           <SimpleCanvas
             title="路径曲线 (可选)"
             onPointsChange={handlePathChange}
