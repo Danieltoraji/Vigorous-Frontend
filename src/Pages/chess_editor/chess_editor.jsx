@@ -386,7 +386,7 @@ function ChessEditor() {
               <label>文本内容：</label>
               <input 
                 type="text" 
-                value={getSafeValue(pattern.text, '')} 
+                value={getSafeValue(pattern.content, '')} 
                 onChange={(e) => handleDataUpdate('components.base.pattern.text', e.target.value)}
               />
             </div>
@@ -837,6 +837,7 @@ function ChessEditor() {
               value={getSafeValue(pattern.shape, 'geometry')} 
               onChange={(e) => handleDataUpdate('components.column.pattern.shape', e.target.value)}
             >
+              <option value="none">无</option>
               <option value="text">文字</option>
               <option value="geometry">几何图形</option>
               <option value="strange">奇异图形</option>
