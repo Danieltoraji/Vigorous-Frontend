@@ -198,7 +198,10 @@ export function TemplatesProvider({ children }) {
 
   // 组件加载时自动获取数据
   useEffect(() => {
-    fetchTemplates();
+    // 暂时禁用自动获取，使用本地模拟数据
+    // fetchTemplates();
+    setLoading(false);
+    setError(null);
   }, []);
 
   // 获取单个模板

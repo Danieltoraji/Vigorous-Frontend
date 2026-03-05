@@ -11,6 +11,7 @@ import ExplorerTemplates from './Pages/explorer_templates/explorer_templates.jsx
 import ChessEditor from './Pages/chess_editor/chess_editor.jsx'
 import ProjectEditor from './Pages/project_editor/ProjectEditor.jsx'
 import Test from './Pages/test.jsx'
+
 import AppBottom from './Components/Appbottom/Appbottom.jsx'
 
 function App() {

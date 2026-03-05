@@ -43,7 +43,10 @@ export function ProjectProvider({ children }) {
   }
   //B2' 组件加载时自动运行B2获取数据
   useEffect(() => {
-    fetchProjects();
+    // 暂时禁用自动获取，使用本地模拟数据
+    // fetchProjects();
+    setLoading(false);
+    setError(null);
   }, []);
 
   //B3 方法：刷新（从后端拉取）项目数据

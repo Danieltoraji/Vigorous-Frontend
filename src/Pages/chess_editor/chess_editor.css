@@ -107,6 +107,7 @@
   display: flex;
   flex: 1;
   margin-top: 60px;
+  height: calc(100vh - 60px);
   overflow: hidden;
 }
 
@@ -119,6 +120,8 @@
   padding: 20px;
   overflow-y: auto;
   transition: var(--fluent-transition);
+  height: 100%;
+  min-width: 150px;
 }
 
 /* 右侧数据调节面板 */
@@ -128,8 +131,107 @@
   -webkit-backdrop-filter: blur(30px);
   border-left: 1px solid var(--fluent-border);
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   transition: var(--fluent-transition);
+  height: 100%;
+  min-height: 0;
+  flex: 0 0 auto;
+}
+
+.data-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.data-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.data-panel::-webkit-scrollbar-thumb {
+  background: rgba(0, 120, 212, 0.3);
+  border-radius: 4px;
+}
+
+.data-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 120, 212, 0.5);
+}
+
+/* 确保数据编辑器内容可以正常流动 */
+.data-editor {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 异形生成器容器样式优化 */
+.custom-revolution-wrapper {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(78, 205, 196, 0.05);
+  border-radius: var(--fluent-radius);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  width: 100%;
+  overflow: visible;
+  display: block;
+  max-height: none;
+}
+
+/* 异形生成器包装器样式 */
+.custom-revolution-wrapper {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(78, 205, 196, 0.1);
+  border-radius: var(--fluent-radius);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+/* 当形状容器包含异形生成器时，应用特殊高度 */
+.editor-section:has(.custom-revolution-wrapper) {
+  min-height: 650px;
+  max-height: 800px;
+  overflow: visible;
+}
+
+.editor-section:has(.custom-revolution-wrapper).visible {
+  min-height: 650px;
+  max-height: 800px;
+}
+
+/* 异形生成器可滚动容器 */
+.custom-revolution-scroll-container {
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: hidden;
+  padding-right: 5px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(78, 205, 196, 0.5);
+  border-radius: 3px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(78, 205, 196, 0.8);
+}
+
+/* 自定义旋转体生成器样式 */
+.custom-revolution-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  min-height: 500px;
+  height: auto;
 }
 
 /* 拖拽手柄样式 */
@@ -274,10 +376,20 @@
 }
 
 .editor-section {
-  margin-bottom: 25px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--fluent-border-light);
-  transition: var(--fluent-transition);
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--fluent-radius);
+  border: 1px solid var(--fluent-border);
+}
+
+/* 异形生成器包装器样式 */
+.custom-revolution-wrapper {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(78, 205, 196, 0.1);
+  border-radius: var(--fluent-radius);
+  border: 1px solid rgba(78, 205, 196, 0.3);
 }
 
 .editor-section:last-child {
@@ -482,12 +594,216 @@ input:checked + .toggle-label:before {
   text-transform: uppercase;
 }
 
+/* 禁用输入框样式 */
+.disabled-input {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* 模型导入按钮样式 */
+.import-model-button {
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.import-model-button:hover {
+  background: linear-gradient(45deg, #45a049, #3d8b40);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.import-model-button:active {
+  transform: translateY(0);
+}
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
   /* 移除固定宽度，使用状态控制的宽度 */
 }
 
+/* 自定义旋转体生成器样式 */
+.custom-revolution-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.panel-section h3 {
+  margin: 0 0 6px 0;
+  color: var(--fluent-text);
+  font-size: 15px;
+}
+
+.panel-description {
+  margin: 0 0 12px 0;
+  color: var(--fluent-text-secondary);
+  font-size: 12px;
+}
+
+.canvases-row {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.simple-canvas-container {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  box-sizing: border-box;
+  min-width: 0;
+  flex-shrink: 0;
+  display: block;
+}
+
+.canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.canvas-header h4 {
+  margin: 0;
+  color: var(--fluent-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.clear-btn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.clear-btn:hover {
+  background: #ff5252;
+}
+
+.equation-input-small {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.equation-input-small input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--fluent-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--fluent-text);
+  font-size: 12px;
+  min-width: 0;
+}
+
+.equation-input-small input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.equation-input-small button {
+  background: var(--fluent-primary);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.equation-input-small button:hover {
+  opacity: 0.9;
+}
+
+.simple-canvas {
+  border: 1px solid var(--fluent-border);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: crosshair;
+  display: block;
+  width: 100%;
+  height: 140px;
+  max-width: 100%;
+  touch-action: none;
+}
+
+.points-count {
+  text-align: center;
+  font-size: 11px;
+  color: var(--fluent-text-secondary);
+  margin-top: 4px;
+}
+
+.preview-section {
+  margin-top: 12px;
+}
+
+.preview-section h4 {
+  margin: 0 0 8px 0;
+  color: var(--fluent-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.preview-canvas-wrapper {
+  height: 220px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--fluent-border);
+  width: 100%;
+}
+
+.instructions-small {
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.instructions-small p {
+  margin: 0 0 6px 0;
+  color: var(--fluent-text);
+  font-size: 11px;
+}
+
+.instructions-small ul {
+  margin: 0;
+  padding-left: 14px;
+}
+
+.instructions-small li {
+  margin-bottom: 3px;
+  color: var(--fluent-text-secondary);
+  font-size: 11px;
+}
+
 @media (max-width: 992px) {
+  .canvases-row {
+    flex-direction: column;
+  }
+  
   .editor-content {
     flex-direction: column;
   }
@@ -520,8 +836,61 @@ input:checked + .toggle-label:before {
   
   .data-panel {
     width: 100% !important;
-    height: 300px;
+    height: auto;
+    min-height: 300px;
     border-left: none;
     border-top: 1px solid var(--fluent-border);
   }
+}
+
+/* 优化右侧面板中的异形生成器显示 */
+.data-panel .canvases-row {
+  gap: 12px;
+}
+
+.data-panel .simple-canvas-container {
+  max-width: 100%;
+}
+
+/* 方程输入框样式优化 */
+.equation-input-small {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.equation-input-small input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--fluent-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fluent-text);
+  font-size: 12px;
+}
+
+.equation-input-small input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.equation-input-small button {
+  background: var(--fluent-primary);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  min-width: 60px;
+}
+
+.equation-input-small button:hover {
+  background: var(--fluent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.equation-input-small button:active {
+  transform: translateY(0);
 }
