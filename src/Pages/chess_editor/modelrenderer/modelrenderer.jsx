@@ -1,10 +1,12 @@
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
+import { OrbitControls, Text, Text3D } from '@react-three/drei';
 import { AxesHelper } from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
-
 function ModelRenderer({ chess }) {
+    const [font, setFont] = useState(null);
+      
     // 添加安全检查，防止 undefined 错误
     if (!chess) {
         console.warn('Chess data is invalid:', chess);
@@ -41,10 +43,12 @@ function ModelRenderer({ chess }) {
         const { type, size1, size2, height } = baseShape;
         const position = base.position || { x: 0, y: 0, z: 0 };
         const material = base.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
-        
+        const pattern = base.pattern || {shape:'none', position: {x: 0, y: 0, z: 0}};
+        // 渲染主体元素 
+        let bodyelement = null;
         switch (type) {
             case 'cylinder':
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, 64]} />
                         <meshStandardMaterial 
@@ -55,10 +59,10 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
             case 'polygon':
                 const baseSides = baseShape.sides || 6;
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, baseSides]} />
                         <meshStandardMaterial 
@@ -69,9 +73,9 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
             case 'cube':
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <boxGeometry args={[size1, height, size2]} />
                         <meshStandardMaterial 
@@ -82,19 +86,19 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
             case 'special': // 异形类型
                 const baseCustomShape = base.customShape || { profilePoints: [], pathPoints: [] };
-                return (
+                bodyelement = (
                     <group position={[position.x, position.y, position.z]}>
                         <ModelPreview 
                             profilePoints={baseCustomShape.profilePoints}
                             pathPoints={baseCustomShape.pathPoints}
                         />
                     </group>
-                );
+                );break;
             default:
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, 64]} />
                         <meshStandardMaterial 
@@ -105,8 +109,41 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
         }
+
+        //浮雕图案
+        let patternelement = null;
+        
+        switch (pattern.shape) {
+            case 'none':
+                patternelement = null;
+                break;
+            case 'text':
+                patternelement = (
+                    <mesh position={[pattern.position?.x || 0, position.y + height, pattern.position?.z || 0]} rotation={[-Math.PI/2,0,0]} castShadow receiveShadow>
+                        <Text3D 
+                        font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
+                        size= {pattern.size || 5}
+                        height= {pattern.depth || 1}
+                        curveSegments= {12}
+                        >
+                          {pattern.content}
+                          <meshNormalMaterial />
+                        </Text3D>
+                    </mesh>
+                );
+                break;
+            default:
+                patternelement = null;
+                break;
+        }
+        return (
+            <group>
+                {bodyelement}
+                {patternelement}
+            </group>
+        );
     };
 
     // 渲染柱体组件
@@ -116,10 +153,12 @@ function ModelRenderer({ chess }) {
         const { type, size1, size2, height } = columnShape;
         const position = column.position || { x: 0, y: 0, z: 0 };
         const material = column.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
-        
+        const pattern = column.pattern || { shape: 'none' };
+        let bodyelement = null;
         switch (type) {
+            //主体部分
             case 'cylinder':
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, 64]} />
                         <meshStandardMaterial 
@@ -130,10 +169,10 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
             case 'polygon':
                 const columnSides = columnShape.sides || 6;
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, columnSides]} />
                         <meshStandardMaterial 
@@ -144,9 +183,9 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
             case 'cube':
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <boxGeometry args={[size1, height, size2]} />
                         <meshStandardMaterial 
@@ -157,19 +196,19 @@ function ModelRenderer({ chess }) {
                             clearcoatRoughness={material.clearcoatRoughness}
                         />
                     </mesh>
-                );
+                );break;
             case 'special': // 异形类型
                 const columnCustomShape = column.customShape || { profilePoints: [], pathPoints: [] };
-                return (
+                bodyelement = (
                     <group position={[position.x, position.y, position.z]}>
                         <ModelPreview 
                             profilePoints={columnCustomShape.profilePoints}
                             pathPoints={columnCustomShape.pathPoints}
                         />
                     </group>
-                );
+                );break;
             default:
-                return (
+                bodyelement = (
                     <mesh position={[position.x, position.y + height/2, position.z]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, 64]} />
                         <meshStandardMaterial 
@@ -182,7 +221,40 @@ function ModelRenderer({ chess }) {
                     </mesh>
                 );
         }
+            //浮雕部分
+        let patternelement = null;
+        switch (pattern.shape){
+            case 'text':
+                patternelement = (
+                    <Text
+                        position={[pattern.position.x, 5, pattern.position.z]}
+                        fontSize={pattern.size || 1}
+                        color="#000000"
+                        anchorX="center"      // 水平居中
+                        anchorY="middle"       // 垂直居中
+                        maxWidth={10}          // 可选，限制宽度自动换行
+                        lineHeight={1}         // 行高
+                        letterSpacing={0.02}   // 字间距
+                        textAlign="center"     // 对齐方式
+                        castShadow
+                        receiveShadow
+                    >
+                        {pattern.content}
+                    </Text>
+                );break;
+            case 'geometry':
+                patternelement = null;break;
+            case 'none':
+                patternelement = null;break;
+        }
+        return (
+            <group>
+                {bodyelement}
+                {patternelement}
+            </group>
+        );
     };
+        
 
   return (
     <Canvas camera={{ position: [40, 40, 40] }} shadows>
