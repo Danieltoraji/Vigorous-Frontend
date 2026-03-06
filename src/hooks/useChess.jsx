@@ -138,7 +138,7 @@ export function ChessProvider({ children }) {
               "pathPoints": []
             },
             "material": null,
-            "position": { "x": 0, "y": 1, "z": 0 },
+            "position": { "x": 0, "y": 0, "z": 0 },
             "sideTreatment": "none",
             "pattern": {
               "shape": "geometry",
