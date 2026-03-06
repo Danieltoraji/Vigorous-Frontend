@@ -4,6 +4,8 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  position: relative;
+  z-index: 9999;
 }
 
 /* 顶部标题栏 */
@@ -16,12 +18,9 @@
   background: var(--fluent-acrylic);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  border-bottom: 1px solid var(--fluent-border);
-  box-shadow: var(--fluent-shadow);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  flex-shrink: 0;
   z-index: 1000;
   transition: var(--fluent-transition);
 }
@@ -84,12 +83,12 @@
 }
 
 .save-button {
-  background-color: #107C10;
+  background-color: #5c3100;
   color: white;
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #0D6E0D;
+  background-color: #510205;
   box-shadow: var(--fluent-shadow-hover);
 }
 
@@ -107,37 +106,156 @@
 .editor-content {
   display: flex;
   flex: 1;
-  margin-top: 60px;
-  height: calc(100vh - 60px);
   overflow: hidden;
+  position: relative;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* 左侧部件选择面板 */
-.part-selector {
-  background: var(--fluent-acrylic-sidebar);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-right: 1px solid var(--fluent-border);
-  padding: 20px;
-  overflow-y: auto;
+/* 中间预览区域 */
+.preview-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
   transition: var(--fluent-transition);
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  width: 100%;
   height: 100%;
-  min-width: 150px;
 }
 
-/* 右侧数据调节面板 */
+/* 让 Canvas 元素扩展到整个 preview-area 区域 */
+.preview-area canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  outline: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+
+/* 左侧组件选择 - 三个半透明小方块 */
+.component-squares {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 10;
+}
+
+.square {
+  width: 50px;
+  height: 50px;
+  background: rgba(30, 30, 30, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.square:hover {
+  background: rgba(50, 50, 50, 0.5);
+  border-color: #000000;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.square.active {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: #4653ccfc;
+  box-shadow: 0 0 15px rgba(40, 40, 74, 0.976);
+}
+
+.square-label {
+  display: block;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 46px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+/* 原来的 part-selector 样式保留，但不再使用 */
+/* .part-selector { ... } */
+
+/* 右侧数据调节面板 - 覆盖在 Canvas 上方 */
 .data-panel {
-  background: var(--fluent-acrylic-sidebar);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-left: 1px solid var(--fluent-border);
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-left: none;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 20px;
   transition: var(--fluent-transition);
-  height: 100%;
   min-height: 0;
-  flex: 0 0 auto;
+}
+
+.data-panel.collapsed {
+  padding: 0;
+  overflow: hidden;
+  border-left: none !important;
+  border: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* 右侧面板切换按钮 */
+.toggle-right-panel {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  width: 24px;
+  height: 60px;
+  background: rgba(65, 65, 65, 0);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-right-panel:hover {
+  background: rgba(167, 167, 167, 0.086);
+  width: 28px;
+}
+
+.toggle-right-panel.collapsed {
+  right: 0;
+}
+
+.toggle-right-panel.expanded {
+  right: 400px;
 }
 
 .data-panel::-webkit-scrollbar {
@@ -150,12 +268,12 @@
 }
 
 .data-panel::-webkit-scrollbar-thumb {
-  background: rgba(0, 120, 212, 0.3);
+  background: rgba(133, 133, 133, 0.329);
   border-radius: 4px;
 }
 
 .data-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 120, 212, 0.5);
+  background: rgba(255, 255, 255, 0.716);
 }
 
 /* 确保数据编辑器内容可以正常流动 */
@@ -175,27 +293,6 @@
   overflow: visible;
   display: block;
   max-height: none;
-}
-
-/* 异形生成器包装器样式 */
-.custom-revolution-wrapper {
-  margin-top: 15px;
-  padding: 15px;
-  background: rgba(78, 205, 196, 0.1);
-  border-radius: var(--fluent-radius);
-  border: 1px solid rgba(78, 205, 196, 0.3);
-}
-
-/* 当形状容器包含异形生成器时，应用特殊高度 */
-.editor-section:has(.custom-revolution-wrapper) {
-  min-height: 650px;
-  max-height: 800px;
-  overflow: visible;
-}
-
-.editor-section:has(.custom-revolution-wrapper).visible {
-  min-height: 650px;
-  max-height: 800px;
 }
 
 /* 异形生成器可滚动容器 */
@@ -224,52 +321,22 @@
   background: rgba(78, 205, 196, 0.8);
 }
 
-/* 自定义旋转体生成器样式 */
-.custom-revolution-panel {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 10px;
-  border: 1px solid rgba(78, 205, 196, 0.3);
-  min-height: 500px;
-  height: auto;
-}
-
-/* 拖拽手柄样式 */
+/* 右侧拖拽手柄样式 */
 .resize-handle {
   width: 6px;
   cursor: col-resize;
   transition: var(--fluent-transition);
   position: relative;
-}
-
-/* 左侧拖拽手柄 */
-.resize-handle-left {
+  z-index: 20;
   background-color: transparent;
-  border-right: 1px solid var(--fluent-border);
 }
 
-.resize-handle-left:hover {
-  background-color: rgba(0, 120, 212, 0.1);
+.resize-handle:hover {
+  background-color: rgba(0, 92, 212, 0.76);
 }
 
-.resize-handle-left.dragging {
-  background-color: rgba(0, 120, 212, 0.3);
-  width: 8px;
-}
-
-/* 右侧拖拽手柄 */
-.resize-handle-right {
-  background-color: transparent;
-  border-left: 1px solid var(--fluent-border);
-}
-
-.resize-handle-right:hover {
-  background-color: rgba(0, 120, 212, 0.1);
-}
-
-.resize-handle-right.dragging {
-  background-color: rgba(0, 120, 212, 0.3);
+.resize-handle.dragging {
+  background-color: rgba(16, 0, 243, 0.997);
   width: 8px;
 }
 
@@ -296,78 +363,6 @@
   opacity: 1;
 }
 
-/* 左侧拖拽手柄指示器 */
-.resize-handle-left::before {
-  right: 2px;
-  left: auto;
-  transform: translateY(-50%);
-}
-
-/* 右侧拖拽手柄指示器 */
-.resize-handle-right::before {
-  left: 2px;
-  transform: translateY(-50%);
-}
-
-.part-selector h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: var(--fluent-text);
-}
-
-.part-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.part-button {
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--fluent-border);
-  border-radius: var(--fluent-radius);
-  cursor: pointer;
-  font-size: 14px;
-  text-align: left;
-  transition: var(--fluent-transition);
-  color: var(--fluent-text-secondary);
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.part-button:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--fluent-text);
-  box-shadow: var(--fluent-shadow-hover);
-}
-
-.part-button.active {
-  background-color: var(--fluent-primary);
-  color: white;
-  border-color: var(--fluent-primary);
-  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
-}
-
-/* 中间预览区域 */
-.preview-area {
-  flex: 1;
-  background: var(--fluent-background-gradient);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-  transition: var(--fluent-transition);
-}
-
-/* 右侧数据调节面板 */
-.data-panel {
-  width: 350px;
-  transition: var(--fluent-transition);
-}
 
 .data-editor h3 {
   font-size: 16px;
@@ -382,19 +377,6 @@
   background: rgba(255, 255, 255, 0.5);
   border-radius: var(--fluent-radius);
   border: 1px solid var(--fluent-border);
-}
-
-/* 异形生成器包装器样式 */
-.custom-revolution-wrapper {
-  margin-top: 15px;
-  padding: 15px;
-  background: rgba(78, 205, 196, 0.1);
-  border-radius: var(--fluent-radius);
-  border: 1px solid rgba(78, 205, 196, 0.3);
-}
-
-.editor-section:last-child {
-  border-bottom: none;
 }
 
 .editor-section h4 {
@@ -542,22 +524,22 @@ input:checked+.toggle-label:before {
   appearance: none;
   width: 16px;
   height: 16px;
-  background: var(--fluent-primary);
+  background: #4648b2;
   border-radius: 50%;
   cursor: pointer;
   transition: var(--fluent-transition);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(21, 6, 189, 0.1);
 }
 
 .editor-item input[type="range"]::-webkit-slider-thumb:hover {
-  box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 42, 212, 0.3);
   transform: scale(1.1);
 }
 
 .editor-item input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  background: var(--fluent-primary);
+  background: #2e0cf0;
   border-radius: 50%;
   cursor: pointer;
   border: none;
@@ -568,6 +550,36 @@ input:checked+.toggle-label:before {
 .editor-item input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
   transform: scale(1.1);
+}
+
+/* 边缘处理按钮样式 */
+.edge-toggle-button {
+  padding: 8px 16px;
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--fluent-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  min-width: 120px;
+  font-weight: 500;
+}
+
+.edge-toggle-button:hover {
+  background: rgba(55, 0, 255, 0.5);
+  border-color: var(--fluent-primary);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
+.edge-toggle-button.active {
+  background: #4648b2;
+  color: white;
+  border-color: #4648b2;
+}
+
+.edge-toggle-button.active:hover {
+  background: #0a118591;
 }
 
 .number-input {
@@ -625,9 +637,42 @@ input:checked+.toggle-label:before {
   transform: translateY(0);
 }
 
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  /* 移除固定宽度，使用状态控制的宽度 */
+/* 当形状容器包含异形生成器时，应用特殊高度 */
+.editor-section:has(.custom-revolution-wrapper) {
+  min-height: 650px;
+  max-height: 800px;
+  overflow: visible;
+}
+
+.editor-section:has(.custom-revolution-wrapper).visible {
+  min-height: 650px;
+  max-height: 800px;
+}
+
+/* 异形生成器可滚动容器 */
+.custom-revolution-scroll-container {
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: hidden;
+  padding-right: 5px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(78, 205, 196, 0.5);
+  border-radius: 3px;
+}
+
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(78, 205, 196, 0.8);
 }
 
 /* 自定义旋转体生成器样式 */
@@ -637,8 +682,11 @@ input:checked+.toggle-label:before {
   padding: 12px;
   margin-top: 10px;
   border: 1px solid rgba(78, 205, 196, 0.3);
+  min-height: 500px;
+  height: auto;
 }
 
+/* 响应式设计 */
 .panel-section h3 {
   margin: 0 0 6px 0;
   color: var(--fluent-text);
@@ -954,4 +1002,54 @@ input:checked+.toggle-label:before {
 
 .equation-input-small button:active {
   transform: translateY(0);
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
+  .canvases-row {
+    flex-direction: column;
+  }
+
+  .editor-content {
+    flex-direction: column;
+  }
+
+  .component-squares {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  .resize-handle {
+    display: none;
+  }
+
+  .preview-area {
+    flex: 1;
+    min-height: 400px;
+  }
+
+  .data-panel {
+    width: 100% !important;
+    height: auto;
+    min-height: 300px;
+    border-left: none;
+    border-top: 1px solid var(--fluent-border);
+  }
+}
+
+/* 优化右侧面板中的异形生成器显示 */
+.data-panel .canvases-row {
+  gap: 12px;
+}
+
+.data-panel .simple-canvas-container {
+  max-width: 100%;
 }

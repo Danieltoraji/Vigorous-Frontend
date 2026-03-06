@@ -35,7 +35,6 @@ export function ChessProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取所有棋子失败:', err);
     } finally {
       setLoading(false);
     }
@@ -73,7 +72,6 @@ export function ChessProvider({ children }) {
       return data;
     } catch (err) {
       setError(err.message);
-      console.error('获取项目棋子列表失败:', err);
       // 过滤本地数据作为 fallback
       const filteredData = Object.values(chessData).filter(piece => piece.project_id === projectId);
       return filteredData;
@@ -156,7 +154,8 @@ export function ChessProvider({ children }) {
             "position": { "x": 0, "y": 21, "z": 0 },
             "rotation": { "x": 0, "y": 0, "z": 0 },
             "material": null
-          }
+          },
+          "image": ""
         }
       }
       const response = await csrfapi.post('/pieces/', chessData);
@@ -170,7 +169,6 @@ export function ChessProvider({ children }) {
 
       return newChess;
     } catch (err) {
-      console.error('创建棋子失败:', err);
       throw err;
     }
   };
@@ -208,7 +206,6 @@ export function ChessProvider({ children }) {
         ...prev,
         [chessId]: oldData
       }));
-      console.error('更新棋子失败:', err);
       throw err;
     }
   };
@@ -234,7 +231,6 @@ export function ChessProvider({ children }) {
     } catch (err) {
       // 失败：恢复被删除的棋子
       setChessData(oldData);
-      console.error('删除棋子失败:', err);
       throw err;
     }
   };

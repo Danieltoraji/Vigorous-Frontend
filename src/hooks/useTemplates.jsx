@@ -190,7 +190,6 @@ export function TemplatesProvider({ children }) {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('获取模板失败:', err);
     } finally {
       setLoading(false);
     }
@@ -219,7 +218,6 @@ export function TemplatesProvider({ children }) {
       
       return template;
     } catch (err) {
-      console.error('获取模板详情失败:', err);
       throw err;
     }
   };
@@ -245,7 +243,6 @@ export function TemplatesProvider({ children }) {
       setLastUpdated(new Date().toISOString());
       return newTemplate;
     } catch (err) {
-      console.error('创建模板失败:', err);
       throw err;
     }
   };
@@ -289,7 +286,6 @@ export function TemplatesProvider({ children }) {
         ...prev,
         [templateId]: oldData
       }));
-      console.error('更新模板失败:', err);
       throw err;
     }
   };
@@ -320,7 +316,6 @@ export function TemplatesProvider({ children }) {
     } catch (err) {
       // 失败：恢复被删除的模板
       setTemplatesData(oldData);
-      console.error('删除模板失败:', err);
       throw err;
     }
   };

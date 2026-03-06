@@ -76,9 +76,7 @@ const ChessPieces = ({ projectId }) => {
     try {
       await updateChess(updatedPiece.id, updatedPiece);
       setEditingPiece(null);
-      alert('棋子更新成功！');
     } catch (error) {
-      console.error('更新棋子失败:', error);
       alert('更新失败，请重试');
     }
   };
@@ -94,9 +92,7 @@ const ChessPieces = ({ projectId }) => {
       try {
         await deleteChess(deletingPiece.id);
         setDeletingPiece(null);
-        alert('棋子删除成功！');
       } catch (error) {
-        console.error('删除棋子失败:', error);
         alert('删除失败，请重试');
       }
     }

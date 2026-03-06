@@ -17,6 +17,8 @@ const SimpleCanvas = ({
   showFullScreen = true // 是否显示全屏按钮
 }) => {
   const canvasRef = useRef(null);
+  const [points, setPoints] = useState([]); // 完全独立管理状态
+  const [isDrawing, setIsDrawing] = useState(false);
   const [equation, setEquation] = useState('');
 
   // 新增：全屏模态窗口状态
@@ -392,6 +394,9 @@ const SimpleCanvas = ({
   }, [selectedAnchorIndex]);
 
   const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (readOnly) return; // 只读模式下禁用
 
     const canvas = canvasRef.current;
@@ -759,7 +764,7 @@ const SimpleCanvas = ({
             }
           }
         } catch (error) {
-          console.warn('方程计算错误:', error);
+          // 方程计算错误，跳过该点
         }
       }
 
@@ -770,7 +775,7 @@ const SimpleCanvas = ({
         onPointsChange(newPoints);
       }
     } catch (error) {
-      console.error('方程解析错误:', error);
+      // 方程解析错误，静默处理
     }
   }, [equation, drawPoint, drawLine, onPointsChange]);
 
@@ -1193,8 +1198,8 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
 
         // 路径曲线坐标转换 (canvas -> (x,z))
         const path3D = pathPoints.map(point => {
-          const x = (point.x - 140) / 8;   // canvas x -> 3D x
-          const z = -(point.y - 75) / 8;   // canvas y -> 3D z
+          const x = (point.x - 140) / 4;   // canvas x -> 3D x
+          const z = -(point.y - 75) / 4;   // canvas y -> 3D z
           return { x, z };
         });
 
@@ -1287,7 +1292,6 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         };
       }
     } catch (error) {
-      console.error('几何体生成错误:', error);
       return null;
     }
   }, [profilePoints, pathPoints]);

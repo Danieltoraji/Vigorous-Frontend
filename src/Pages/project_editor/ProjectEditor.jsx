@@ -16,33 +16,27 @@ const ProjectEditor = () => {
   const [currentProject, setCurrentProject] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-
+  const loadData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const project = await getProjectById(projectId);
+      setCurrentProject(project);
+      await getPiecesByProject(projectId);
+    } catch (error) {
+      // 静默处理错误
+    } finally {
+      setIsLoading(false);
+    }
+  }, [projectId]);
 
   useEffect(() => {
-
-    console.log('开始获取项目', projectId, "的棋子");
-    const init = async () => {
-      try {
-        setIsLoading(true);
-        const project = await getProjectById(projectId);
-        setCurrentProject(project);
-        await getPiecesByProject(projectId);
-      } catch (error) {
-        console.error('加载数据失败:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    init();
-  }, [projectId])
+    loadData();
+  }, [loadData]);
 
   const handleSaveProject = async (updatedData) => {
     try {
       await updateProject(projectId, updatedData);
-      // 保存成功提示
-      alert('项目保存成功！');
     } catch (error) {
-      console.error('保存项目失败:', error);
       alert('保存失败，请重试');
     }
   };
