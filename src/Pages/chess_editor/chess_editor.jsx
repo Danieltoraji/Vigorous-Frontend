@@ -6,68 +6,68 @@ import ModelRenderer from './modelrenderer/modelrenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
 // 将默认棋子数据移到组件外部，避免每次渲染都重新创建
-const defaultChess = {
-  id: 20001,
-  name: "测试棋子 1",
-  user: "Hajimi",
-  created_at: "2024-01-01",
-  edited_at: "2024-01-02",
-  project_id: "Hajimi-123456",
-  type: "type1",
-  piece_tags: ["tag1", "tag2"],
-  components: {
-    "base": {
-      "shape": {
-        "type": "cycle",
-        "size1": 15,
-        "size2": 15,
-        "height": 1
-      },
-      "customShape": {
-        "profilePoints": [],
-        "pathPoints": []
-      },
-      "material": null,
-      "pattern": {
-        "shape": "text",
-        "position": { "x": 0, "z": 0 },
-        "size": 10,
-        "depth": 1
-      },
-      "edge": { "type": "none", "depth": 0 },
-      "position": { "x": 0, "y": 0, "z": 0 }
-    },
-    "column": {
-      "shape": {
-        "type": "cycle",
-        "size1": 10,
-        "size2": 10,
-        "height": 20
-      },
-      "customShape": {
-        "profilePoints": [],
-        "pathPoints": []
-      },
-      "material": null,
-      "position": { "x": 0, "y": 1, "z": 0 },
-      "sideTreatment": "none",
-      "pattern": {
-        "shape": "geometry",
-        "position": { "x": 0, "z": 0 },
-        "size": 5,
-        "depth": 0.5
-      },
-      "edge": { "type": "smooth", "depth": 0.2 }
-    },
-    "decoration": {
-      "modelId": "",
-      "size": { "size1": 5, "size2": 5, "size3": 5 },
-      "position": { "x": 0, "y": 21, "z": 0 },
-      "rotation": { "x": 0, "y": 0, "z": 0 },
-      "material": null
-    }
-  }
-};
+//const defaultChess = {
+//  id: 20001,
+//  name: "测试棋子 1",
+//  user: "Hajimi",
+//  created_at: "2024-01-01",
+//  edited_at: "2024-01-02",
+//  project_id: "Hajimi-123456",
+//  type: "type1",
+//  piece_tags: ["tag1", "tag2"],
+//  components: {
+//    "base": {
+//      "shape": {
+//        "type": "cycle",
+//        "size1": 15,
+//        "size2": 15,
+//        "height": 1
+//      },
+//      "customShape": {
+//        "profilePoints": [],
+//        "pathPoints": []
+//      },
+//      "material": null,
+//      "pattern": {
+//        "shape": "text",
+//        "position": { "x": 0, "z": 0 },
+//        "size": 10,
+//        "depth": 1
+//      },
+//      "edge": { "type": "none", "depth": 0 },
+//      "position": { "x": 0, "y": 0, "z": 0 }
+//    },
+//    "column": {
+//      "shape": {
+//        "type": "cycle",
+//        "size1": 10,
+//        "size2": 10,
+//        "height": 20
+//      },
+//      "customShape": {
+//        "profilePoints": [],
+//        "pathPoints": []
+//      },
+//      "material": null,
+//      "position": { "x": 0, "y": 1, "z": 0 },
+//      "sideTreatment": "none",
+//      "pattern": {
+//        "shape": "geometry",
+//        "position": { "x": 0, "z": 0 },
+//        "size": 5,
+//        "depth": 0.5
+//      },
+//      "edge": { "type": "smooth", "depth": 0.2 }
+//    },
+//    "decoration": {
+//      "modelId": "",
+//      "size": { "size1": 5, "size2": 5, "size3": 5 },
+//      "position": { "x": 0, "y": 21, "z": 0 },
+//      "rotation": { "x": 0, "y": 0, "z": 0 },
+//      "material": null
+//    }
+//  }
+//};
 
 function ChessEditor() {
   const { chessData, updateChess, setChessData } = useChess();
