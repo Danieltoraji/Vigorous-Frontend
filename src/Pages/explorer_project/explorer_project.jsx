@@ -3,6 +3,7 @@
  * 项目
  */
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useUser } from '../../hooks/useUser.jsx'
 import { useProject } from '../../hooks/useProject.jsx'
 import ProjectList from './ProjectList.jsx'
@@ -11,10 +12,15 @@ import ExplorerBottom from './ExplorerBottom.jsx'
 import './explorer_project.css'
 
 function ExplorerProject() {
+  const navigate = useNavigate()
   const { userData, loading } = useUser()
   const { projectData, setProjectData, updateProject, deleteProject, createProject } = useProject()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentProject, setCurrentProject] = useState(null)
+
+  const onBack = () => {
+    navigate('/menu')
+  }
 
   if (loading || !userData) {
     console.log('正在加载用户信息...')
@@ -63,6 +69,9 @@ function ExplorerProject() {
   return (
     <div className="explorer-project">
       <div className="explorer-header">
+        <button className="back-button" onClick={onBack}>
+          ← 返回
+        </button>
         <h1>项目资源管理器</h1>
         <p>欢迎您！{userData.username}</p>
       </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTemplates } from '../../hooks/useTemplates.jsx'
 import './explorer_templates.css'
+import { useNavigate } from 'react-router-dom'
 
 function ExplorerTemplates() {
   const { templatesData, loading, error, deleteTemplate } = useTemplates()
@@ -8,6 +9,11 @@ function ExplorerTemplates() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
   const [moreActionsOpen, setMoreActionsOpen] = useState(null)
+  const navigate = useNavigate()
+
+  const onBack = () => {
+    navigate('/menu')
+  }
   
   // 提取所有标签
   const allTags = new Set()
@@ -63,6 +69,9 @@ function ExplorerTemplates() {
   return (
     <div className="explorer-templates">
       <div className="explorer-header">
+        <button className="back-button" onClick={onBack}>
+          ← 返回
+        </button>
         <h1>模板资源管理器</h1>
       </div>
       
