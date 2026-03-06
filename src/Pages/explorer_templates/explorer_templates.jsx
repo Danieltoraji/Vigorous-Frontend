@@ -39,17 +39,16 @@ function ExplorerTemplates() {
   
   // 处理打开模板
   const handleOpenTemplate = (template) => {
-    console.log('打开模板:', template.id)
+    // TODO: 实现打开模板逻辑
   }
   
   // 处理应用到项目
   const handleApplyToProject = (template) => {
-    console.log('应用模板到项目:', template.id)
+    // TODO: 实现应用模板逻辑
   }
   
   // 处理编辑信息
   const handleEditInfo = (template) => {
-    console.log('编辑模板信息:', template.id)
     setMoreActionsOpen(null)
   }
 
