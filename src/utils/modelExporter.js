@@ -19,7 +19,7 @@ import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
  * 
  * 支持的几何体类型:
  * 1. 标准几何体:
- *    - cylinder: 圆柱体 (64 段)
+ *    - cycle: 圆柱体 (64 段)
  *    - polygon: 多边形棱柱 (可指定边数)
  *    - cube: 长方体/正方体
  * 
@@ -172,7 +172,7 @@ function createPrimitiveGeometry(shape) {
   const { type, size1, size2, height, sides } = shape;
 
   switch (type) {
-    case 'cylinder':
+    case 'cycle':
       return new CylinderGeometry(size1, size2, height, 64);
     
     case 'polygon':

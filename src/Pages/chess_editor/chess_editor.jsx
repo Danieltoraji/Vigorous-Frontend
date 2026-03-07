@@ -241,7 +241,7 @@ function ChessEditor() {
           <div className="editor-item">
             <label>类型：</label>
             <select
-              value={getSafeValue(shape.type, 'cylinder')}
+              value={getSafeValue(shape.type, 'cycle')}
               onChange={(e) => handleDataUpdate('parts.base.shape.type', e.target.value)}
             >
               <option value="cycle">圆柱</option>
@@ -682,7 +682,7 @@ function ChessEditor() {
           <div className="editor-item">
             <label>类型：</label>
             <select
-              value={getSafeValue(shape.type, 'cylinder')}
+              value={getSafeValue(shape.type, 'cycle')}
               onChange={(e) => handleDataUpdate('parts.column.shape.type', e.target.value)}
             >
               <option value="cycle">圆柱</option>
