@@ -142,6 +142,7 @@ export function ChessProvider({ children }) {
             "sideTreatment": "none",
             "pattern": {
               "shape": "geometry",
+              "geometryType":"Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
               "depth": 0.5
