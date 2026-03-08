@@ -150,7 +150,7 @@ export function ChessProvider({ children }) {
             "edge": { "type": "smooth", "depth": 0.2 }
           },
           "decoration": {
-            "modelId": "",
+            "modelId": "0",
             "size": { "size1": 5, "size2": 5, "size3": 5 },
             "position": { "x": 0, "y": 21, "z": 0 },
             "rotation": { "x": 0, "y": 0, "z": 0 },

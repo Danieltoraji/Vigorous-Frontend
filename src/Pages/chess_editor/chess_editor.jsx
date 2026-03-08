@@ -1215,13 +1215,17 @@ function ChessEditor() {
         <div className="editor-section">
           <h4>模型</h4>
           <div className="editor-item">
-            <label>模型 ID：</label>
-            <input
-              type="text"
-              value={getSafeValue(component.modelId, '')}
+            <label>模型类型：</label>
+            <select
+              value={getSafeValue(component.modelId, '0')}
               onChange={(e) => handleDataUpdate('parts.decoration.modelId', e.target.value)}
-              placeholder="输入模型 ID"
-            />
+            >
+              <option value="0">无</option>
+              <option value="1">小旗子</option>
+              <option value="2">五角星</option>
+              <option value="3">圆球</option>
+              <option value="4">四棱锥</option>
+            </select>
           </div>
           <div className="editor-item">
             <button className="import-model-button">
