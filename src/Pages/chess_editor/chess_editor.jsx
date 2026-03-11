@@ -1531,63 +1531,30 @@ function ChessEditor() {
       </header>
 
       <div className="editor-content" ref={editorContentRef}>
-        {/* 左侧组件选择面板 */}
-        <aside className={`part-selector ${isLeftPanelCollapsed ? 'collapsed' : ''}`}>
-          <h3>组件选择</h3>
-          <div className="part-buttons">
-            <button
-              className={`part-button ${selectedComponent === 'base' ? 'active' : ''}`}
-              onClick={() => handleComponentSelect('base')}
-            >
-              底座
-            </button>
-            <button
-              className={`part-button ${selectedComponent === 'column' ? 'active' : ''}`}
-              onClick={() => handleComponentSelect('column')}
-            >
-              柱体
-            </button>
-            <button
-              className={`part-button ${selectedComponent === 'decoration' ? 'active' : ''}`}
-              onClick={() => handleComponentSelect('decoration')}
-            >
-              装饰
-            </button>
-            {/* 左侧组件选择 - 三个半透明小方块 */}
-            <div className="component-squares">
-              <div
-                className={`square ${selectedComponent === 'base' ? 'active' : ''}`}
-                onClick={() => handleComponentSelect('base')}
-                title="底座"
-              >
-                <span className="square-label">底座</span>
-              </div>
-              <div
-                className={`square ${selectedComponent === 'column' ? 'active' : ''}`}
-                onClick={() => handleComponentSelect('column')}
-                title="柱体"
-              >
-                <span className="square-label">柱体</span>
-              </div>
-              <div
-                className={`square ${selectedComponent === 'decoration' ? 'active' : ''}`}
-                onClick={() => handleComponentSelect('decoration')}
-                title="装饰"
-              >
-                <span className="square-label">装饰</span>
-              </div>
-            </div>
+        {/* 左侧组件选择 - 三个半透明小方块 */}
+        <div className="component-squares">
+          <div
+            className={`square ${selectedComponent === 'base' ? 'active' : ''}`}
+            onClick={() => handleComponentSelect('base')}
+            title="底座"
+          >
+            <span className="square-label">底座</span>
           </div>
-        </aside>
-
-        {/* 左侧面板切换按钮 */}
-        <button
-          className={`toggle-left-panel ${isLeftPanelCollapsed ? 'collapsed' : 'expanded'}`}
-          onClick={handleToggleLeftPanel}
-          title={isLeftPanelCollapsed ? '展开面板' : '收起面板'}
-        >
-          {isLeftPanelCollapsed ? '▶' : '◀'}
-        </button>
+          <div
+            className={`square ${selectedComponent === 'column' ? 'active' : ''}`}
+            onClick={() => handleComponentSelect('column')}
+            title="柱体"
+          >
+            <span className="square-label">柱体</span>
+          </div>
+          <div
+            className={`square ${selectedComponent === 'decoration' ? 'active' : ''}`}
+            onClick={() => handleComponentSelect('decoration')}
+            title="装饰"
+          >
+            <span className="square-label">装饰</span>
+          </div>
+        </div>
 
         {/* 中间预览区域 */}
         <main className="preview-area">
