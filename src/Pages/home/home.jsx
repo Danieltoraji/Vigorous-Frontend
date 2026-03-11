@@ -33,6 +33,9 @@ function Home() {
             <Link to="/explorer-templates" className="nav-item">
               模板资源管理器
             </Link>
+            <Link to="/explorer-decoration" className="nav-item">
+              装饰资源管理器
+            </Link>
           </nav>
         </aside>
 
@@ -41,20 +44,20 @@ function Home() {
           <div className="quick-actions">
             <h2>快捷操作</h2>
             <div className="action-buttons">
-              <button 
-                className="action-btn" 
+              <button
+                className="action-btn"
                 onClick={() => handleQuickAction('新建项目')}
               >
                 新建项目
               </button>
-              <button 
-                className="action-btn" 
+              <button
+                className="action-btn"
                 onClick={() => handleQuickAction('导出项目')}
               >
                 导出项目
               </button>
-              <button 
-                className="action-btn" 
+              <button
+                className="action-btn"
                 onClick={() => handleQuickAction('上传模板')}
               >
                 上传模板

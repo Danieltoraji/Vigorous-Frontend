@@ -1,0 +1,40 @@
+.explorer-texture {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.explorer-texture .explorer-header {
+  max-width: 1400px;
+  margin: 0 auto 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: white;
+}
+
+.explorer-texture .back-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.explorer-texture .back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.explorer-texture .explorer-header h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 28px;
+}
+
+.explorer-texture .explorer-header p {
+  margin: 0;
+  opacity: 0.9;
+}
