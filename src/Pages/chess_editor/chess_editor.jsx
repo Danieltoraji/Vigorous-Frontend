@@ -17,19 +17,7 @@ function ChessEditor() {
   // Reference to the model root group for export
   const modelRootRef = useRef(null);
 
-  // 初始化 currentChess 状态 - 只在组件挂载时执行一次
-  useEffect(() => {
-    // 优先使用传入的棋子数据
-    if (location.state?.piece) {
-      setCurrentChess(location.state.piece);
-    }
-    // 然后尝试使用 chessData 中的第一个棋子
-    else if (Object.keys(chessData).length > 0) {
-      const chessValues = Object.values(chessData);
-      setCurrentChess(chessValues[0]);
-    }
 
-  }, []); // 空依赖数组，只在挂载时执行一次
 
   const [selectedComponent, setSelectedComponent] = useState('base'); // 默认选中底座组件
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
@@ -1000,7 +988,7 @@ function ChessEditor() {
                 className="number-input"
               />
             </div>
-             <div className="editor-item">
+            <div className="editor-item">
               <label>Y修正：</label>
               <input
                 type="range"

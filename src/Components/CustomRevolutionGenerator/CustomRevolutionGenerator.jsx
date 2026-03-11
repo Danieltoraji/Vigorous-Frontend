@@ -1295,8 +1295,9 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
             // 缩放因子 肉眼观测得出。
             const factor = 2;
             // 应用映射规则：X=m*x, Y=n, Z=m*z
+            // 注意：profilePoint.n 已经在坐标转换时处理过正负号，这里直接使用
             const X = factor * profilePoint.m * pathPoint.x;
-            const Y = factor * (-profilePoint.n);
+            const Y = factor * profilePoint.n;
             const Z = factor * profilePoint.m * pathPoint.z;
 
             vertices.push(new Vector3(X, Y, Z));
