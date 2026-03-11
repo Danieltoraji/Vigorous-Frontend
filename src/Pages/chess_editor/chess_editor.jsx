@@ -25,7 +25,6 @@ function ChessEditor() {
   // 右侧面板固定宽度
   const [rightWidth, setRightWidth] = useState(400); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
-  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false); // 左侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
 
   // 引用
@@ -110,10 +109,6 @@ function ChessEditor() {
     setIsRightPanelCollapsed(prev => !prev);
   }, []);
 
-  // 处理左侧面板收起/展开
-  const handleToggleLeftPanel = useCallback(() => {
-    setIsLeftPanelCollapsed(prev => !prev);
-  }, []);
 
   // 处理导出
   const handleExport = () => {
@@ -154,27 +149,12 @@ function ChessEditor() {
     console.log('Model ready for export:', modelRoot);
   }, []);
 
-  // 拖拽处理函数
-  const handleMouseDownLeft = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleMouseDownRight = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
 
   const handleMouseMove = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!editorContentRef.current) return;
-
-    const containerRect = editorContentRef.current.getBoundingClientRect();
-
-
-
 
   }, []);
   const handleMouseUp = useCallback(() => {
