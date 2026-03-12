@@ -1,1331 +1,972 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { CatmullRomCurve3, Vector3, LatheGeometry, TubeGeometry, Shape, ExtrudeGeometry, Vector2, Float32BufferAttribute, QuadraticBezierCurve3, CubicBezierCurve3 } from 'three';
+import { Vector3, LatheGeometry, Float32BufferAttribute } from 'three';
 import * as THREE from 'three';
 import { createPortal } from 'react-dom';
+import './CustomRevolutionGenerator.css';
 
+// 工具类型
+const TOOL_TYPES = {
+  POINT: 'point',    // 简单点绘
+  BEZIER: 'bezier', // 贝塞尔曲线（带手柄）
+  FREE: 'free'      // 自由绘制
+};
 
+// 生成唯一ID - 基于现有点的最大ID + localStorage，确保跨页面刷新后继续编号
+const STORAGE_KEY = 'customRevolutionIdCounter';
 
-// 简化的 2D 画布组件 - 支持三种绘制模式
-const SimpleCanvas = ({
-  title,
-  onPointsChange,
-  equationPlaceholder,
-  className = "",
-  initialPoints = [], // 接收初始点数据
-  enableBezier = true, // 是否启用贝塞尔曲线模式
-  readOnly = false, // 只读模式
-  showFullScreen = true // 是否显示全屏按钮
-}) => {
-  const canvasRef = useRef(null);
+const getStoredIdCounter = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? parseInt(stored, 10) : 0;
+  } catch {
+    return 0;
+  }
+};
 
-  const [points, setPoints] = useState([]); // 完全独立管理状态
-  const [equation, setEquation] = useState('');
+const setStoredIdCounter = (value) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, value.toString());
+  } catch {
+    // 忽略存储错误
+  }
+};
 
-  // 新增：全屏模态窗口状态
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // 三种模式的状态完全独立
-  const [drawMode, setDrawMode] = useState('point'); // 'point'（点绘）, 'bezier'（贝塞尔控制点）, 'free'（自由绘制）
-  const [clickPoints, setClickPoints] = useState([]); // 点绘模式的点击点
-  // 贝塞尔模式：使用锚点和手柄结构
-  const [bezierAnchors, setBezierAnchors] = useState([]); // [{x, y, cp1: {x, y}, cp2: {x, y}}]
-  const [selectedAnchorIndex, setSelectedAnchorIndex] = useState(-1);
-  const [freehandPoints, setFreehandPoints] = useState([]); // 自由绘制的连续点
-
-  // 拖动状态（只记录当前正在拖动的元素）
-  const [dragState, setDragState] = useState({
-    isDragging: false,
-    targetType: null, // 'anchor' | 'handle' | 'freehand' | 'point'
-    targetIndex: -1,
-    handleType: null // 'cp1' | 'cp2'
-  });
-
-  // 悬停状态检测 - 支持所有模式
-  const [hoveredElement, setHoveredElement] = useState(null);
-  // {type: 'anchor'|'handle'|'point', index: number, handleType: 'cp1'|'cp2'}
-
-  // 统一的光标样式更新函数
-  const updateCursorStyle = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // 如果正在拖动，保持拖动时的光标状态
-    if (dragState.isDragging) {
-      if (dragState.targetType === 'handle') {
-        canvas.style.cursor = 'crosshair'; // 拖动手柄：十字光标
-      } else if (dragState.targetType === 'anchor' || dragState.targetType === 'point') {
-        canvas.style.cursor = 'move'; // 拖动锚点或点：移动光标
-      } else if (dragState.targetType === 'freehand') {
-        canvas.style.cursor = 'crosshair'; // 自由绘制：十字光标
-      } else {
-        canvas.style.cursor = 'default';
+let idCounter = getStoredIdCounter();
+const initializeIdCounter = (controlPoints) => {
+  let maxId = idCounter;
+  if (controlPoints && Array.isArray(controlPoints)) {
+    for (const point of controlPoints) {
+      if (point && typeof point.id === 'number' && point.id > maxId) {
+        maxId = point.id;
       }
-      return;
     }
+  }
+  idCounter = maxId;
+  setStoredIdCounter(maxId);
+};
+const generateId = () => {
+  idCounter = idCounter + 1;
+  setStoredIdCounter(idCounter);
+  return idCounter;
+};
 
-    // 未拖动时，根据模式和悬停元素显示光标
-    if (drawMode === 'free') {
-      // 自由绘制模式：始终是 crosshair
-      canvas.style.cursor = 'crosshair';
-    } else if (drawMode === 'point') {
-      // 点绘模式：悬停在点上为 move，否则为 crosshair
-      if (hoveredElement?.type === 'point') {
-        canvas.style.cursor = 'move';
-      } else {
-        canvas.style.cursor = 'crosshair';
-      }
-    } else if (drawMode === 'bezier') {
-      // 贝塞尔模式：
-      // - 悬停在手柄上：pointer
-      // - 悬停在锚点上：move
-      // - 其他：crosshair
-      if (hoveredElement?.type === 'handle') {
-        canvas.style.cursor = 'pointer';
-      } else if (hoveredElement?.type === 'anchor') {
-        canvas.style.cursor = 'move';
-      } else {
-        canvas.style.cursor = 'crosshair';
-      }
-    } else {
-      canvas.style.cursor = 'default';
-    }
-  }, [drawMode, hoveredElement, dragState]);
+// 从控制点数组生成曲线点（用于3D生成和小窗口显示）- 不插值版本
+// 直接使用控制点，不进行贝塞尔曲线插值
+const generateCurvePoints = (controlPoints) => {
+  if (!controlPoints || !Array.isArray(controlPoints) || controlPoints.length < 2) return [];
 
-  // 当拖动状态或悬停状态变化时，更新光标
-  useEffect(() => {
-    updateCursorStyle();
-  }, [dragState, hoveredElement, drawMode, updateCursorStyle]);
+  const curvePoints = [];
 
-  // 检查指定坐标是否悬停在可交互元素上 - 支持所有模式
-  const checkHover = useCallback((x, y) => {
-    if (!enableBezier) {
-      setHoveredElement(null);
-      return;
-    }
+  for (let i = 0; i < controlPoints.length; i++) {
+    const point = controlPoints[i];
 
-    let hoverFound = null;
+    // 安全检查
+    if (!point || !point.pos || !point.pos[0] || !point.pos[1]) continue;
+    if (typeof point.pos[0] !== 'number' || typeof point.pos[1] !== 'number') continue;
+    if (isNaN(point.pos[0]) || isNaN(point.pos[1])) continue;
 
-    if (drawMode === 'bezier') {
-      // 贝塞尔模式：检查锚点和手柄
-      for (let i = 0; i < bezierAnchors.length; i++) {
-        const anchor = bezierAnchors[i];
+    curvePoints.push({ x: point.pos[0], y: point.pos[1] });
+  }
 
-        // 检查左手柄 cp1
-        if (anchor.cp1) {
-          const dist1 = Math.sqrt((x - anchor.cp1.x) ** 2 + (y - anchor.cp1.y) ** 2);
-          if (dist1 < 8) {
-            hoverFound = { type: 'handle', index: i, handleType: 'cp1' };
-            break;
+  return curvePoints;
+};
+
+// 从控制点数组生成曲线点（带贝塞尔插值）- 用于平滑显示
+// 注意：这个函数只用于绘制显示，不用于3D模型生成
+// centerX: 中心线X坐标，用于生成镜像
+// showMirror: 是否显示镜像
+const generateSmoothCurvePoints = (controlPoints, centerX = 600, showMirror = false) => {
+  if (!controlPoints || !Array.isArray(controlPoints) || controlPoints.length < 2) return [];
+
+  const curvePoints = [];
+  const mirrorPoints = [];
+  const segmentsPerSpan = 20;
+
+  for (let i = 0; i < controlPoints.length - 1; i++) {
+    const p0 = controlPoints[i];
+    const p1 = controlPoints[i + 1];
+
+    if (!p0 || !p1 || !p0.pos || !p1.pos) continue;
+    if (typeof p0.pos[0] !== 'number' || typeof p0.pos[1] !== 'number') continue;
+    if (typeof p1.pos[0] !== 'number' || typeof p1.pos[1] !== 'number') continue;
+
+    if (p0.type === 'bezier' && p0.handlepos && p0.handlepos.length >= 4) {
+      const cp1x = p0.handlepos[2];
+      const cp1y = p0.handlepos[3];
+      const cp2x = (p1.handlepos && p1.handlepos.length >= 2) ? p1.handlepos[0] : p1.pos[0];
+      const cp2y = (p1.handlepos && p1.handlepos.length >= 2) ? p1.handlepos[1] : p1.pos[1];
+
+      if (typeof cp1x !== 'number' || typeof cp1y !== 'number' ||
+        typeof cp2x !== 'number' || typeof cp2y !== 'number' ||
+        isNaN(cp1x) || isNaN(cp1y) || isNaN(cp2x) || isNaN(cp2y)) {
+        curvePoints.push({ x: p0.pos[0], y: p0.pos[1] });
+        if (showMirror) {
+          mirrorPoints.push({ x: 2 * centerX - p0.pos[0], y: p0.pos[1] });
+        }
+        if (i === controlPoints.length - 2) {
+          curvePoints.push({ x: p1.pos[0], y: p1.pos[1] });
+          if (showMirror) {
+            mirrorPoints.push({ x: 2 * centerX - p1.pos[0], y: p1.pos[1] });
           }
         }
-
-        // 检查右手柄 cp2
-        if (anchor.cp2) {
-          const dist2 = Math.sqrt((x - anchor.cp2.x) ** 2 + (y - anchor.cp2.y) ** 2);
-          if (dist2 < 8) {
-            hoverFound = { type: 'handle', index: i, handleType: 'cp2' };
-            break;
-          }
-        }
-
-        // 检查锚点本身
-        const distAnchor = Math.sqrt((x - anchor.x) ** 2 + (y - anchor.y) ** 2);
-        if (distAnchor < 8) {
-          hoverFound = { type: 'anchor', index: i };
-          break;
-        }
-      }
-    } else if (drawMode === 'point') {
-      // 点绘模式：检查是否悬停在点上
-      for (let i = 0; i < clickPoints.length; i++) {
-        const point = clickPoints[i];
-        const dist = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
-        if (dist < 8) {
-          hoverFound = { type: 'point', index: i };
-          break;
-        }
-      }
-    }
-
-    setHoveredElement(hoverFound);
-  }, [drawMode, enableBezier, bezierAnchors, clickPoints]);
-
-  // 鼠标在画布上移动（不按按钮）- 用于悬停检测
-  const handleMouseHover = useCallback((e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-
-    // 存储鼠标位置供其他函数使用
-    document.pointer = { x, y };
-
-    // 只在非拖动状态下检测悬停
-    if (!dragState.isDragging) {
-      checkHover(x, y);
-    }
-  }, [checkHover, dragState.isDragging]);
-
-  // 鼠标离开画布
-  const handleMouseLeave = useCallback(() => {
-    // 如果在拖动中，保持拖动状态（用户可能拖到画布外）
-    // 如果不在拖动中，清除悬停状态
-    if (!dragState.isDragging) {
-      setHoveredElement(null);
-    }
-  }, [dragState.isDragging]);
-
-  // 初始化时加载 external points
-  useEffect(() => {
-    if (initialPoints && initialPoints.length > 0) {
-      if (drawMode === 'bezier') {
-        // 将旧格式的控制点转换为锚点格式
-        const anchors = initialPoints.map((pt, idx) => ({
-          x: pt.x,
-          y: pt.y,
-          cp1: { x: pt.x - 20, y: pt.y }, // 默认向左的手柄
-          cp2: { x: pt.x + 20, y: pt.y }  // 默认向右的手柄
-        }));
-        setBezierAnchors(anchors);
-      } else if (drawMode === 'free') {
-        setFreehandPoints(initialPoints);
-      } else {
-        setClickPoints(initialPoints);
-      }
-    }
-  }, []);
-
-  // 当模式切换或 initialPoints 变化时，重新绘制
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 根据当前模式绘制对应的图形
-    if (drawMode === 'point' && clickPoints.length > 0) {
-      // 点绘模式：绘制折线
-      clickPoints.forEach((point, index) => {
-        ctx.fillStyle = '#ff6b6b';
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (index > 0) {
-          const prevPoint = clickPoints[index - 1];
-          ctx.strokeStyle = '#4ecdc4';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(prevPoint.x, prevPoint.y);
-          ctx.lineTo(point.x, point.y);
-          ctx.stroke();
-        }
-      });
-
-      // 实时预览连线（如果正在拖动点）
-      if (dragState.isDragging && dragState.targetType === 'point' && clickPoints.length > 0) {
-        const lastPoint = clickPoints[clickPoints.length - 1];
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const mouseX = (document.pointer || {}).x;
-        const mouseY = (document.pointer || {}).y;
-
-        if (mouseX !== undefined && mouseY !== undefined) {
-          ctx.strokeStyle = '#4ecdc4';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(lastPoint.x, lastPoint.y);
-          ctx.lineTo(mouseX, mouseY);
-          ctx.stroke();
-        }
-      }
-    }
-    else if (drawMode === 'bezier' && bezierAnchors.length >= 2) {
-      // 贝塞尔模式：绘制锚点、手柄和三次贝塞尔曲线
-      drawBezierWithHandles(ctx, bezierAnchors);
-    }
-    else if (drawMode === 'free' && freehandPoints.length > 0) {
-      // 自由绘制模式：绘制平滑的手绘曲线
-      drawFreehandCurve(ctx, freehandPoints);
-    }
-  }, [drawMode, clickPoints, bezierAnchors, freehandPoints]);
-
-  const drawPoint = useCallback((x, y) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ff6b6b';
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fill();
-  }, []);
-
-  const drawLine = useCallback((fromX, fromY, toX, toY) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#4ecdc4';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY);
-    ctx.stroke();
-  }, []);
-
-  // 绘制自由手绘曲线（使用 Catmull-Rom 样条插值实现平滑）
-  const drawFreehandCurve = useCallback((ctx, pts) => {
-    if (pts.length < 2) return;
-
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    // 使用 Catmull-Rom 样条插值使曲线更平滑
-    const smoothPoints = [];
-    const tension = 0.5; // 张力系数，控制曲线平滑度
-
-    for (let i = 0; i < pts.length; i++) {
-      smoothPoints.push({ ...pts[i] });
-
-      // 在相邻点之间插入中间点
-      if (i > 0 && i < pts.length - 1) {
-        const p0 = pts[i - 1];
-        const p1 = pts[i];
-        const p2 = pts[i + 1];
-
-        // 计算切线
-        const t1x = (p2.x - p0.x) * tension;
-        const t1y = (p2.y - p0.y) * tension;
-
-        // 插入 3 个中间点
-        for (let j = 1; j <= 3; j++) {
-          const t = j / 4;
-          const x = p1.x + t * t1x;
-          const y = p1.y + t * t1y;
-          smoothPoints.push({ x, y });
-        }
-      }
-    }
-
-    // 绘制平滑曲线
-    ctx.strokeStyle = '#4ecdc4';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    if (smoothPoints.length > 0) {
-      ctx.moveTo(smoothPoints[0].x, smoothPoints[0].y);
-
-      // 使用二次贝塞尔曲线连接所有点
-      for (let i = 1; i < smoothPoints.length - 1; i++) {
-        const xc = (smoothPoints[i].x + smoothPoints[i + 1].x) / 2;
-        const yc = (smoothPoints[i].y + smoothPoints[i + 1].y) / 2;
-        ctx.quadraticCurveTo(smoothPoints[i].x, smoothPoints[i].y, xc, yc);
+        continue;
       }
 
-      // 连接最后一个点
-      if (smoothPoints.length > 1) {
-        ctx.lineTo(smoothPoints[smoothPoints.length - 1].x, smoothPoints[smoothPoints.length - 1].y);
-      }
-    }
-    ctx.stroke();
-
-    // 绘制起点和终点标记
-    if (pts.length > 0) {
-      ctx.fillStyle = '#ff6b6b';
-      ctx.beginPath();
-      ctx.arc(pts[0].x, pts[0].y, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (pts.length > 1) {
-        ctx.fillStyle = '#ffd93d';
-        ctx.beginPath();
-        ctx.arc(pts[pts.length - 1].x, pts[pts.length - 1].y, 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    return smoothPoints;
-  }, []);
-
-  // 绘制带手柄的三次贝塞尔曲线（Photoshop 风格）
-  const drawBezierWithHandles = useCallback((ctx, anchors) => {
-    if (anchors.length < 2) return;
-
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    // 设置画布光标样式 - 根据拖动状态和悬停状态
-    const canvas = canvasRef.current;
-    if (canvas) {
-    }
-
-    // 1. 绘制控制手柄和锚点连线
-    anchors.forEach((anchor, idx) => {
-      // 绘制手柄线（虚线）
-      ctx.strokeStyle = 'rgba(255, 107, 107, 0.4)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
-
-      // 左手柄
-      if (anchor.cp1) {
-        ctx.beginPath();
-        ctx.moveTo(anchor.x, anchor.y);
-        ctx.lineTo(anchor.cp1.x, anchor.cp1.y);
-        ctx.stroke();
-
-        // 手柄控制点
-        ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
-        ctx.beginPath();
-        ctx.arc(anchor.cp1.x, anchor.cp1.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // 右手柄
-      if (anchor.cp2) {
-        ctx.beginPath();
-        ctx.moveTo(anchor.x, anchor.y);
-        ctx.lineTo(anchor.cp2.x, anchor.cp2.y);
-        ctx.stroke();
-
-        // 手柄控制点
-        ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
-        ctx.beginPath();
-        ctx.arc(anchor.cp2.x, anchor.cp2.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.setLineDash([]);
-    });
-
-    // 2. 绘制三次贝塞尔曲线路径
-    ctx.strokeStyle = '#4ecdc4';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(anchors[0].x, anchors[0].y);
-
-    for (let i = 0; i < anchors.length - 1; i++) {
-      const p0 = anchors[i];
-      const p1 = anchors[i + 1];
-
-      // 使用三次贝塞尔曲线连接两个锚点
-      // cp2 是起点的出方向，cp1 是终点的入方向
-      ctx.bezierCurveTo(
-        p0.cp2.x, p0.cp2.y,  // 起点控制点（右手柄）
-        p1.cp1.x, p1.cp1.y,  // 终点控制点（左手柄）
-        p1.x, p1.y           // 终点
-      );
-    }
-    ctx.stroke();
-
-    // 3. 绘制锚点（实心圆）
-    anchors.forEach((anchor, idx) => {
-      ctx.fillStyle = idx === selectedAnchorIndex ? '#ffd93d' : '#ff6b6b';
-      ctx.beginPath();
-      ctx.arc(anchor.x, anchor.y, 5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 绘制锚点编号
-      ctx.fillStyle = '#fff';
-      ctx.font = '10px Arial';
-      ctx.fillText((idx + 1).toString(), anchor.x + 8, anchor.y - 8);
-    });
-
-    // 4. 显示当前点数提示
-    if (anchors.length >= 2) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-      ctx.font = '12px Arial';
-      ctx.fillText(`锚点：${anchors.length}`, 10, 20);
-    }
-  }, [selectedAnchorIndex]);
-
-  const handleMouseDown = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (readOnly) return; // 只读模式下禁用
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-
-    if (drawMode === 'free' && enableBezier) {
-      // 自由绘制模式：开始连续绘制
-      setDragState({
-        isDragging: true,
-        targetType: 'freehand',
-        targetIndex: -1,
-        handleType: null
-      });
-      const newPoint = { x, y };
-      setFreehandPoints([newPoint]);
-
-      // 绘制起点
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ff6b6b';
-      ctx.beginPath();
-      ctx.arc(x, y, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else if (drawMode === 'bezier' && enableBezier) {
-      // 贝塞尔模式：根据悬停元素决定拖动类型
-      if (hoveredElement?.type === 'handle') {
-        // 情况 1: 鼠标在手柄上 - 拖动手柄
-        setDragState({
-          isDragging: true,
-          targetType: 'handle',
-          targetIndex: hoveredElement.index,
-          handleType: hoveredElement.handleType
-        });
-
-      } else if (hoveredElement?.type === 'anchor') {
-        // 情况 2: 鼠标在锚点上 - 拖动锚点
-        setDragState({
-          isDragging: true,
-          targetType: 'anchor',
-          targetIndex: hoveredElement.index,
-          handleType: null
-        });
-
-      } else {
-        // 情况 3: 鼠标在空白处 - 添加新锚点
-        const defaultHandleLength = 30;
-
-        let cp1Offset = { x: -defaultHandleLength, y: 0 };
-        let cp2Offset = { x: defaultHandleLength, y: 0 };
-
-        if (bezierAnchors.length > 0) {
-          const prevAnchor = bezierAnchors[bezierAnchors.length - 1];
-          const dx = x - prevAnchor.x;
-          const dy = y - prevAnchor.y;
-          const len = Math.sqrt(dx * dx + dy * dy);
-
-          if (len > 0) {
-            const ux = dx / len;
-            const uy = dy / len;
-
-            cp1Offset = { x: -ux * defaultHandleLength, y: -uy * defaultHandleLength };
-            cp2Offset = { x: ux * defaultHandleLength, y: uy * defaultHandleLength };
-          }
-        }
-
-        const newAnchor = {
-          x,
-          y,
-          cp1: { x: x + cp1Offset.x, y: y + cp1Offset.y },
-          cp2: { x: x + cp2Offset.x, y: y + cp2Offset.y }
-        };
-
-        const newAnchors = [...bezierAnchors, newAnchor];
-        setBezierAnchors(newAnchors);
-
-        // 立即重绘
-        const ctx = canvas.getContext('2d');
-        drawBezierWithHandles(ctx, newAnchors);
-      }
-
-    } else if (drawMode === 'point') {
-      // 点绘模式：检查是否点击在已有点上
-      if (hoveredElement?.type === 'point') {
-        // 情况 1: 鼠标在点上 - 拖动该点
-        setDragState({
-          isDragging: true,
-          targetType: 'point',
-          targetIndex: hoveredElement.index,
-          handleType: null
-        });
-      } else {
-        // 情况 2: 鼠标在空白处 - 添加新点
-        setDragState({
-          isDragging: true,
-          targetType: 'point',
-          targetIndex: -1,
-          handleType: null
-        });
-        const newPoint = { x, y };
-        setClickPoints(prev => [...prev, newPoint]);
-
-        // 绘制点
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ff6b6b';
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }, [drawMode, enableBezier, bezierAnchors, hoveredElement, drawBezierWithHandles]);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!dragState.isDragging || readOnly) return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-
-    if (drawMode === 'free' && enableBezier) {
-      // 自由绘制模式：连续添加点并实时绘制平滑曲线
-      setFreehandPoints(prev => {
-        const updated = [...prev, { x, y }];
-        const ctx = canvas.getContext('2d');
-        drawFreehandCurve(ctx, updated);
-        return updated;
-      });
-
-    } else if (drawMode === 'bezier' && enableBezier) {
-      // 贝塞尔模式：根据拖动类型处理
-      if (dragState.targetType === 'handle') {
-        // 拖动手柄：只更新手柄位置
-        const newAnchors = [...bezierAnchors];
-        const anchorIndex = dragState.targetIndex;
-        const handleType = dragState.handleType;
-
-        if (anchorIndex >= 0 && anchorIndex < newAnchors.length) {
-          // 更新对应手柄的位置
-          newAnchors[anchorIndex][handleType] = { x, y };
-
-          setBezierAnchors(newAnchors);
-
-          // 实时重绘
-          const ctx = canvas.getContext('2d');
-          drawBezierWithHandles(ctx, newAnchors);
-        }
-
-      } else if (dragState.targetType === 'anchor') {
-        // 拖动锚点：移动锚点和两个手柄
-        const newAnchors = [...bezierAnchors];
-        const anchorIndex = dragState.targetIndex;
-
-        if (anchorIndex >= 0 && anchorIndex < newAnchors.length) {
-          const anchor = newAnchors[anchorIndex];
-          const dx = x - anchor.x;
-          const dy = y - anchor.y;
-
-          // 移动锚点
-          anchor.x = x;
-          anchor.y = y;
-
-          // 同步移动两个手柄
-          if (anchor.cp1) {
-            anchor.cp1.x += dx;
-            anchor.cp1.y += dy;
-          }
-          if (anchor.cp2) {
-            anchor.cp2.x += dx;
-            anchor.cp2.y += dy;
-          }
-
-          setBezierAnchors(newAnchors);
-
-          // 实时重绘
-          const ctx = canvas.getContext('2d');
-          drawBezierWithHandles(ctx, newAnchors);
-        }
-
-      }
-
-    } else if (drawMode === 'point') {
-      // 点绘模式：拖动已存在的点或预览新点
-      if (dragState.targetIndex >= 0) {
-        // 拖动已存在的点
-        const newPoints = [...clickPoints];
-        const pointIndex = dragState.targetIndex;
-
-        if (pointIndex >= 0 && pointIndex < newPoints.length) {
-          newPoints[pointIndex] = { x, y };
-          setClickPoints(newPoints);
-
-          // 立即重绘
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-          // 重新绘制所有点和线
-          newPoints.forEach((point, index) => {
-            ctx.fillStyle = '#ff6b6b';
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-
-            if (index > 0) {
-              const prevPoint = newPoints[index - 1];
-              ctx.strokeStyle = '#4ecdc4';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.moveTo(prevPoint.x, prevPoint.y);
-              ctx.lineTo(point.x, point.y);
-              ctx.stroke();
-            }
-          });
-        }
-      } else {
-        // 预览新点（不保存，只绘制临时线）
-        const lastPoint = clickPoints[clickPoints.length - 1];
-        if (lastPoint) {
-          // 临时绘制 preview 线（不保存）
-          const ctx = canvas.getContext('2d');
-          ctx.strokeStyle = '#4ecdc4';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(lastPoint.x, lastPoint.y);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-        }
-      }
-    }
-  }, [dragState, clickPoints, drawMode, enableBezier, bezierAnchors, drawBezierWithHandles, drawFreehandCurve]);
-
-  const handleMouseUp = useCallback(() => {
-    if (readOnly) return;
-
-    if (drawMode === 'free' && enableBezier) {
-      // 自由绘制模式：完成绘制，输出所有点
-      if (onPointsChange && freehandPoints.length > 1) {
-        console.log("自由绘制完成，共", freehandPoints.length, "个点");
-        onPointsChange(freehandPoints);
-      }
-
-    } else if (drawMode === 'bezier' && enableBezier) {
-      // 贝塞尔模式：完成拖动，输出数据
-      if (dragState.isDragging && bezierAnchors.length >= 2) {
-        const curvePoints = generateBezierPointsFromAnchors(bezierAnchors);
-
-        if (dragState.targetType === 'anchor' || dragState.targetType === 'handle') {
-          // 拖动锚点或手柄后输出
-          console.log("贝塞尔曲线编辑完成");
-          onPointsChange(curvePoints);
-        } else if (dragState.targetType === null && bezierAnchors.length > 0) {
-          // 添加新锚点后输出
-          console.log("贝塞尔曲线绘制完成，共", bezierAnchors.length, "个锚点");
-          onPointsChange(curvePoints);
-        }
-      }
-
-    } else if (drawMode === 'point') {
-      // 点绘模式：完成点的添加或拖动
-      if (onPointsChange && clickPoints.length > 0) {
-        if (dragState.targetIndex >= 0) {
-          // 拖动已存在的点后输出
-          console.log("点位置编辑完成");
-        } else {
-          // 添加新点后输出
-          console.log("点绘完成，共", clickPoints.length, "个点");
-        }
-        onPointsChange(clickPoints);
-      }
-    }
-
-    // 重置拖动状态
-    setDragState({
-      isDragging: false,
-      targetType: null,
-      targetIndex: -1,
-      handleType: null
-    });
-  }, [onPointsChange, drawMode, enableBezier, clickPoints, bezierAnchors, dragState, freehandPoints]);
-
-  // 从贝塞尔锚点生成密集点阵（用于 3D 生成）
-  const generateBezierPointsFromAnchors = useCallback((anchors) => {
-    if (anchors.length < 2) return [];
-
-    const curvePoints = [];
-    const segmentsPerSpan = 50; // 每两个锚点之间的分段数
-
-    for (let i = 0; i < anchors.length - 1; i++) {
-      const p0 = anchors[i];
-      const p1 = anchors[i + 1];
-
-      // 对每一段三次贝塞尔曲线进行采样
       for (let t = 0; t <= segmentsPerSpan; t++) {
         const ratio = t / segmentsPerSpan;
-
-        // 三次贝塞尔曲线公式
         const invRatio = 1 - ratio;
 
-        // B(t) = (1-t)³·P0 + 3(1-t)²·t·CP0 + 3(1-t)·t²·CP1 + t³·P1
-        const x = Math.pow(invRatio, 3) * p0.x +
-          3 * Math.pow(invRatio, 2) * ratio * p0.cp2.x +
-          3 * invRatio * Math.pow(ratio, 2) * p1.cp1.x +
-          Math.pow(ratio, 3) * p1.x;
+        const x = Math.pow(invRatio, 3) * p0.pos[0] +
+          3 * Math.pow(invRatio, 2) * ratio * cp1x +
+          3 * invRatio * Math.pow(ratio, 2) * cp2x +
+          Math.pow(ratio, 3) * p1.pos[0];
 
-        const y = Math.pow(invRatio, 3) * p0.y +
-          3 * Math.pow(invRatio, 2) * ratio * p0.cp2.y +
-          3 * invRatio * Math.pow(ratio, 2) * p1.cp1.y +
-          Math.pow(ratio, 3) * p1.y;
+        const y = Math.pow(invRatio, 3) * p0.pos[1] +
+          3 * Math.pow(invRatio, 2) * ratio * cp1y +
+          3 * invRatio * Math.pow(ratio, 2) * cp2y +
+          Math.pow(ratio, 3) * p1.pos[1];
 
-        curvePoints.push({ x, y });
+        if (!isNaN(x) && !isNaN(y)) {
+          curvePoints.push({ x, y });
+          if (showMirror) {
+            mirrorPoints.push({ x: 2 * centerX - x, y });
+          }
+        }
+      }
+    } else if (p0.type === 'free') {
+      curvePoints.push({ x: p0.pos[0], y: p0.pos[1] });
+      if (showMirror) {
+        mirrorPoints.push({ x: 2 * centerX - p0.pos[0], y: p0.pos[1] });
+      }
+      if (i === controlPoints.length - 2) {
+        curvePoints.push({ x: p1.pos[0], y: p1.pos[1] });
+        if (showMirror) {
+          mirrorPoints.push({ x: 2 * centerX - p1.pos[0], y: p1.pos[1] });
+        }
+      }
+    } else {
+      curvePoints.push({ x: p0.pos[0], y: p0.pos[1] });
+      if (showMirror) {
+        mirrorPoints.push({ x: 2 * centerX - p0.pos[0], y: p0.pos[1] });
+      }
+      if (i === controlPoints.length - 2) {
+        curvePoints.push({ x: p1.pos[0], y: p1.pos[1] });
+        if (showMirror) {
+          mirrorPoints.push({ x: 2 * centerX - p1.pos[0], y: p1.pos[1] });
+        }
       }
     }
+  }
 
-    // 添加最后一个锚点
-    curvePoints.push({
-      x: anchors[anchors.length - 1].x,
-      y: anchors[anchors.length - 1].y
-    });
+  const filteredPoints = curvePoints.filter(p => !isNaN(p.x) && !isNaN(p.y));
+  const filteredMirror = showMirror ? mirrorPoints.filter(p => !isNaN(p.x) && !isNaN(p.y)) : [];
 
-    return curvePoints;
-  }, []);
+  return showMirror ? { curvePoints: filteredPoints, mirrorPoints: filteredMirror } : filteredPoints;
+};
 
+// 小窗口组件 - 只显示曲线，不显示控制元素，带镜像显示
+const PreviewCanvas = ({ controlPoints, title, onCurveChange }) => {
+  const canvasRef = useRef(null);
+  // 全屏编辑器使用的尺寸
+  const sourceDimensions = { width: 1200, height: 675 };
+  // 预览画布的尺寸
+  const previewDimensions = { width: 280, height: 150 };
+  // 中心X坐标（预览画布中）
+  const previewCenterX = previewDimensions.width / 2;
 
-  const clearCanvas = useCallback(() => {
-    if (readOnly) return;
+  // 计算缩放比例
+  const scaleX = previewDimensions.width / sourceDimensions.width;
+  const scaleY = previewDimensions.height / sourceDimensions.height;
+  const sourceCenterX = sourceDimensions.width / 2;
+
+  // 生成并缩放曲线点 - 使用平滑曲线（贝塞尔插值），用于显示扫掠生成几何体的实际点列
+  const curvePoints = useMemo(() => {
+    // 带镜像生成
+    const result = generateSmoothCurvePoints(controlPoints, sourceCenterX, true);
+    // 处理返回格式（可能是对象或数组）
+    const points = result.curvePoints || result;
+    // 通知父组件曲线点变化（使用原始平滑曲线点，用于3D模型）
+    if (onCurveChange) {
+      onCurveChange(points);
+    }
+    return result;
+  }, [controlPoints, onCurveChange, scaleX, scaleY]);
+
+  // 绘制曲线 - 直接用直线连接所有点，显示模型截面真实形状（包括镜像）
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, previewDimensions.width, previewDimensions.height);
 
-    // 清空所有模式的点
-    setClickPoints([]);
-    setBezierAnchors([]);
-    setFreehandPoints([]);
-    setSelectedAnchorIndex(-1);
-    setDragState({
-      isDragging: false,
-      targetType: null,
-      targetIndex: -1,
-      handleType: null
-    });
-    setEquation('');
+    // 获取曲线数据
+    const curveData = curvePoints;
+    const originalPoints = curveData.curvePoints || curveData;
+    const mirrorPoints = curveData.mirrorPoints;
 
-    if (onPointsChange) {
-      onPointsChange([]);
-    }
-  }, [onPointsChange]);
+    // 如果没有原始点，直接返回
+    if (!originalPoints || originalPoints.length < 2) return;
 
-  const toggleDrawMode = useCallback(() => {
-    if (readOnly) return;
-
-    // 三种模式循环切换：point -> bezier -> free -> point
-    setDrawMode(prev => {
-      if (prev === 'point') return 'bezier';
-      if (prev === 'bezier') return 'free';
-      return 'point';
-    });
-  }, [readOnly]);
-
-  const generateFromEquation = useCallback(() => {
-    if (readOnly || !equation.trim()) return;
-
-    try {
-      const newPoints = [];
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i <= canvas.width; i += 3) {
-        const normalizedX = (i / canvas.width) * 20 - 10;
-        let y;
-
-        try {
-          y = eval(equation.replace(/x/g, `(${normalizedX})`));
-          const canvasY = canvas.height / 2 - (y * 15);
-
-          if (canvasY >= 0 && canvasY <= canvas.height) {
-            newPoints.push({ x: i, y: canvasY });
-            drawPoint(i, canvasY);
-
-            if (newPoints.length > 1) {
-              const prevPoint = newPoints[newPoints.length - 2];
-              drawLine(prevPoint.x, prevPoint.y, i, canvasY);
-            }
-          }
-        } catch (error) {
-          // 方程计算错误，跳过该点
-        }
+    // 1. 先绘制镜像曲线（右侧）
+    if (mirrorPoints && mirrorPoints.length >= 2) {
+      ctx.strokeStyle = 'rgba(78, 205, 196, 0.4)'; // 淡色镜像
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]); // 虚线
+      ctx.beginPath();
+      const firstMirror = mirrorPoints[0];
+      ctx.moveTo(firstMirror.x * scaleX, firstMirror.y * scaleY);
+      for (let i = 1; i < mirrorPoints.length; i++) {
+        ctx.lineTo(mirrorPoints[i].x * scaleX, mirrorPoints[i].y * scaleY);
       }
-
-      setPoints(newPoints);
-      // 立即调用回调，确保数据被保存
-      if (onPointsChange) {
-        console.log("绘制完成");
-        onPointsChange(newPoints);
-      }
-    } catch (error) {
-      // 方程解析错误，静默处理
-    }
-  }, [equation, drawPoint, drawLine, onPointsChange]);
-
-  // 打开全屏模态窗口
-  const openModal = useCallback(() => {
-    console.log('打开全屏模态窗口');
-    setIsModalOpen(true);
-    // 临时测试：显示 alert 确认函数被调用
-    setTimeout(() => {
-      console.log('状态已更新，当前 isModalOpen:', document.body.innerHTML.includes('modal-overlay'));
-    }, 100);
-    document.body.style.overflow = 'hidden'; // 禁用背景滚动
-  }, []);
-
-  // 关闭全屏模态窗口
-  const closeModal = useCallback(() => {
-    console.log('关闭全屏模态窗口');
-    setIsModalOpen(false);
-    document.body.style.overflow = ''; // 恢复背景滚动
-  }, []);
-
-  // ESC 键退出
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape' && isModalOpen) {
-        closeModal();
-      }
-    };
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [isModalOpen, closeModal]);
-
-  // 渲染全屏模态窗口内容
-  const renderModalContent = () => {
-    console.log('renderModalContent 被调用，isModalOpen:', isModalOpen);
-    if (!isModalOpen) {
-      console.log('isModalOpen 为 false，返回 null');
-      return null;
+      ctx.stroke();
+      ctx.setLineDash([]); // 重置
     }
 
-    console.log('开始创建 Portal，document.body:', document.body);
-    const portalContent = createPortal(
-      <div
-        onClick={closeModal}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 999999,  // 提高 z-index 确保在最上层
-          width: '100vw',
-          height: '100vh'
-        }}
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            background: 'var(--fluent-acrylic)',
-            backdropFilter: 'blur(40px)',
-            WebkitBackdropFilter: 'blur(40px)',
-            border: '1px solid var(--fluent-border)',
-            borderRadius: 'var(--fluent-radius)',
-            boxShadow: 'var(--fluent-shadow-hover)',
-            width: '95vw',
-            height: '90vh',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            animation: 'slideIn 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 1000000  // 确保内容在遮罩之上
-          }}
-        >
-          {/* 模态窗口头部 */}
-          <div className="modal-header" style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '16px 20px',
-            borderBottom: '1px solid var(--fluent-border-light)',
-            background: '#ffffff80',
-            marginBottom: '20px'
-          }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--fluent-text)' }}>
-              {title} - 全屏绘制
-            </h3>
-            <button
-              onClick={closeModal}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: 'var(--fluent-text-tertiary)',
-                padding: '0',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 'var(--fluent-radius)',
-                transition: 'var(--fluent-transition)'
-              }}
-              title="关闭 (ESC)"
-            >
-              ×
-            </button>
-          </div>
+    // 2. 绘制原始曲线（左侧）
+    ctx.strokeStyle = '#4ecdc4';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(originalPoints[0].x * scaleX, originalPoints[0].y * scaleY);
 
-          {/* 模态窗口主体 - 保持画布比例 */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'auto'
-          }}>
-            <div style={{
-              position: 'relative',
-              display: 'inline-block',
-              aspectRatio: '280/150',
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }}>
-              <canvas
-                ref={canvasRef}
-                width={1400}
-                height={750}
-                className="simple-canvas"
-                style={{
-                  cursor: 'default', // 光标由 useEffect 统一管理
-                  maxWidth: '100%',
-                  height: 'auto'
-                }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={(e) => {
-                  if (!dragState.isDragging && drawMode === 'bezier') {
-                    handleMouseHover(e);
-                  }
-                  handleMouseMove(e);
-                }}
-                onMouseEnter={handleMouseHover}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseLeave}
-              />
-              {/* 旋转轴标识线（垂直）- 中心位置 x=140 */}
-              <div style={{
-                position: 'absolute',
-                left: '140px',  // 280/2 = 140
-                top: 0,
-                bottom: 0,
-                width: '1px',
-                backgroundColor: 'rgb(94, 25, 25)',
-                pointerEvents: 'none',
-                transform: 'translateX(-0.5px)'
-              }} />
-              {/* 基准线标识线（水平）- 中心位置 y=75 */}
-              <div style={{
-                position: 'absolute',
-                top: '75px',  // 150/2 = 75
-                left: 0,
-                right: 0,
-                height: '1px',
-                backgroundColor: 'rgb(94, 25, 25)',
-                pointerEvents: 'none',
-                transform: 'translateY(-0.5px)'
-              }} />
-            </div>
-          </div>
-
-          {/* 模态窗口底部控制栏 */}
-          <div style={{
-            marginTop: '20px',
-            padding: '16px 20px',
-            borderTop: '1px solid var(--fluent-border-light)',
-            background: '#ffffff80',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div className="points-count" style={{
-              fontSize: '14px',
-              color: 'var(--fluent-text-secondary)',
-              fontWeight: 500
-            }}>
-              {enableBezier && drawMode === 'free'
-                ? `绘制点数：${freehandPoints.length}`
-                : enableBezier && drawMode === 'bezier'
-                  ? `锚点：${bezierAnchors.length}`
-                  : `点数：${clickPoints.length}`}
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={clearCanvas}
-                disabled={readOnly}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: 'var(--fluent-radius)',
-                  background: readOnly ? '#cccccc' : '#ff6b6b',
-                  color: '#fff',
-                  cursor: readOnly ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  transition: 'var(--fluent-transition)',
-                  opacity: readOnly ? 0.6 : 1
-                }}
-              >
-                清空
-              </button>
-              <button
-                onClick={closeModal}
-                style={{
-                  padding: '8px 20px',
-                  border: 'none',
-                  borderRadius: 'var(--fluent-radius)',
-                  background: 'var(--fluent-primary)',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  transition: 'var(--fluent-transition)'
-                }}
-              >
-                完成
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>,
-      document.body
-    );
-
-    console.log('Portal 内容:', portalContent);
-    return portalContent;
-  };
+    for (let i = 1; i < originalPoints.length; i++) {
+      ctx.lineTo(originalPoints[i].x * scaleX, originalPoints[i].y * scaleY);
+    }
+    ctx.stroke();
+  }, [curvePoints, previewDimensions, scaleX, scaleY]);
 
   return (
-    <div className={`simple-canvas-container ${className}`}>
+    <div className="preview-canvas-container">
       <div className="canvas-header">
         <h4>{title}</h4>
-        <div className="header-buttons">
-          {enableBezier && (
-            <button
-              className={`mode-btn ${drawMode === 'free' ? 'active free-mode' : drawMode === 'bezier' ? 'active' : ''}`}
-              onClick={toggleDrawMode}
-              disabled={readOnly}
-              title="切换绘制模式（点绘 → 贝塞尔 → 自由绘制）"
-              style={{ opacity: readOnly ? 0.5 : 1, cursor: readOnly ? 'not-allowed' : 'pointer' }}
-            >
-              {drawMode === 'free' ? '🖌️ 自由绘制' : drawMode === 'bezier' ? '🎨 贝塞尔' : '✏️ 点绘'}
-            </button>
-          )}
-          {showFullScreen && (
-            <button
-              className="mode-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('全屏按钮被点击');
-                openModal();
-              }}
-              title="全屏绘制"
-              style={{ marginLeft: '6px' }}
-            >
-              ⛶ 全屏
-            </button>
-          )}
-          <button className="clear-btn" onClick={clearCanvas} disabled={readOnly} style={{ opacity: readOnly ? 0.5 : 1, cursor: readOnly ? 'not-allowed' : 'pointer' }}>清空</button>
-        </div>
+        <span className="points-count">曲线点：{(curvePoints.curvePoints || curvePoints).length}</span>
       </div>
-
-      {enableBezier && drawMode === 'free' && (
-        <div className="bezier-hint">
-          🖌️ 按住鼠标左键并拖动来绘制平滑曲线
-        </div>
-      )}
-      {enableBezier && drawMode === 'bezier' && (
-        <div className="bezier-hint">
-          💡 点击添加锚点，拖拽红色手柄调整曲率，可移动锚点位置
-        </div>
-      )}
-
-      <div className="equation-input-small">
-        <input
-          type="text"
-          placeholder={equationPlaceholder}
-          value={equation}
-          onChange={(e) => setEquation(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && generateFromEquation()}
-          disabled={readOnly}
-          style={{ opacity: readOnly ? 0.5 : 1 }}
-        />
-        <button onClick={generateFromEquation} disabled={readOnly} style={{ opacity: readOnly ? 0.5 : 1 }}>生成</button>
-      </div>
-
       <div style={{ position: 'relative', display: 'inline-block' }}>
         <canvas
           ref={canvasRef}
-          width={280}
-          height={150}
-          className="simple-canvas"
-          style={{
-            cursor: 'default', // 光标由 useEffect 统一管理
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={(e) => {
-            // 先执行悬停检测（只在非拖动状态下）
-            if (!dragState.isDragging && drawMode === 'bezier') {
-              handleMouseHover(e);
-            }
-            // 再执行绘制/拖动逻辑
-            handleMouseMove(e);
-          }}
-          onMouseEnter={handleMouseHover}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
+          width={previewDimensions.width}
+          height={previewDimensions.height}
+          style={{ background: '#f5f5f5', borderRadius: '4px' }}
         />
-        {/* 旋转轴标识线（垂直） */}
+        {/* 中心参考线 */}
         <div style={{
           position: 'absolute',
           left: '50%',
           top: 0,
           bottom: 0,
           width: '1px',
-          backgroundColor: 'rgb(94, 25, 25)',
-          pointerEvents: 'none',
-          transform: 'translateX(-0.5px)'
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          pointerEvents: 'none'
         }} />
-        {/* 基准线标识线（水平） */}
         <div style={{
           position: 'absolute',
           left: 0,
           right: 0,
           top: '50%',
           height: '1px',
-          backgroundColor: 'rgb(94, 25, 25)',
-          pointerEvents: 'none',
-          transform: 'translateY(-0.5px)'
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          pointerEvents: 'none'
         }} />
       </div>
-
-      <div className="points-count">
-        {enableBezier && drawMode === 'free'
-          ? `绘制点数：${freehandPoints.length}`
-          : enableBezier && drawMode === 'bezier'
-            ? `锚点：${bezierAnchors.length}`
-            : `点数：${clickPoints.length}`}
-      </div>
-
-      {/* 渲染全屏模态窗口 */}
-      {renderModalContent()}
     </div>
   );
 };
 
-// 3D 模型预览组件
-export const ModelPreview = ({ profilePoints, pathPoints }) => {
-  const geometries = useMemo(() => {
-    if (!profilePoints || profilePoints.length < 3) return null;
+// 大窗口绘制逻辑
+const FullscreenEditor = ({
+  controlPoints,
+  onControlPointsChange,
+  title,
+  readOnly = false
+}) => {
+  const canvasRef = useRef(null);
+  const [tool, setTool] = useState(TOOL_TYPES.POINT); // 默认使用点绘
+  const [points, setPoints] = useState(controlPoints || []);
+  const [selectedPointId, setSelectedPointId] = useState(null);
+  const [dragState, setDragState] = useState({ isDragging: false, type: null, id: null, handle: null });
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+  const isInternalUpdate = useRef(false); // 标记是否内部更新
+  const onControlPointsChangeRef = useRef(onControlPointsChange); // 使用 ref 避免无限循环
 
-    try {
-      // ========== 1. 处理轮廓曲线 ==========
-      // Canvas 中心点：(140, 75)
-      // Canvas 坐标：x 向右为正，y 向下为正
-      // 3D 坐标：x 向右为正，y 向上为正，z 向前为正
-      // 转换规则：
-      //   - canvasX - 140 -> 3D 的半径（距离中心线的水平距离）
-      //   - -(canvasY - 75) -> 3D 的 y（高度，canvas 向下 y 增大，3D 向上 y 增大，所以取负）
+  // 保持 ref 更新
+  useEffect(() => {
+    onControlPointsChangeRef.current = onControlPointsChange;
+  }, [onControlPointsChange]);
 
-      const profile2D = profilePoints.map(point => {
-        const radius = (point.x - 140) / 8;      // 半径（可能为负，取绝对值）
-        const height = -(point.y - 75) / 8;      // 高度
-        return { radius: Math.abs(radius), height };
-      });
+  // 固定长宽比为 16:9，保持合理比例
+  const dimensions = { width: 1200, height: 675 };
+  // 中心X坐标
+  const centerX = dimensions.width / 2;
 
-      // 计算轮廓曲线的最高点
-      let maxY = -Infinity;
-      let minY = Infinity;
-      for (const point of profile2D) {
-        maxY = Math.max(maxY, point.height);
-        minY = Math.min(minY, point.height);
+  // 使用 isDraggingRef 来避免在拖动时触发同步
+  const isDraggingRef = useRef(false);
+
+  // 初始化ID计数器 - 基于现有控制点的最大ID（只在挂载时执行一次）
+  useEffect(() => {
+    initializeIdCounter(controlPoints);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 当 controlPoints prop 变化时，同步到组件状态（只在非内部更新时，且不在拖动时）
+  useEffect(() => {
+    if (!isInternalUpdate.current && !isDraggingRef.current && controlPoints) {
+      // 比较数组是否不同
+      const isDifferent = JSON.stringify(controlPoints) !== JSON.stringify(points);
+      if (isDifferent) {
+        setPoints(controlPoints);
+      }
+    }
+    isInternalUpdate.current = false;
+  }, [controlPoints]);
+
+  // 当控制点变化时通知父组件（只在内部更新时）
+  const handlePointsChange = useCallback((newPoints, fromDrag = false) => {
+    if (fromDrag) {
+      isDraggingRef.current = true;
+    }
+    isInternalUpdate.current = true;
+    setPoints(newPoints);
+    if (onControlPointsChangeRef.current) {
+      onControlPointsChangeRef.current(newPoints);
+    }
+  }, []);
+
+  // 拖动结束时重置标志
+  const handleDragEnd = useCallback(() => {
+    isDraggingRef.current = false;
+    setDragState({ isDragging: false, type: null, id: null, handle: null });
+  }, []);
+
+  // 绘制所有内容（控制点、手柄、曲线、镜像）
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+
+    // 1. 先绘制镜像曲线（右侧）- 使用虚线样式
+    const mirrorData = generateSmoothCurvePoints(points, centerX, true);
+    if (mirrorData.mirrorPoints && mirrorData.mirrorPoints.length >= 2) {
+      ctx.strokeStyle = 'rgba(78, 205, 196, 0.4)'; // 淡色镜像
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]); // 虚线
+      ctx.beginPath();
+      ctx.moveTo(mirrorData.mirrorPoints[0].x, mirrorData.mirrorPoints[0].y);
+      for (let i = 1; i < mirrorData.mirrorPoints.length; i++) {
+        ctx.lineTo(mirrorData.mirrorPoints[i].x, mirrorData.mirrorPoints[i].y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]); // 重置为实线
+    }
+
+    // 2. 绘制原始曲线（左侧）- 使用平滑曲线显示，方便用户看到贝塞尔效果
+    const curvePoints = mirrorData.curvePoints || mirrorData;
+    if (curvePoints.length >= 2) {
+      ctx.strokeStyle = '#4ecdc4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(curvePoints[0].x, curvePoints[0].y);
+      for (let i = 1; i < curvePoints.length; i++) {
+        ctx.lineTo(curvePoints[i].x, curvePoints[i].y);
+      }
+      ctx.stroke();
+    }
+
+    // 3. 绘制控制点和手柄（只绘制左侧的点）
+    // 过滤出左侧的控制点（x < centerX）
+    const leftPoints = points.filter(p => p && p.pos && p.pos[0] < centerX);
+    leftPoints.forEach((point, index) => {
+      // 安全检查
+      if (!point || !point.pos || !point.pos[0] || !point.pos[1]) return;
+
+      const { id, type, pos, handlepos } = point;
+      const isSelected = id === selectedPointId;
+      const isHovered = id === hoveredPoint;
+
+      // 贝塞尔曲线：绘制手柄
+      if (type === 'bezier' && handlepos && handlepos.length >= 4) {
+        // 左手柄
+        if (handlepos[0] !== undefined || handlepos[1] !== undefined) {
+          ctx.strokeStyle = 'rgba(255, 107, 107, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(pos[0], pos[1]);
+          ctx.lineTo(handlepos[0], handlepos[1]);
+          ctx.stroke();
+
+          // 手柄点
+          ctx.fillStyle = dragState.isDragging && dragState.id === id && dragState.handle === 'cp1'
+            ? '#ff0000' : 'rgba(255, 107, 107, 0.7)';
+          ctx.beginPath();
+          ctx.arc(handlepos[0], handlepos[1], 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 右手柄
+        if (handlepos[2] !== undefined || handlepos[3] !== undefined) {
+          ctx.strokeStyle = 'rgba(255, 107, 107, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(pos[0], pos[1]);
+          ctx.lineTo(handlepos[2], handlepos[3]);
+          ctx.stroke();
+
+          // 手柄点
+          ctx.fillStyle = dragState.isDragging && dragState.id === id && dragState.handle === 'cp2'
+            ? '#ff0000' : 'rgba(255, 107, 107, 0.7)';
+          ctx.beginPath();
+          ctx.arc(handlepos[2], handlepos[3], 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.setLineDash([]);
       }
 
-      // ========== 2. 处理路径曲线 ==========
-      const hasPath = pathPoints && pathPoints.length >= 3;
+      // 绘制控制点
+      if (type === 'bezier') {
+        ctx.fillStyle = isSelected ? '#ffd93d' : (isHovered ? '#ff9f43' : '#ff6b6b');
+      } else if (type === 'point') {
+        ctx.fillStyle = isSelected ? '#ffd93d' : (isHovered ? '#ff9f43' : '#26de81');
+      } else {
+        ctx.fillStyle = isSelected ? '#ffd93d' : (isHovered ? '#ff9f43' : '#45aaf2');
+      }
+
+      ctx.beginPath();
+      const radius = type === 'bezier' ? 8 : 6;
+      ctx.arc(pos[0], pos[1], radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 绘制编号（使用原始索引+1）
+      const originalIndex = points.findIndex(p => p.id === point.id);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText((originalIndex + 1).toString(), pos[0], pos[1]);
+    });
+  }, [points, selectedPointId, hoveredPoint, dragState, dimensions, centerX]);
+
+  // 绘制
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  // 获取鼠标位置
+  const getMousePos = useCallback((e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = dimensions.width / rect.width;
+    const scaleY = dimensions.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  }, [dimensions]);
+
+  // 检查点击了哪个元素
+  const hitTest = useCallback((x, y) => {
+    const hitRadius = 12;
+
+    // 检查手柄
+    for (const point of points) {
+      if (!point || !point.pos || !point.pos[0] || !point.pos[1]) continue;
+      if (point.type === 'bezier' && point.handlepos && point.handlepos.length >= 4) {
+        // 左手柄
+        if (point.handlepos[0] !== undefined) {
+          const dist = Math.sqrt((x - point.handlepos[0]) ** 2 + (y - point.handlepos[1]) ** 2);
+          if (dist < hitRadius) {
+            return { type: 'handle', id: point.id, handle: 'cp1' };
+          }
+        }
+        // 右手柄
+        if (point.handlepos[2] !== undefined) {
+          const dist = Math.sqrt((x - point.handlepos[2]) ** 2 + (y - point.handlepos[3]) ** 2);
+          if (dist < hitRadius) {
+            return { type: 'handle', id: point.id, handle: 'cp2' };
+          }
+        }
+      }
+    }
+
+    // 检查控制点
+    for (const point of points) {
+      if (!point || !point.pos || !point.pos[0] || !point.pos[1]) continue;
+      const dist = Math.sqrt((x - point.pos[0]) ** 2 + (y - point.pos[1]) ** 2);
+      if (dist < hitRadius) {
+        return { type: 'point', id: point.id };
+      }
+    }
+
+    return null;
+  }, [points]);
+
+  // 鼠标移动
+  const handleMouseMove = useCallback((e) => {
+    const { x, y } = getMousePos(e);
+
+    if (dragState.isDragging) {
+      // 拖动中
+      const newPoints = [...points];
+      const pointIndex = newPoints.findIndex(p => p.id === dragState.id);
+      if (pointIndex === -1) return;
+
+      if (dragState.type === 'point') {
+        // 拖动控制点 - 先保存旧位置
+        const oldPos = [...newPoints[pointIndex].pos];
+        newPoints[pointIndex] = {
+          ...newPoints[pointIndex],
+          pos: [x, y]
+        };
+        // 如果是贝塞尔，同步移动手柄（使用旧位置计算差值）
+        if (newPoints[pointIndex].type === 'bezier' && newPoints[pointIndex].handlepos) {
+          const hp = newPoints[pointIndex].handlepos;
+          const dx = x - oldPos[0];
+          const dy = y - oldPos[1];
+          newPoints[pointIndex] = {
+            ...newPoints[pointIndex],
+            handlepos: [
+              hp[0] + dx, hp[1] + dy,
+              hp[2] + dx, hp[3] + dy
+            ]
+          };
+        }
+      } else if (dragState.type === 'handle') {
+        // 拖动手柄 - 直接更新手柄位置
+        const hp = [...newPoints[pointIndex].handlepos];
+        if (dragState.handle === 'cp1') {
+          hp[0] = x;
+          hp[1] = y;
+        } else {
+          hp[2] = x;
+          hp[3] = y;
+        }
+        newPoints[pointIndex] = {
+          ...newPoints[pointIndex],
+          handlepos: hp
+        };
+      }
+
+      handlePointsChange(newPoints, true); // 标记为拖动操作
+    } else {
+      // 非拖动状态 - 检测悬停
+      const hit = hitTest(x, y);
+      setHoveredPoint(hit ? hit.id : null);
+
+      // 更新光标
+      const canvas = canvasRef.current;
+      if (canvas) {
+        if (hit) {
+          canvas.style.cursor = hit.type === 'handle' ? 'pointer' : 'move';
+        } else {
+          canvas.style.cursor = 'crosshair';
+        }
+      }
+    }
+  }, [dragState, points, getMousePos, hitTest, handlePointsChange]);
+
+  // 鼠标按下
+  const handleMouseDown = useCallback((e) => {
+    if (readOnly) return;
+    const { x, y } = getMousePos(e);
+    const hit = hitTest(x, y);
+
+    if (hit) {
+      setSelectedPointId(hit.id);
+      setDragState({ isDragging: true, type: hit.type, id: hit.id, handle: hit.handle });
+    } else {
+      // 只能在左侧添加点（x < centerX）
+      if (x >= centerX) return;
+
+      // 点击空白处添加新点
+      const newId = generateId();
+      const lastPoint = points[points.length - 1];
+
+      let newPoint;
+      if (tool === TOOL_TYPES.BEZIER) {
+        // 贝塞尔曲线 - 带默认手柄（左手柄保持在左侧）
+        const handleLength = 40;
+        newPoint = {
+          id: newId,
+          type: 'bezier',
+          pos: [x, y],
+          // 左手柄在左侧，右手柄也在左侧（不跨越中心线）
+          handlepos: lastPoint
+            ? [x - handleLength, y, x + handleLength * 0.5, y]
+            : [x - handleLength, y, x + handleLength * 0.5, y],
+          previd: lastPoint?.id || null
+        };
+      } else if (tool === TOOL_TYPES.POINT) {
+        // 简单点
+        newPoint = {
+          id: newId,
+          type: 'point',
+          pos: [x, y],
+          previd: lastPoint?.id || null
+        };
+      } else {
+        // 自由绘制
+        newPoint = {
+          id: newId,
+          type: 'draw',
+          pos: [x, y],
+          previd: lastPoint?.id || null
+        };
+      }
+
+      handlePointsChange([...points, newPoint]);
+      setSelectedPointId(newId);
+    }
+  }, [points, tool, readOnly, getMousePos, hitTest, handlePointsChange, centerX]);
+
+  // 鼠标释放
+  const handleMouseUp = useCallback(() => {
+    isDraggingRef.current = false;
+    setDragState({ isDragging: false, type: null, id: null, handle: null });
+  }, []);
+
+  // 清除
+  const handleClear = useCallback(() => {
+    handlePointsChange([]);
+    setSelectedPointId(null);
+  }, [handlePointsChange]);
+
+  // 删除选中点
+  const handleDelete = useCallback(() => {
+    if (selectedPointId === null) return;
+    const newPoints = points.filter(p => p.id !== selectedPointId);
+    handlePointsChange(newPoints);
+    setSelectedPointId(null);
+  }, [points, selectedPointId, handlePointsChange]);
+
+  return (
+    <div className="fullscreen-editor">
+      {/* 工具栏 */}
+      <div className="editor-toolbar">
+        <div className="tool-group">
+          <button
+            className={`tool-btn ${tool === TOOL_TYPES.POINT ? 'active' : ''}`}
+            onClick={() => setTool(TOOL_TYPES.POINT)}
+            disabled={readOnly}
+          >
+            ✏️ 点绘
+          </button>
+          <button
+            className={`tool-btn ${tool === TOOL_TYPES.BEZIER ? 'active' : ''}`}
+            onClick={() => setTool(TOOL_TYPES.BEZIER)}
+            disabled={readOnly}
+          >
+            🎨 贝塞尔
+          </button>
+          <button
+            className={`tool-btn ${tool === TOOL_TYPES.FREE ? 'active' : ''}`}
+            onClick={() => setTool(TOOL_TYPES.FREE)}
+            disabled={readOnly}
+          >
+            🖌️ 自由绘制
+          </button>
+        </div>
+        <div className="action-group">
+          <button className="action-btn delete" onClick={handleDelete} disabled={!selectedPointId || readOnly}>
+            删除
+          </button>
+          <button className="action-btn clear" onClick={handleClear} disabled={readOnly}>
+            清空
+          </button>
+        </div>
+      </div>
+
+      {/* 画布 */}
+      <div className="editor-canvas-container">
+        <canvas
+          ref={canvasRef}
+          width={dimensions.width}
+          height={dimensions.height}
+          onMouseMove={handleMouseMove}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        />
+        {/* 参考线 */}
+        <div style={{
+          position: 'absolute',
+          left: '50%',
+          top: 0,
+          bottom: 0,
+          width: '1px',
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          pointerEvents: 'none'
+        }} />
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: '50%',
+          height: '1px',
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          pointerEvents: 'none'
+        }} />
+      </div>
+
+      {/* 提示 */}
+      <div className="editor-hint">
+        {tool === TOOL_TYPES.BEZIER && '💡 点击左侧添加贝塞尔锚点，拖动红色手柄调整曲率，拖动锚点移动位置。右侧显示镜像预览'}
+        {tool === TOOL_TYPES.POINT && '💡 点击左侧添加点，拖动点移动位置。右侧显示镜像预览'}
+        {tool === TOOL_TYPES.FREE && '💡 点击左侧添加自由绘制点。右侧显示镜像预览'}
+      </div>
+    </div>
+  );
+};
+
+// 全屏模态窗口
+const FullscreenModal = ({ isOpen, onClose, controlPoints, onControlPointsChange, title, readOnly }) => {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="curve-editor-modal-overlay" onClick={onClose}>
+      <div className="curve-editor-modal-content" onClick={e => e.stopPropagation()}>
+        <div className="curve-editor-modal-header">
+          <h3>{title} - 编辑模式</h3>
+          <button className="curve-editor-close-btn" onClick={onClose}>×</button>
+        </div>
+        <FullscreenEditor
+          controlPoints={controlPoints}
+          onControlPointsChange={onControlPointsChange}
+          title={title}
+          readOnly={readOnly}
+        />
+        <div className="curve-editor-modal-footer">
+          <button className="curve-editor-done-btn" onClick={onClose}>完成</button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+// 将控制点格式转换为曲线点格式（用于3D模型生成 - 使用平滑曲线）
+// 控制点格式: {id, type, pos: [x, y], handlepos, ...}
+// 曲线点格式: {x, y}
+const convertControlPointsToCurvePoints = (controlPoints) => {
+  if (!controlPoints || !Array.isArray(controlPoints)) return [];
+  // 使用平滑曲线生成贝塞尔插值点
+  return generateSmoothCurvePoints(controlPoints);
+};
+
+// 验证点数据是否有效（支持曲线点格式 {x, y} 和控制点格式 {pos: [x, y]}）
+const isValidPoint = (point) => {
+  if (!point) return false;
+
+  // 曲线点格式 {x, y}
+  if (typeof point.x === 'number' && typeof point.y === 'number' &&
+    !isNaN(point.x) && !isNaN(point.y) &&
+    isFinite(point.x) && isFinite(point.y)) {
+    return true;
+  }
+
+  // 控制点格式 {pos: [x, y]}
+  if (point.pos && Array.isArray(point.pos) && point.pos.length >= 2) {
+    const x = point.pos[0];
+    const y = point.pos[1];
+    return typeof x === 'number' && typeof y === 'number' &&
+      !isNaN(x) && !isNaN(y) && isFinite(x) && isFinite(y);
+  }
+
+  return false;
+};
+
+// 从点对象中提取坐标
+const extractPointCoords = (point) => {
+  if (!point) return null;
+
+  // 曲线点格式 {x, y}
+  if (typeof point.x === 'number' && typeof point.y === 'number') {
+    return { x: point.x, y: point.y };
+  }
+
+  // 控制点格式 {pos: [x, y]}
+  if (point.pos && Array.isArray(point.pos) && point.pos.length >= 2) {
+    return { x: point.pos[0], y: point.pos[1] };
+  }
+
+  return null;
+};
+
+// 验证点数组是否有效
+const isValidPointArray = (points) => {
+  return points &&
+    Array.isArray(points) &&
+    points.length >= 2 &&
+    points.every(isValidPoint);
+};
+
+// 增强曲线点密度 - 在高度相近的点之间添加中间点，防止3D模型出现断层
+const densifyCurvePoints = (points, minHeightDiff = 0.5) => {
+  if (!points || points.length < 2) return points;
+
+  const result = [];
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+
+    result.push(p1);
+
+    // 计算高度差
+    const heightDiff = Math.abs(p2.y - p1.y);
+
+    // 如果高度差太小，添加中间点
+    if (heightDiff < minHeightDiff && heightDiff > 0) {
+      const numInterpolate = Math.ceil(minHeightDiff / heightDiff);
+      for (let j = 1; j < numInterpolate; j++) {
+        const t = j / numInterpolate;
+        result.push({
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t
+        });
+      }
+    }
+  }
+
+  result.push(points[points.length - 1]);
+  return result;
+};
+
+// 3D模型预览
+export const ModelPreview = ({ profilePoints, pathPoints, generated }) => {
+  // 如果没有点击生成按钮，不渲染3D几何体
+  if (!generated) {
+    return null;
+  }
+
+  // 将控制点转换为曲线点，并增强点密度
+  const curveProfilePoints = useMemo(() => {
+    const points = convertControlPointsToCurvePoints(profilePoints);
+    return densifyCurvePoints(points, 2.0); // 最小高度差2.0
+  }, [profilePoints]);
+
+  const curvePathPoints = useMemo(() => {
+    const points = convertControlPointsToCurvePoints(pathPoints);
+    return densifyCurvePoints(points, 2.0);
+  }, [pathPoints]);
+
+  const geometries = useMemo(() => {
+    // 验证输入数据
+    if (!isValidPointArray(curveProfilePoints)) {
+      console.warn('Invalid profilePoints:', profilePoints);
+      return null;
+    }
+
+    try {
+      // 轮廓曲线转换 - 添加严格验证
+      const profile2D = [];
+      for (const point of curveProfilePoints) {
+        const coords = extractPointCoords(point);
+        if (!coords) continue;
+
+        // 确保坐标在合理范围内
+        const x = Math.max(0, Math.min(1200, coords.x));
+        const y = Math.max(0, Math.min(675, coords.y));
+
+        // 转换为旋转体参数 (radius, height)
+        // 假设画布坐标系: x从左到右, y从上到下
+        // 转换为: radius从中心向外, height从下到上
+        const radius = Math.abs(x - 600) / 50;  // 中心在600
+        const height = (337.5 - y) / 30;        // 中心在337.5
+
+        // 验证转换后的值
+        if (!isNaN(radius) && !isNaN(height) && isFinite(radius) && isFinite(height)) {
+          profile2D.push({ radius, height });
+        }
+      }
+
+      if (profile2D.length < 2) {
+        console.warn('Not enough valid profile points:', profile2D.length);
+        return null;
+      }
+
+      // 按高度排序（从下到上）
+      profile2D.sort((a, b) => a.height - b.height);
+
+      // 再次检查并添加中间点（防止排序后高度太接近）
+      const densifiedProfile2D = densifyCurvePoints(profile2D.map(p => ({ x: p.radius, y: p.height })), 0.3);
+
+      // 检查是否有路径曲线
+      const hasPath = isValidPointArray(curvePathPoints);
 
       if (hasPath) {
-        // ========== 扫掠异形生成逻辑（新增） ==========
-        // 几何定义：
-        //   轮廓曲线：在 (m,n) 坐标系中定义的曲线，用于控制三维物体的径向截面形状
-        //   路径曲线：在 (x,y) 坐标系中定义的曲线，用于控制三维物体的延伸轨迹
-        // 映射规则：将轮廓曲线沿路径曲线生成三维几何体
-        //   X = (1 + m) * x
-        //   Y = n
-        //   Z = (1 + m) * z
-        // 其中：(m,n) 为轮廓曲线上的点，(x,y) 为路径曲线上的点，(X,Y,Z) 为三维空间中的对应顶点
+        // 扫掠模式
+        const profile3D = [];
+        for (const point of curveProfilePoints) {
+          const coords = extractPointCoords(point);
+          if (!coords) continue;
+          const x = Math.max(0, Math.min(1200, coords.x));
+          const y = Math.max(0, Math.min(675, coords.y));
+          const m = Math.abs(x - 600) / 600;
+          const n = (337.5 - y) / 30;
+          if (!isNaN(m) && !isNaN(n) && isFinite(m) && isFinite(n)) {
+            profile3D.push({ m, n });
+          }
+        }
 
-        // 关键代码标注：轮廓 - 路径映射实现
-        const profile3D = profilePoints.map(point => {
-          // 轮廓曲线坐标转换 (canvas -> (m,n))
-          const m = (point.x - 140) / 140;      // 归一化半径因子，范围 [-1, 1]
-          const n = (point.y - 75) / 8;         // 高度
-          return { m, n };
-        });
+        const path3D = [];
+        for (const point of curvePathPoints) {
+          const coords = extractPointCoords(point);
+          if (!coords) continue;
+          const x = Math.max(0, Math.min(1200, coords.x));
+          const y = Math.max(0, Math.min(675, coords.y));
+          const px = (x - 600) / 100;
+          const pz = (337.5 - y) / 100;
+          if (!isNaN(px) && !isNaN(pz) && isFinite(px) && isFinite(pz)) {
+            path3D.push({ x: px, z: pz });
+          }
+        }
 
-        // 路径曲线坐标转换 (canvas -> (x,z))
-        const path3D = pathPoints.map(point => {
-          const x = (point.x - 140) / 4;   // canvas x -> 3D x
-          const z = -(point.y - 75) / 4;   // canvas y -> 3D z
-          return { x, z };
-        });
+        if (profile3D.length < 2 || path3D.length < 2) {
+          console.warn('Not enough valid points for sweep');
+          return null;
+        }
 
-        // 关键代码标注：顶点计算
-        // 创建扫掠几何体的顶点
         const vertices = [];
         const profileSteps = profile3D.length;
         const pathSteps = path3D.length;
 
-        // 沿着路径曲线的每个点
         for (let i = 0; i < pathSteps; i++) {
           const pathPoint = path3D[i];
-
-          // 在路径点上应用轮廓曲线的缩放
           for (let j = 0; j < profileSteps; j++) {
             const profilePoint = profile3D[j];
-            // 缩放因子 肉眼观测得出。
-            const factor = 2;
-            // 应用映射规则：X=m*x, Y=n, Z=m*z
-            // 注意：profilePoint.n 已经在坐标转换时处理过正负号，这里直接使用
-            const X = factor * profilePoint.m * pathPoint.x;
-            const Y = factor * profilePoint.n;
-            const Z = factor * profilePoint.m * pathPoint.z;
-
-            vertices.push(new Vector3(X, Y, Z));
+            vertices.push(new Vector3(
+              profilePoint.m * pathPoint.x,
+              profilePoint.n,
+              profilePoint.m * pathPoint.z
+            ));
           }
         }
 
-        // 关键代码标注：参数绑定
-        // 使用计算出的顶点直接构建 BufferGeometry
         const positions = [];
         const indices = [];
 
-        // 填充顶点位置
         for (const vertex of vertices) {
+          // 最终验证
+          if (!isFinite(vertex.x) || !isFinite(vertex.y) || !isFinite(vertex.z)) {
+            continue;
+          }
           positions.push(vertex.x, vertex.y, vertex.z);
         }
 
-        // 构建索引（连接顶点形成面）
-        // 每个路径点对应 profileSteps 个轮廓点
+        if (positions.length < 9) {  // 至少需要3个点才能形成三角形
+          console.warn('Not enough valid vertices');
+          return null;
+        }
+
         for (let i = 0; i < pathSteps - 1; i++) {
           for (let j = 0; j < profileSteps - 1; j++) {
             const a = i * profileSteps + j;
             const b = i * profileSteps + (j + 1);
             const c = (i + 1) * profileSteps + j;
             const d = (i + 1) * profileSteps + (j + 1);
-
-            // 两个三角形组成一个四边形
-            indices.push(a, b, c);
-            indices.push(c, b, d);
+            indices.push(a, b, c, c, b, d);
           }
         }
 
@@ -1334,105 +975,47 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
         geometry.setIndex(indices);
         geometry.computeVertexNormals();
 
-        // 计算路径中心点（用于后续可能的底面定位）
-        let pathCenterX = 0;
-        let pathCenterZ = 0;
-        for (const point of path3D) {
-          pathCenterX += point.x;
-          pathCenterZ += point.z;
-        }
-        pathCenterX /= path3D.length;
-        pathCenterZ /= path3D.length;
-
-        return {
-          sweep: geometry,
-          bottomY: minY,
-          topY: maxY,
-          centerX: pathCenterX,
-          centerZ: pathCenterZ,
-          vertices: vertices
-        };
-
+        return { sweep: geometry };
       } else {
-        // 没有路径曲线：使用旋转体（绕 Y 轴旋转）
-        const profile3D = profile2D.map(p =>
-          new Vector3(p.radius, p.height, 0)
-        );
+        // 旋转体模式 - 使用增强后的点
+        const profile3D = [];
+        for (const p of densifiedProfile2D) {
+          if (!isNaN(p.x) && !isNaN(p.y) && isFinite(p.x) && isFinite(p.y)) {
+            profile3D.push(new Vector3(Math.max(0.01, p.x), p.y, 0));
+          }
+        }
+
+        if (profile3D.length < 2) {
+          console.warn('Not enough valid profile3D points');
+          return null;
+        }
 
         return {
-          main: new LatheGeometry(
-            profile3D,
-            64,
-            0,
-            Math.PI * 2
-          )
+          main: new LatheGeometry(profile3D, 64, 0, Math.PI * 2)
         };
       }
     } catch (error) {
+      console.error('Geometry error:', error);
       return null;
     }
-  }, [profilePoints, pathPoints]);
+  }, [curveProfilePoints, curvePathPoints]);
 
   if (!geometries) return null;
 
-  // 如果有路径曲线（扫掠异形）
   if (geometries.sweep) {
     return (
-      <group>
-        {/* 扫掠异形 - 轮廓曲线沿路径曲线扫掠 */}
-        <mesh castShadow receiveShadow>
-          <primitive object={geometries.sweep} />
-          <meshStandardMaterial
-            color="#4ecdc4"
-            wireframe={false}
-            metalness={0.5}
-            roughness={0.3}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-
-        {/* 调试辅助：显示顶点（可选） */}
-        {/* geometries.vertices && geometries.vertices.map((vertex, idx) => (
-          <mesh key={idx} position={vertex}>
-            <sphereGeometry args={[0.1]} />
-            <meshBasicMaterial color="red" />
-          </mesh>
-        )) */}
-      </group>
+      <mesh castShadow receiveShadow>
+        <primitive object={geometries.sweep} />
+        <meshStandardMaterial color="#4ecdc4" side={THREE.DoubleSide} metalness={0.5} roughness={0.3} />
+      </mesh>
     );
   }
 
-  // 如果有路径曲线（旧版挤压，保留兼容性）
-  if (geometries.solid) {
-    return (
-      <group>
-        {/* 实心体 - 轮廓曲线沿路径挤压 */}
-        <mesh castShadow receiveShadow>
-          <primitive object={geometries.solid} />
-          <meshStandardMaterial
-            color="#ff6b6b"
-            wireframe={false}
-            metalness={0.5}
-            roughness={0.3}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      </group>
-    );
-  }
-
-  // 如果没有路径曲线（只有旋转体）
   if (geometries.main) {
     return (
       <mesh castShadow receiveShadow>
         <primitive object={geometries.main} />
-        <meshStandardMaterial
-          color="#4ecdc4"
-          wireframe={false}
-          metalness={0.5}
-          roughness={0.3}
-          side={THREE.DoubleSide}
-        />
+        <meshStandardMaterial color="#4ecdc4" side={THREE.DoubleSide} metalness={0.5} roughness={0.3} />
       </mesh>
     );
   }
@@ -1440,61 +1023,137 @@ export const ModelPreview = ({ profilePoints, pathPoints }) => {
   return null;
 };
 
-// 集成到棋子编辑器的简化版本
+// 主组件
 const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleDataUpdate }) => {
-  // 直接从棋子数据中获取自定义形状数据，不使用内部状态
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCurve, setEditingCurve] = useState('profile'); // 'profile' or 'path'
+  const [profileCurvePoints, setProfileCurvePoints] = useState([]);
+  const [pathCurvePoints, setPathCurvePoints] = useState([]);
+
+  // 从棋子数据获取控制点
   const currentCustomShape = selectedComponent === 'base'
     ? currentChess?.parts?.base?.customShape
     : currentChess?.parts?.column?.customShape;
 
-  const profilePoints = currentCustomShape?.profilePoints || [];
-  const pathPoints = currentCustomShape?.pathPoints || [];
+  const profileControlPoints = currentCustomShape?.profilePoints || [];
+  const pathControlPoints = currentCustomShape?.pathPoints || [];
+  const isGenerated = currentCustomShape?.generated || false;
 
-  // 当数据发生变化时通知父组件
-  const handleProfileChange = useCallback((points) => {
-    // 直接更新棋子数据
+  // 轮廓曲线数据变化
+  const handleProfileControlChange = useCallback((newControlPoints) => {
     if (handleDataUpdate) {
-      console.log('正在更新异形数据：', `parts.${selectedComponent}.customShape.profilePoints`);
-      handleDataUpdate(`parts.${selectedComponent}.customShape.profilePoints`, points);
+      handleDataUpdate(`parts.${selectedComponent}.customShape.profilePoints`, newControlPoints);
     }
   }, [selectedComponent, handleDataUpdate]);
 
-  const handlePathChange = useCallback((points) => {
-    // 直接更新棋子数据
+  // 路径曲线数据变化
+  const handlePathControlChange = useCallback((newControlPoints) => {
     if (handleDataUpdate) {
-      console.log('正在更新异形数据：', `parts.${selectedComponent}.customShape.pathPoints`);
-      handleDataUpdate(`parts.${selectedComponent}.customShape.pathPoints`, points);
+      handleDataUpdate(`parts.${selectedComponent}.customShape.pathPoints`, newControlPoints);
     }
   }, [selectedComponent, handleDataUpdate]);
+
+  // 处理生成3D几何体 - 点击"生成"按钮时调用
+  const handleGenerateGeometry = useCallback(() => {
+    if (handleDataUpdate) {
+      handleDataUpdate(`parts.${selectedComponent}.customShape.generated`, true);
+    }
+  }, [selectedComponent, handleDataUpdate]);
+
+  // 小窗口曲线点变化时更新（但不保存，只用于实时预览）
+  const handleProfileCurveChange = useCallback((points) => {
+    setProfileCurvePoints(points);
+  }, []);
+
+  const handlePathCurveChange = useCallback((points) => {
+    setPathCurvePoints(points);
+  }, []);
+
+  // 打开编辑窗口
+  const openEditor = (curveType) => {
+    setEditingCurve(curveType);
+    setIsModalOpen(true);
+  };
+
+  // 获取当前编辑的曲线数据
+  const currentControlPoints = editingCurve === 'profile' ? profileControlPoints : pathControlPoints;
+  const currentControlChange = editingCurve === 'profile' ? handleProfileControlChange : handlePathControlChange;
+  const currentTitle = editingCurve === 'profile' ? '轮廓曲线' : '路径曲线';
 
   return (
     <div className="custom-revolution-scroll-container">
       <div className="custom-revolution-panel">
         <div className="panel-section">
           <h3>异形生成器</h3>
-          <p className="panel-description">绘制轮廓曲线生成自定义 3D 形状 - 支持点绘和贝塞尔曲线两种模式</p>
+          <p className="panel-description">
+            点击"编辑"按钮在大窗口中编辑曲线，小窗口实时预览生成的形状
+          </p>
         </div>
 
         <div className="canvases-row">
-          <SimpleCanvas
-            title="轮廓曲线"
-            onPointsChange={handleProfileChange}
-            equationPlaceholder="例如：2*Math.sin(x)+1"
-            className="profile-canvas"
-            initialPoints={profilePoints}
-            enableBezier={true}
-          />
+          {/* 轮廓曲线 - 小窗口 */}
+          <div className="canvas-wrapper">
+            <PreviewCanvas
+              title="轮廓曲线"
+              controlPoints={profileControlPoints}
+              onCurveChange={handleProfileCurveChange}
+            />
+            <button
+              className="edit-btn"
+              onClick={() => openEditor('profile')}
+            >
+              ✏️ 编辑
+            </button>
+          </div>
 
-          <SimpleCanvas
-            title="路径曲线 (可选)"
-            onPointsChange={handlePathChange}
-            equationPlaceholder="例如：Math.cos(x)"
-            className="path-canvas"
-            initialPoints={pathPoints}
-            enableBezier={true}
-          />
+          {/* 路径曲线 - 小窗口 */}
+          <div className="canvas-wrapper">
+            <PreviewCanvas
+              title="路径曲线 (可选)"
+              controlPoints={pathControlPoints}
+              onCurveChange={handlePathCurveChange}
+            />
+            <button
+              className="edit-btn"
+              onClick={() => openEditor('path')}
+            >
+              ✏️ 编辑
+            </button>
+          </div>
+        </div>
+
+        {/* 生成按钮 */}
+        <div className="generate-section">
+          {!isGenerated ? (
+            <button
+              className="generate-btn"
+              onClick={handleGenerateGeometry}
+              disabled={profileControlPoints.length < 2}
+            >
+              🎮 生成3D模型
+            </button>
+          ) : (
+            <button
+              className="generate-btn generated"
+              onClick={handleGenerateGeometry}
+            >
+              🔄 重新生成
+            </button>
+          )}
+          {isGenerated && (
+            <span className="generated-status">✓ 3D模型已生成</span>
+          )}
         </div>
       </div>
+
+      {/* 全屏编辑模态窗口 */}
+      <FullscreenModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        controlPoints={currentControlPoints}
+        onControlPointsChange={currentControlChange}
+        title={`${currentTitle}编辑`}
+      />
     </div>
   );
 };

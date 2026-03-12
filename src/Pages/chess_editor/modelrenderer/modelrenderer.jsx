@@ -1,310 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
-import { Canvas, useThree } from '@react-three/fiber';
+import React, { useEffect, useRef } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
 // 从 THREE 命名空间获取常用几何体和工具
-const { AxesHelper, BoxGeometry, CylinderGeometry, ExtrudeGeometry, BufferGeometry, Vector3, MathUtils, Shape } = THREE;
-
-/**
- * 创建圆角圆柱几何体 - 正确使用 Extrude + bevel
- * @param {number} radius - 半径
- * @param {number} height - 高度
- * @param {number} radialSegments - 径向分段数
- * @param {string} edgeType - 边缘类型：'none' | 'bevel' | 'smooth'
- * @param {number} edgeDepth - 边缘深度
- * @param {number} edgeSegments - 边缘分段数
- * @returns {BufferGeometry}
- */
-function createRoundedCylinderGeometry(radius, height, radialSegments = 32, edgeType = 'none', edgeDepth = 0, edgeSegments = 4) {
-    if (edgeType === 'none' || edgeDepth <= 0) {
-        return new CylinderGeometry(radius, radius, height, radialSegments);
-    }
-
-    const safeDepth = Math.min(edgeDepth, height / 4, radius / 2);
-
-    // 创建圆形形状（在 XY 平面）
-    const shape = new Shape();
-    const segments = Math.max(16, radialSegments);
-    for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
-        if (i === 0) {
-            shape.moveTo(x, y);
-        } else {
-            shape.lineTo(x, y);
-        }
-    }
-    shape.closePath();
-
-    const extrudeSettings = {
-        depth: height,
-        bevelEnabled: true,
-        bevelThickness: safeDepth,
-        bevelSize: safeDepth,
-        bevelSegments: edgeSegments, // 使用传入的边缘分段数
-        curveSegments: segments
-    };
-
-    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-    // Extrude 沿 Z 轴挤压（从 z=0 到 z=height）
-    // 旋转 90 度后，沿 Y 轴从 y=0 到 y=-height（反向旋转）
-    geometry.rotateX(-Math.PI / 2);
-    return geometry;
-}
-
-/**
- * 创建圆角立方体几何体 - 使用 Extrude + bevel 实现真正的倒角
- * @param {number} width - 宽度
- * @param {number} height - 高度
- * @param {number} depth - 深度
- * @param {string} edgeType - 边缘类型：'none' | 'bevel' | 'smooth'
- * @param {number} edgeDepth - 边缘深度
- * @param {number} edgeSegments - 边缘分段数
- * @returns {BufferGeometry}
- */
-function createRoundedBoxGeometry(width, height, depth, edgeType = 'none', edgeDepth = 0, edgeSegments = 4) {
-    if (edgeType === 'none' || edgeDepth <= 0) {
-        return new BoxGeometry(width, height, depth, 1, 1, 1);
-    }
-
-    const minSize = Math.min(width, height, depth);
-    const safeDepth = Math.min(edgeDepth, minSize / 4);
-
-    // 创建矩形形状（在 XY 平面）
-    const shape = new Shape();
-    shape.moveTo(-width / 2, -depth / 2);
-    shape.lineTo(width / 2, -depth / 2);
-    shape.lineTo(width / 2, depth / 2);
-    shape.lineTo(-width / 2, depth / 2);
-    shape.closePath();
-
-    const extrudeSettings = {
-        depth: height,
-        bevelEnabled: true,
-        bevelThickness: safeDepth,
-        bevelSize: safeDepth,
-        bevelSegments: edgeSegments, // 使用传入的边缘分段数
-        curveSegments: 1
-    };
-
-    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-    // Extrude 沿 Z 轴挤压（从 z=0 到 z=height）
-    // 旋转 90 度后，让高度沿 Y 轴
-    geometry.rotateX(-Math.PI / 2);
-    // 平移让底部在 y=0，中心在 y=height/2
-    geometry.translate(0, height / 2, 0);
-
-    return geometry;
-}
-
-function processEdgeGeometry(componentData, mode, depth, componentType) {
-    if (!componentData || !componentData.shape) {
-        return null;
-    }
-
-    // 从 componentData.edge 读取边缘配置，默认为无边缘
-    const edgeConfig = componentData.edge || { type: 'none', depth: 0, segments: 4 };
-    // 获取分段数，默认 4
-    const segments = edgeConfig.segments || 4;
-
-    // 从 componentData.shape 中读取形状参数
-    const shapeData = componentData.shape;
-    const { type, size1, size2, height } = shapeData;
-    const shape = type; // shape 字段就是类型
-
-    const position = componentData.position || { x: 0, y: 0, z: 0 };
-    const material = componentData.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
-    const color = componentType === 'base' ? '#8B4513' : '#CD853F';
-
-    // 1. 规则过滤：只处理 base 和 pillar（column），异形跳过
-    if (componentType !== 'base' && componentType !== 'column') {
-        return null; // 非底座/柱体，跳过
-    }
-
-    // 2. 只有 smooth 或 round 模式才处理，其他直接返回原始几何体
-    if ((mode !== 'smooth' && mode !== 'round') || depth <= 0) {
-        const sides = shapeData.sides;
-        return renderComponent(componentType, shape, size1, size2, height, position, material, color, sides);
-    }
-
-    // 3. 计算安全深度
-    const minSize = Math.min(size1, size2, height);
-    const safeDepth = Math.min(depth, minSize / 4);
-
-    // 4. 确定分段数：round 模式固定使用 128，smooth 模式使用用户设置
-    const actualSegments = mode === 'round' ? 128 : segments;
-
-    // 4. 分形状实现
-    let geometry = null;
-
-    if (shape === 'cube') {
-        // 立方体处理 - 使用 createRoundedBoxGeometry
-        geometry = createRoundedBoxGeometry(size1, height, size2, 'smooth', safeDepth, actualSegments);
-
-        return (
-            <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
-                <primitive object={geometry} />
-                <meshStandardMaterial
-                    color={color}
-                    metalness={material.metalness}
-                    roughness={material.roughness}
-                    clearcoat={material.clearcoat}
-                    clearcoatRoughness={material.clearcoatRoughness}
-                />
-            </mesh>
-        );
-    } else if (shape === 'cylinder' || shape === 'cycle') {
-        // 圆柱处理（兼容 cycle 和 cylinder 两种命名）
-        const radius = size1 / 2;
-        geometry = createRoundedCylinderGeometry(radius, height, 512, 'smooth', safeDepth, actualSegments);
-
-        // 几何体底部在 y=0，顶部在 y=height，mesh 位置用 position.y 就能正确对齐
-        return (
-            <mesh position={[position.x, position.y, position.z]} castShadow receiveShadow>
-                <primitive object={geometry} />
-                <meshStandardMaterial
-                    color={color}
-                    metalness={material.metalness}
-                    roughness={material.roughness}
-                    clearcoat={material.clearcoat}
-                    clearcoatRoughness={material.clearcoatRoughness}
-                />
-            </mesh>
-        );
-    } else if (shape === 'polygon') {
-        // 多边形棱柱处理 - 使用 Extrude + bevel 实现真正的倒角
-        const sides = shapeData.sides || 6;
-        const radius = size1 / 2;
-
-        try {
-            // 构建正多边形轮廓
-            const polygonShape = new Shape();
-            for (let i = 0; i < sides; i++) {
-                // 减去 Math.PI / 2 让第一个顶点在 Y 轴正方向，与 cylinderGeometry 保持一致
-                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                if (i === 0) {
-                    polygonShape.moveTo(x, y);
-                } else {
-                    polygonShape.lineTo(x, y);
-                }
-            }
-            polygonShape.closePath();
-
-            const extrudeSettings = {
-                depth: height,
-                bevelEnabled: true,
-                bevelThickness: safeDepth,
-                bevelSize: safeDepth,
-                bevelSegments: actualSegments, // 使用实际分段数（round=64 或 smooth=用户设置）
-                curveSegments: Math.max(1, sides)
-            };
-
-            geometry = new ExtrudeGeometry(polygonShape, extrudeSettings);
-            geometry.rotateX(-Math.PI / 2);
-            // 不需要平移！让几何体底部在 y=0，顶部在 y=height
-
-            // 几何体底部在 y=0，顶部在 y=height，mesh 位置用 position.y 就能正确对齐
-            return (
-                <mesh position={[position.x, position.y, position.z]} castShadow receiveShadow>
-                    <primitive object={geometry} />
-                    <meshStandardMaterial
-                        color={color}
-                        metalness={material.metalness}
-                        roughness={material.roughness}
-                        clearcoat={material.clearcoat}
-                        clearcoatRoughness={material.clearcoatRoughness}
-                    />
-                </mesh>
-            );
-        } catch (error) {
-            // 降级到普通圆柱
-            return renderComponent(componentType, 'cylinder', size1, size2, height, position, material, color, null);
-        }
-    } else {
-        // 异形或其他形状，跳过处理
-        const sides = shapeData.sides;
-        return renderComponent(componentType, shape, size1, size2, height, position, material, color, sides);
-    }
-
-    // 5. 生成最终模型
-    return (
-        <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
-            <primitive object={geometry} />
-            <meshStandardMaterial
-                color={color}
-                metalness={material.metalness}
-                roughness={material.roughness}
-                clearcoat={material.clearcoat}
-                clearcoatRoughness={material.clearcoatRoughness}
-            />
-        </mesh>
-    );
-}
-
-/**
- * 渲染普通组件（无边缘处理）
- */
-function renderComponent(componentType, shape, size1, size2, height, position, material, color, sides) {
-    if (shape === 'special') {
-        return null; // 异形由其他逻辑处理
-    }
-
-    if (shape === 'cylinder' || shape === 'cycle') {
-        return (
-            <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
-                <cylinderGeometry args={[size1 / 2, size2 / 2, height, 512]} />
-                <meshStandardMaterial
-                    color={color}
-                    metalness={material.metalness}
-                    roughness={material.roughness}
-                    clearcoat={material.clearcoat}
-                    clearcoatRoughness={material.clearcoatRoughness}
-                />
-            </mesh>
-        );
-    } else if (shape === 'polygon') {
-        const polygonSides = sides || 6;
-        return (
-            <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
-                <cylinderGeometry args={[size1 / 2, size2 / 2, height, polygonSides]} />
-                <meshStandardMaterial
-                    color={color}
-                    metalness={material.metalness}
-                    roughness={material.roughness}
-                    clearcoat={material.clearcoat}
-                    clearcoatRoughness={material.clearcoatRoughness}
-                />
-            </mesh>
-        );
-    } else {
-        // cube 或默认
-        return (
-            <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
-                <boxGeometry args={[size1, height, size2]} />
-                <meshStandardMaterial
-                    color={color}
-                    metalness={material.metalness}
-                    roughness={material.roughness}
-                    clearcoat={material.clearcoat}
-                    clearcoatRoughness={material.clearcoatRoughness}
-                />
-            </mesh>
-        );
-    }
-}
+const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
 
 /**
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
  */
 function SceneContent({ chess, onModelReady }) {
-    const { scene } = useThree();
     const modelRootRef = useRef();
 
     // Notify parent when model is ready
@@ -341,10 +48,6 @@ function SceneContent({ chess, onModelReady }) {
     // 提取基础形状数据
     const baseShape = hasBase ? base.shape : null;
     const columnShape = hasColumn ? column.shape : null;
-
-    // 检查是否为异形
-    const isBaseSpecial = baseShape?.type === 'special';
-    const isColumnSpecial = columnShape?.type === 'special';
 
     // 渲染底座组件（带边缘处理）
     const renderBaseShape = () => {
@@ -398,12 +101,13 @@ function SceneContent({ chess, onModelReady }) {
                     </mesh>
                 ); break;
             case 'special': // 异形类型
-                const baseCustomShape = base.customShape || { profilePoints: [], pathPoints: [] };
+                const baseCustomShape = base.customShape || { profilePoints: [], pathPoints: [], generated: false };
                 bodyelement = (
                     <group position={[position.x, position.y, position.z]}>
                         <ModelPreview
                             profilePoints={baseCustomShape.profilePoints}
                             pathPoints={baseCustomShape.pathPoints}
+                            generated={baseCustomShape.generated}
                         />
                     </group>
                 ); break;
@@ -568,12 +272,13 @@ function SceneContent({ chess, onModelReady }) {
                 break;
 
             case 'special': // 异形类型
-                const columnCustomShape = column.customShape || { profilePoints: [], pathPoints: [] };
+                const columnCustomShape = column.customShape || { profilePoints: [], pathPoints: [], generated: false };
                 bodyelement = (
                     <group position={[position.x, baseheight + height / 2 + position.y, position.z]}>
                         <ModelPreview
                             profilePoints={columnCustomShape.profilePoints}
                             pathPoints={columnCustomShape.pathPoints}
+                            generated={columnCustomShape.generated}
                         />
                     </group>
                 ); break;
@@ -669,32 +374,6 @@ function SceneContent({ chess, onModelReady }) {
             </group>
         );
     };
-    // 渲染自定义异形组件
-    const renderCustomShape = (componentType) => {
-        const component = componentType === 'base' ? base : column;
-        const customShape = component?.customShape;
-
-        if (!customShape || !customShape.profilePoints || customShape.profilePoints.length < 3) {
-            return null;
-        }
-
-        const profilePoints = customShape.profilePoints;
-        const pathPoints = customShape.pathPoints || [];
-
-        // 计算位置偏移
-        const position = component.position || { x: 0, y: 0, z: 0 };
-        const shapeData = component.shape || {};
-        const height = shapeData.height || (componentType === 'base' ? 1 : 20);
-
-        return (
-            <group position={[position.x, position.y, position.z]}>
-                <ModelPreview
-                    profilePoints={profilePoints}
-                    pathPoints={pathPoints.length >= 3 ? pathPoints : null}
-                />
-            </group>
-        );
-    };
     //渲染装饰层组件
     const renderDecoration = (decoration) => {
         if (!decoration) return null;
@@ -733,7 +412,7 @@ function SceneContent({ chess, onModelReady }) {
                         </mesh>
                         <mesh
                             position={[size1 * 0.3, size2 - size1 * 0.3, 0]}
-                            rotation={[Math.PI / 2 ,Math.PI / 2 , 0]}
+                            rotation={[Math.PI / 2, Math.PI / 2, 0]}
                             castShadow
                             receiveShadow
                         >
@@ -800,7 +479,7 @@ function SceneContent({ chess, onModelReady }) {
                 return (
                     <mesh
                         position={[pos.x, pos.y, pos.z]}
-                        rotation={[rotRad.x, rotRad.y , rotRad.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
                         castShadow
                         receiveShadow
                     >
@@ -861,17 +540,11 @@ function SceneContent({ chess, onModelReady }) {
 
             {/* Model root group - contains only the chess model meshes */}
             <group ref={modelRootRef}>
-                {/* 渲染底座 */}
+                {/* 渲染底座（包括异形） */}
                 {renderBaseShape()}
 
-                {/* 渲染底座的异形 */}
-                {isBaseSpecial && renderCustomShape('base')}
-
-                {/* 渲染柱体 */}
+                {/* 渲染柱体（包括异形） */}
                 {renderColumnShape()}
-
-                {/* 渲染柱体的异形 */}
-                {isColumnSpecial && renderCustomShape('column')}
 
                 {/* 渲染装饰 */}
                 {hasDecoration && renderDecoration(decoration)}

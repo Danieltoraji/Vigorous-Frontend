@@ -1127,6 +1127,7 @@ input:checked+.toggle-label:before {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1149,6 +1150,7 @@ input:checked+.toggle-label:before {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1244,15 +1246,313 @@ input:checked+.toggle-label:before {
     width: 95%;
     max-width: none;
   }
-  
+
   .modal-content {
     padding: 20px 15px;
   }
-  
+
   .export-option-button {
     padding: 10px 16px;
     font-size: 13px;
   }
+}
+
+/* ==================== 异形生成器新增样式 ==================== */
+
+/* 小窗口预览容器 */
+.preview-canvas-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-canvas-container .canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.preview-canvas-container .canvas-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.preview-canvas-container .points-count {
+  font-size: 12px;
+  color: #666;
+  background: rgba(78, 205, 196, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* 画布包装器 */
+.canvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* 编辑按钮 */
+.edit-btn {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(78, 205, 196, 0.3);
+  align-self: center;
+  min-width: 120px;
+}
+
+.edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+}
+
+.edit-btn:active {
+  transform: translateY(0);
+}
+
+/* 全屏编辑器 */
+.fullscreen-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f8f9fa;
+}
+
+/* 编辑器工具栏 */
+.editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tool-group {
+  display: flex;
+  gap: 10px;
+}
+
+.tool-btn {
+  padding: 10px 18px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tool-btn:hover:not(:disabled) {
+  border-color: #4ecdc4;
+  color: #4ecdc4;
+}
+
+.tool-btn.active {
+  background: #4ecdc4;
+  border-color: #4ecdc4;
+  color: white;
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+}
+
+.tool-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-group {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.delete {
+  background: #ff6b6b;
+  color: white;
+}
+
+.action-btn.delete:hover:not(:disabled) {
+  background: #ff5252;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.action-btn.clear {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.action-btn.clear:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 画布容器 */
+.editor-canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: white;
+  margin: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.editor-canvas-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* 编辑器提示 */
+.editor-hint {
+  padding: 12px 20px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 14px;
+  text-align: center;
+  border-top: 1px solid #c8e6c9;
+}
+
+/* 模态窗口样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-overlay .modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 95%;
+  max-width: 1500px;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-overlay .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+}
+
+.modal-overlay .modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal-overlay .close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-overlay .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-overlay .modal-footer {
+  padding: 15px 25px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-overlay .done-btn {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+}
+
+.modal-overlay .done-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(78, 205, 196, 0.4);
 }
 
 /* 方程输入框样式优化 */
@@ -1369,6 +1669,7 @@ input:checked+.toggle-label:before {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1391,6 +1692,7 @@ input:checked+.toggle-label:before {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1486,11 +1788,11 @@ input:checked+.toggle-label:before {
     width: 95%;
     max-width: none;
   }
-  
+
   .modal-content {
     padding: 20px 15px;
   }
-  
+
   .export-option-button {
     padding: 10px 16px;
     font-size: 13px;
