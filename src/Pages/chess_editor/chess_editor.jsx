@@ -138,9 +138,16 @@ function ChessEditor() {
   // 处理具体的导出操作：在导出窗口选择导出方式之后，进行导出
   const handleExportAction = async (format) => {
     try {
+      // 导出前先保存当前修改，然后获取最新数据
+      await handleSave();
+      await fetchData();
+      
       let blob;
       let filename;
-      blob = await exportScene(modelRootRef.current, format);
+      
+      // 调用导出函数，直接传递参数
+      console.log('正在做导出准备,json',currentChess,'stl/obj',modelRootRef.current);
+      blob = await exportScene(currentChess, modelRootRef.current, format);
       filename = generateExportFilename(currentChess.name, format);
       downloadBlob(blob, filename);
 

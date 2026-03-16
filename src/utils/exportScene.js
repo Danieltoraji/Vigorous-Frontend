@@ -96,21 +96,21 @@ export function exportSceneDirect(root, format = "stl") {
  * @example
  * 
  */
-export async function exportScene(root, format = "stl") {
-    if (!root) {
-        throw new Error('导出失败：root 参数为空');
-    }
-
+export async function exportScene(jsoninput, root, format = "stl") {
     format = format.toLowerCase();
-
     try {
-
         if (format === "json") {
-            // JSON 格式直接序列化
-            const jsonData = JSON.stringify(root.toJSON(), null, 2);
+            if (!jsoninput) {
+                throw new Error('导出失败：jsoninput 参数为空');
+            }
+            // JSON 格式直接序列化，处理没有toJSON方法的对象
+            const jsonData = JSON.stringify(jsoninput, null, 2);
             return new Blob([jsonData], { type: 'application/json' });
         }
         else if (format === "stl" || format === "obj") {
+            if (!root) {
+                throw new Error('导出失败：root 参数为空');
+            }
             return exportSceneDirect(root, format);
         }
 
