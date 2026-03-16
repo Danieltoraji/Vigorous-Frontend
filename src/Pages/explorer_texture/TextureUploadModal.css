@@ -26,10 +26,32 @@
   border-radius: 12px;
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 85vh;
+  height: 85vh;
+  overflow-y: scroll !important;
+  overflow-x: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #667eea #f5f5f5;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 @keyframes slideUp {
@@ -134,11 +156,18 @@
   border-radius: 8px;
   overflow: hidden;
   background: #f5f5f5;
+  max-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
 }
 
 .preview-image {
   width: 100%;
   height: auto;
+  max-height: 350px;
+  object-fit: contain;
   display: block;
 }
 
@@ -209,7 +238,8 @@
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  margin-top: 30px;
+  margin-top: 20px;
+  padding-bottom: 10px;
 }
 
 .form-actions .btn {
