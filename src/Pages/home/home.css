@@ -15,12 +15,26 @@ body {
 }
 
 .home-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.home-container a {
+  position: absolute;
+  pointer-events: auto;
+  /* 恢复按钮的可点击性 */
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  position: relative;
-  overflow-x: hidden;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: white;
+
+  /* 将定位点设为按钮中心，这样坐标更容易对齐背景图上的特定点 */
+  transform: translate(-50%, -50%);
 }
 
 /* 背景层 - 视差效果 */
@@ -28,12 +42,12 @@ body {
   position: fixed;
   inset: -10%;
   background: url('/static/menu/bg.png') no-repeat center center;
-  background-size: 85% 85%;
+  background-size: 90% 90%;
   z-index: -1;
-  will-change: transform;
   backface-visibility: hidden;
   border: none !important;
-  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   padding: 0 !important;
 }
 
@@ -89,36 +103,76 @@ body {
   animation: sidebarSlideIn 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
 
 .nav-item {
-  padding: 10px 16px;
-  border-radius: var(--fluent-radius);
-  text-decoration: none;
-  color: var(--fluent-text-secondary);
-  font-weight: 500;
-  transition: var(--fluent-transition);
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 40px;
+  width: 15vw;
+  /* 按钮宽度随屏幕宽度缩放 */
+  aspect-ratio: 28.28/10;
+  /* 保持宽高比 */
+  transition: all 0.3s ease;
+
+}
+
+.project-btn {
+  background: url('/static/menu/btn1.png') no-repeat center center;
+  background-size: contain;
+  left: 20%;
+  top: 55%;
+}
+
+.texture-btn {
+  background: url('/static/menu/btn2.png') no-repeat center center;
+  background-size: contain;
+  left: 80%;
+  top: 50%;
+}
+
+.decoration-btn {
+  background: url('/static/menu/btn3.png') no-repeat center center;
+  background-size: contain;
+  left: 70%;
+  top: 15%;
+}
+
+.templates-btn {
+  background: url('/static/menu/btn4.png') no-repeat center center;
+  background-size: contain;
+  left: 38%;
+  top: 30%;
 }
 
 .nav-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--fluent-text);
-  box-shadow: var(--fluent-shadow-hover);
+  transform: translate(-50%, -55%) scale(1.05);
 }
 
-.nav-item.active {
-  background-color: var(--fluent-primary);
+/* 跟随鼠标的提示框样式 */
+.tooltip-following {
+  position: fixed;
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(10px);
   color: white;
-  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  animation: tooltipFadeIn 0.2s ease-out;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .home-main {
