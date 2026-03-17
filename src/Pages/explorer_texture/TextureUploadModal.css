@@ -24,7 +24,7 @@
 .modal-content {
   background: white;
   border-radius: 12px;
-  width: 90%;
+  width: 80%;
   max-width: 600px;
   max-height: 85vh;
   height: 85vh;
@@ -169,6 +169,27 @@
   max-height: 350px;
   object-fit: contain;
   display: block;
+}
+
+.btn-grayscale {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-grayscale:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
 }
 
 .tag-input-container {

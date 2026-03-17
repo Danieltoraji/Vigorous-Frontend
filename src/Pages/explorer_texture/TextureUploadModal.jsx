@@ -54,6 +54,54 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
     }))
   }
 
+  // 将图片转换为灰度图
+  const convertToGrayscale = () => {
+    if (!file || !previewUrl) return
+
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.src = previewUrl
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      
+      // 绘制原图
+      ctx.drawImage(img, 0, 0)
+      
+      // 获取像素数据
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const data = imageData.data
+      
+      // 转换为灰度
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+        // 使用加权平均法：0.299R + 0.587G + 0.114B
+        const gray = 0.299 * r + 0.587 * g + 0.114 * b
+        data[i] = gray     // R
+        data[i + 1] = gray // G
+        data[i + 2] = gray // B
+      }
+      
+      // 放回画布
+      ctx.putImageData(imageData, 0, 0)
+      
+      // 生成灰度图的 Blob
+      canvas.toBlob((blob) => {
+        const grayscaleFile = new File([blob], file.name, { type: file.type })
+        setFile(grayscaleFile)
+        
+        // 更新预览为灰度图
+        const grayscaleUrl = URL.createObjectURL(blob)
+        setPreviewUrl(grayscaleUrl)
+      }, file.type)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -114,10 +162,18 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
 
           {previewUrl && (
             <div className="form-group">
-              <label>预览</label>
+              <label>预览，确认无误，点击下方按钮转换为灰度图</label>
               <div className="preview-container">
                 <img src={previewUrl} alt="预览" className="preview-image" />
               </div>
+              <button 
+                type="button" 
+                onClick={convertToGrayscale} 
+                className="btn btn-grayscale"
+                style={{ width: '100%', marginTop: '10px' }}
+              >
+                🎨 转换为灰度图
+              </button>
             </div>
           )}
 
