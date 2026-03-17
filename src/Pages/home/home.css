@@ -1,27 +1,69 @@
+/* 基础重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 .home-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--fluent-background-gradient);
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 背景层 - 视差效果 */
+.background-layer {
+  position: fixed;
+  inset: -10%;
+  background: url('/static/menu/bg.png') no-repeat center center;
+  background-size: 85% 85%;
+  z-index: -1;
+  will-change: transform;
+  backface-visibility: hidden;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .home-header {
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  color: var(--fluent-primary);
-  padding: 2rem;
-  text-align: left;
-  box-shadow: var(--fluent-shadow);
-  border-bottom: 1px solid var(--fluent-border);
-  animation: headerFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(10px);
+  padding: 20px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
-.home-header h1 {
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: 600;
+.header-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.user-welcome {
+  color: white;
+  font-weight: 500;
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .home-content {
@@ -29,20 +71,22 @@
   flex: 1;
   padding: 2rem;
   gap: 2rem;
+  margin-top: 80px;
+  margin-bottom: 60px;
   animation: contentFadeIn 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
 }
 
 .home-sidebar {
   width: 280px;
-  background: var(--fluent-acrylic-sidebar);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
+  background: rgba(255, 255, 255, 0);
+  backdrop-filter: blur(1px);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  animation: sidebarSlideIn 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
+  animation: sidebarSlideIn 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-nav {
@@ -79,15 +123,14 @@
 
 .home-main {
   flex: 1;
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
+  background: rgba(255, 255, 255, 0);
+  backdrop-filter: blur(1px);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+
   padding: 2rem;
-  animation: mainSlideIn 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
+  animation: mainSlideIn 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .quick-actions h2 {
@@ -98,57 +141,44 @@
   font-weight: 600;
 }
 
+/* 资源管理器按钮图片样式 */
+.explorer-btn {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  border-radius: var(--fluent-radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  box-shadow: var(--fluent-shadow);
+}
+
+.explorer-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.explorer-btn:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
 .action-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
-}
-
-.action-btn {
-  padding: 1.5rem;
-  border: 1px solid var(--fluent-primary);
-  border-radius: var(--fluent-radius);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--fluent-primary);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--fluent-transition);
-  box-shadow: var(--fluent-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-height: 120px;
-}
-
-.action-btn:hover {
-  background: var(--fluent-primary);
-  color: white;
-  box-shadow: var(--fluent-shadow-hover);
-  transform: translateY(-2px);
-}
-
-.action-btn:active {
-  transform: translateY(0);
+  margin-top: 50px;
 }
 
 /* 动画效果 */
-@keyframes headerFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* 动画效果 */
 @keyframes contentFadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -159,6 +189,7 @@
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -170,6 +201,7 @@
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -177,7 +209,29 @@
 }
 
 /* 响应式设计 */
+/* Footer 样式 */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  z-index: 10;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(5px);
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
   .home-content {
     flex-direction: column;
     padding: 1rem;
@@ -196,8 +250,12 @@
     grid-template-columns: 1fr;
   }
 
-  .home-header h1 {
-    font-size: 2rem;
+  .header-title {
+    font-size: 1.5rem;
+  }
+
+  .user-welcome {
+    font-size: 14px;
   }
 }
 
@@ -206,17 +264,11 @@
     padding: 1.5rem;
   }
 
-  .home-header h1 {
-    font-size: 1.8rem;
-  }
-
   .home-main {
     padding: 1.5rem;
   }
 
-  .action-btn {
-    padding: 1.2rem;
-    font-size: 14px;
+  .explorer-btn {
     min-height: 100px;
   }
 }

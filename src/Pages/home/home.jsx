@@ -1,9 +1,31 @@
 import { useUser } from '../../hooks/useUser.jsx';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import './home.css';
 
 function Home() {
   const { userData } = useUser();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // 实现背景视差效果
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      // 计算鼠标位置相对于窗口中心的偏移
+      const xOffset = -(mouseX - window.innerWidth / 2) / 100;
+      const yOffset = -(mouseY - window.innerHeight / 2) / 100;
+
+      setMousePosition({ x: xOffset, y: yOffset });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   const handleQuickAction = (action) => {
     // TODO: 实现快捷操作功能
@@ -11,10 +33,18 @@ function Home() {
 
   return (
     <div className="home-container">
+      {/* 背景层 - 视差效果 */}
+      <div
+        className="background-layer"
+        style={{
+          transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
+        }}
+      />
+
       {/* 头部 */}
       <header className="home-header">
-        <h1>功能菜单</h1>
-        <p>欢迎您！{userData.username}</p>
+        <h1 className='header-title'>功能菜单</h1>
+        <p className='user-welcome'>欢迎您！{userData.username}</p>
       </header>
 
       <div className="home-content">
