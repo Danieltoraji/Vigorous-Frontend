@@ -520,26 +520,28 @@ function ChessEditor() {
                 />
               </div>
 
-              <div className="editor-item">
-                <label>分段数：</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="8"
-                  step="1"
-                  value={getSafeValue(edge.segments, 4)}
-                  onChange={(e) => handleDataUpdate('parts.base.edge.segments', parseInt(e.target.value))}
-                />
-                <input
-                  type="number"
-                  min="1"
-                  max="8"
-                  step="1"
-                  value={getSafeValue(edge.segments, 4)}
-                  onChange={(e) => handleDataUpdate('parts.base.edge.segments', parseInt(e.target.value))}
-                  className="number-input"
-                />
-              </div>
+              {edge.type === 'smooth' && (
+                <div className="editor-item">
+                  <label>分段数：</label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="8"
+                    step="1"
+                    value={getSafeValue(edge.segments, 4)}
+                    onChange={(e) => handleDataUpdate('parts.base.edge.segments', parseInt(e.target.value))}
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    max="8"
+                    step="1"
+                    value={getSafeValue(edge.segments, 4)}
+                    onChange={(e) => handleDataUpdate('parts.base.edge.segments', parseInt(e.target.value))}
+                    className="number-input"
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1056,26 +1058,28 @@ function ChessEditor() {
                 />
               </div>
 
-              <div className="editor-item">
-                <label>分段数：</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="8"
-                  step="1"
-                  value={getSafeValue(edge.segments, 4)}
-                  onChange={(e) => handleDataUpdate('parts.column.edge.segments', parseInt(e.target.value))}
-                />
-                <input
-                  type="number"
-                  min="1"
-                  max="8"
-                  step="1"
-                  value={getSafeValue(edge.segments, 4)}
-                  onChange={(e) => handleDataUpdate('parts.column.edge.segments', parseInt(e.target.value))}
-                  className="number-input"
-                />
-              </div>
+              {edge.type === 'smooth' && (
+                <div className="editor-item">
+                  <label>分段数：</label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="8"
+                    step="1"
+                    value={getSafeValue(edge.segments, 4)}
+                    onChange={(e) => handleDataUpdate('parts.column.edge.segments', parseInt(e.target.value))}
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    max="8"
+                    step="1"
+                    value={getSafeValue(edge.segments, 4)}
+                    onChange={(e) => handleDataUpdate('parts.column.edge.segments', parseInt(e.target.value))}
+                    className="number-input"
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
