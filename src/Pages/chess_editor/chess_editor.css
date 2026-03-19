@@ -1257,6 +1257,56 @@ input:checked+.toggle-label:before {
   }
 }
 
+/* AI 生成器样式 */
+.ai-generator-panel {
+  animation: aiPanelFadeIn 0.3s ease-out;
+}
+
+@keyframes aiPanelFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-generator-panel textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ai-generator-panel .btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.ai-generator-panel .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5568d3, #6a4190) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.ai-generator-panel .btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ai-generator-panel .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ==================== 异形生成器新增样式 ==================== */
 
 /* 小窗口预览容器 */

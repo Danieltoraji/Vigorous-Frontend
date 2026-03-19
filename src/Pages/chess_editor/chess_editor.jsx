@@ -4,6 +4,7 @@ import { useChess } from '../../hooks/useChess.jsx';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './modelrenderer/modelrenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
+import csrfapi from '../../utils/csrfapi.js';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function ChessEditor() {
@@ -27,11 +28,17 @@ function ChessEditor() {
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
 
+  // AI 生成相关状态
+  const [showAIGenerator, setShowAIGenerator] = useState(false); // AI 生成器显示状态
+  const [aiPrompt, setAiPrompt] = useState(''); // AI 提示词
+  const [isGenerating, setIsGenerating] = useState(false); // AI 生成中状态
+  const [aiError, setAiError] = useState(''); // AI 生成错误信息
+
   // 引用
   const editorContentRef = useRef(null);
 
   // 当chessData或location.state变化时更新currentChess
-  
+
   const fetchData = async () => {
     try {
       console.log('正在获取棋子：', pieceId);
@@ -103,6 +110,205 @@ function ChessEditor() {
     }
   }, [currentChess, updateChess]);
 
+  // AI 生成模型 - 根据提示词生成 JSON 格式的模型数据
+  const handleAIGenerate = useCallback(async () => {
+    if (!aiPrompt.trim()) {
+      setAiError('请输入描述词');
+      return;
+    }
+
+    setIsGenerating(true);
+    setAiError('');
+
+    try {
+      // 系统提示词：指导 AI 只输出 JSON 格式
+      const systemPrompt = `你是一个专业的 3D 模型参数生成助手。你的任务是根据用户的描述，生成一个符合以下 JSON Schema 的棋子模型参数。
+
+## JSON Schema 要求：
+
+{
+  "type": "object",
+  "properties": {
+    "parts": {
+      "type": "object",
+      "properties": {
+        "base": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "shape": {
+              "type": "object",
+              "properties": {
+                "type": {"type": "string", "enum": ["cylinder", "box", "sphere"]},
+                "size1": {"type": "number", "minimum": 0, "maximum": 50},
+                "size2": {"type": "number", "minimum": 0, "maximum": 50},
+                "size3": {"type": "number", "minimum": 0, "maximum": 50}
+              }
+            },
+            "position": {
+              "type": "object",
+              "properties": {
+                "x": {"type": "number", "minimum": -50, "maximum": 50},
+                "y": {"type": "number", "minimum": -50, "maximum": 50},
+                "z": {"type": "number", "minimum": -50, "maximum": 50}
+              }
+            },
+            "material": {
+              "type": "object",
+              "properties": {
+                "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+                "metalness": {"type": "number", "minimum": 0, "maximum": 1},
+                "roughness": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          }
+        },
+        "body": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "curves": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "points": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "x": {"type": "number"},
+                        "y": {"type": "number"}
+                      },
+                      "required": ["x", "y"]
+                    }
+                  }
+                }
+              }
+            },
+            "material": {
+              "type": "object",
+              "properties": {
+                "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+                "metalness": {"type": "number", "minimum": 0, "maximum": 1},
+                "roughness": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          }
+        },
+        "decoration": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "modelId": {"type": "string"},
+            "size": {
+              "type": "object",
+              "properties": {
+                "size1": {"type": "number", "minimum": 0, "maximum": 30},
+                "size2": {"type": "number", "minimum": 0, "maximum": 30},
+                "size3": {"type": "number", "minimum": 0, "maximum": 20}
+              }
+            },
+            "position": {
+              "type": "object",
+              "properties": {
+                "x": {"type": "number", "minimum": -50, "maximum": 50},
+                "y": {"type": "number", "minimum": -50, "maximum": 50},
+                "z": {"type": "number", "minimum": -50, "maximum": 50}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["parts"]
+}
+
+## 重要规则：
+1. **只输出纯 JSON**，不要包含任何解释、标记或其他文字
+2. 所有数值必须在指定范围内
+3. 颜色必须是 6 位十六进制格式（如 #FF5733）
+4. 如果用户描述不够详细，使用合理的默认值
+5. 确保生成的 JSON 可以被直接解析
+
+## 示例输出：
+{"parts":{"base":{"enabled":true,"shape":{"type":"cylinder","size1":20,"size2":20,"size3":5},"position":{"x":0,"y":0,"z":0},"material":{"color":"#8B4513","metalness":0.3,"roughness":0.4}},"body":{"enabled":true,"curves":[{"points":[{"x":0,"y":0},{"x":5,"y":20},{"x":0,"y":40}]}],"material":{"color":"#D2691E","metalness":0.2,"roughness":0.5}},"decoration":{"enabled":true,"modelId":"3","size":{"size1":8,"size2":8,"size3":8},"position":{"x":0,"y":45,"z":0}}}}`;
+
+      // 使用 csrfapi 发送请求到后端代理，后端会转发到 SiliconFlow API
+      const response = await csrfapi.post('/llm/', {
+        model: "Pro/zai-org/GLM-4.7",
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: aiPrompt
+          }
+        ]
+      });
+
+      // axios 响应格式与 fetch 不同，数据在 response.data 中
+      const data = response.data;
+      console.log('AI 响应数据:', data);
+      
+      // 后端返回格式为：{ reply: "JSON 字符串" }
+      let jsonString = data.reply;
+
+      if (!jsonString) {
+        throw new Error('AI 返回的数据格式不正确，请检查后端 API 配置');
+      }
+
+      // 尝试解析 JSON
+      let generatedData;
+      try {
+        generatedData = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+      } catch (parseError) {
+        console.error('JSON 解析失败:', parseError);
+        console.error('原始返回:', jsonString);
+        throw new Error('AI 返回的数据不是有效的 JSON 格式，可能 AI 没有理解指令');
+      }
+
+      // 验证生成的数据结构
+      if (!generatedData.parts) {
+        throw new Error('AI 返回的数据缺少 parts 字段');
+      }
+
+      // 合并到当前棋子数据
+      const updatedChess = {
+        ...currentChess,
+        parts: {
+          ...currentChess.parts,
+          ...generatedData.parts
+        }
+      };
+
+      // 更新本地状态
+      setCurrentChess(updatedChess);
+
+      // 更新全局状态
+      setChessData(prev => ({
+        ...prev,
+        [currentChess.id]: updatedChess
+      }));
+
+      // 清空提示词并关闭生成器
+      setAiPrompt('');
+      setShowAIGenerator(false);
+
+      alert('AI 生成成功！模型已更新。');
+
+    } catch (error) {
+      console.error('AI 生成失败:', error);
+      setAiError(error.message || 'AI 生成失败，请重试');
+      alert('AI 生成失败：' + (error.message || '未知错误'));
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [aiPrompt, currentChess, setChessData]);
+
   // 处理右侧面板收起/展开
   const handleToggleRightPanel = useCallback(() => {
     setIsRightPanelCollapsed(prev => !prev);
@@ -124,12 +330,12 @@ function ChessEditor() {
       // 导出前先保存当前修改，然后获取最新数据
       await handleSave();
       await fetchData();
-      
+
       let blob;
       let filename;
-      
+
       // 调用导出函数，直接传递参数
-      console.log('正在做导出准备,json',currentChess,'stl/obj',modelRootRef.current);
+      console.log('正在做导出准备,json', currentChess, 'stl/obj', modelRootRef.current);
       blob = await exportScene(currentChess, modelRootRef.current, format);
       filename = generateExportFilename(currentChess.name, format);
       downloadBlob(blob, filename);
@@ -632,8 +838,8 @@ function ChessEditor() {
     );
   }, [currentChess, handleDataUpdate, selectedComponent]);
 
-  // 渲染柱体组件参数面板 - 使用 useMemo 缓存
-  const renderColumnPanel = useMemo(() => () => {
+  // 渲染柱体组件参数面板 - 使用普通函数以确保状态能正确更新
+  const renderColumnPanel = () => {
     if (!currentChess || !currentChess.parts?.column) return null;
 
     const component = currentChess.parts.column;
@@ -1166,10 +1372,10 @@ function ChessEditor() {
         </div>
       </div>
     );
-  }, [currentChess, handleDataUpdate, selectedComponent]);
+  };
 
-  // 渲染装饰组件参数面板 - 使用 useMemo 缓存
-  const renderDecorationPanel = useMemo(() => () => {
+  // 渲染装饰组件参数面板 - 使用普通函数以确保状态能正确更新
+  const renderDecorationPanel = () => {
     if (!currentChess || !currentChess.parts?.decoration) return null;
 
     const component = currentChess.parts.decoration;
@@ -1207,6 +1413,80 @@ function ChessEditor() {
               导入模型
             </button>
           </div>
+          <div className="editor-item">
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowAIGenerator(!showAIGenerator)}
+              style={{ width: '100%', marginTop: '8px' }}
+            >
+              {showAIGenerator ? '收起 AI 生成器' : '✨ AI 智能生成'}
+            </button>
+          </div>
+
+          {/* AI 生成器面板 */}
+          {showAIGenerator && (
+            <div className="ai-generator-panel" style={{
+              marginTop: '16px',
+              padding: '16px',
+              background: 'linear-gradient(135deg, #667eea1a, #764ba21a)',
+              borderRadius: '8px',
+              border: '1px solid rgba(102, 126, 234, 0.3)'
+            }}>
+              <div style={{ marginBottom: '12px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#667eea', fontSize: '14px' }}>
+                  🤖 AI 模型生成
+                </h4>
+                <p style={{ margin: 0, fontSize: '12px', color: '#666', lineHeight: '1.5' }}>
+                  描述你想要的棋子样式，AI 会自动生成 3D 模型参数。例如："一个古典风格的国际象棋皇后，棕色木质纹理，顶部有金色圆球装饰"
+                </p>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '12px' }}>
+                <textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="请输入描述词..."
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid rgba(102, 126, 234, 0.3)',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    resize: 'vertical',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              {aiError && (
+                <div style={{
+                  marginBottom: '12px',
+                  padding: '8px',
+                  background: '#fee',
+                  border: '1px solid #fcc',
+                  borderRadius: '4px',
+                  color: '#c00',
+                  fontSize: '12px'
+                }}>
+                  ⚠️ {aiError}
+                </div>
+              )}
+
+              <button
+                className="btn btn-primary"
+                onClick={handleAIGenerate}
+                disabled={isGenerating || !aiPrompt.trim()}
+                style={{
+                  width: '100%',
+                  background: isGenerating ? '#ccc' : 'linear-gradient(135deg, #667eea, #764ba2)',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isGenerating ? '🔄 生成中...' : '🎨 开始生成'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Size 部分 */}
@@ -1481,7 +1761,7 @@ function ChessEditor() {
         </div>
       </div>
     );
-  }, [currentChess, handleDataUpdate]);
+  };
 
   // 如果 currentChess 还没有准备好，显示加载状态
   if (!currentChess) {

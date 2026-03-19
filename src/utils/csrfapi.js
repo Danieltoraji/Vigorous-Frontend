@@ -16,10 +16,10 @@ function getCookie(name) {
   return cookieValue;
 }
 
-// 创建axios实例
+// 创建 axios 实例
 const csrfapi = axios.create({
   baseURL: '/api',
-  timeout: 10000,
+  timeout: 180000, // 三分钟超时，适用于 AI 生成等耗时操作
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
