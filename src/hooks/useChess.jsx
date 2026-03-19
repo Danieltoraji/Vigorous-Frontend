@@ -173,7 +173,82 @@ export function ChessProvider({ children }) {
       throw err;
     }
   };
+  //B4' 方法：从既定的JSON中创建棋子
+  const createChessFromJson = async (projectId, chessJson) => {
+    console.log(chessJson)
+    try {
+      const chessData = {
+        name: '新棋子',
+        project: projectId,
+        parts: {
+          "base": chessJson?.parts?.base ? JSON.parse(JSON.stringify(chessJson.parts.base)) : {
+            "shape": {
+              "type": "cycle",
+              "size1": 15,
+              "size2": 15,
+              "height": 1
+            },
+            "customShape": {
+              "profilePoints": [],
+              "pathPoints": []
+            },
+            "material": null,
+            "pattern": {
+              "shape": "text",
+              "position": { "x": 0, "y": 0, "z": 0 },
+              "size": 10,
+              "depth": 1
+            },
+            "edge": { "type": "none", "depth": 0 },
+            "position": { "x": 0, "y": 0, "z": 0 }
+          },
+          "column": chessJson?.parts?.column ? JSON.parse(JSON.stringify(chessJson.parts.column)) : {
+            "shape": {
+              "type": "cycle",
+              "size1": 10,
+              "size2": 10,
+              "height": 20
+            },
+            "customShape": {
+              "profilePoints": [],
+              "pathPoints": []
+            },
+            "material": null,
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "sideTreatment": "none",
+            "pattern": {
+              "shape": "geometry",
+              "geometryType": "Cube",
+              "position": { "x": 0, "y": 0, "z": 0 },
+              "size": 5,
+              "depth": 0.5
+            },
+            "edge": { "type": "smooth", "depth": 0.2 }
+          },
+          "decoration": chessJson?.parts?.decoration ? JSON.parse(JSON.stringify(chessJson.parts.decoration)) : {
+            "modelId": "0",
+            "size": { "size1": 5, "size2": 5, "size3": 5 },
+            "position": { "x": 0, "y": 21, "z": 0 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "material": null
+          },
+          "image": chessJson?.parts?.image !== undefined ? chessJson.parts.image : ""
+        }
+      };
 
+      const response = await csrfapi.post('/pieces/', chessData);
+      const newChess = response.data;
+
+      setChessData(prev => ({
+        ...prev,
+        [newChess.id]: newChess
+      }));
+
+      return newChess;
+    } catch (err) {
+      throw err;
+    }
+  };
   //B5 方法：更新棋子（修改棋子字段后向后端发送）
   const updateChess = async (chessId, updatedData) => {
     // 先保存旧值（万一失败要恢复）
@@ -252,6 +327,7 @@ export function ChessProvider({ children }) {
 
     // 修改方法
     createChess,
+    createChessFromJson,
     updateChess,
     deleteChess,
 
