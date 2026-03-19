@@ -40,12 +40,12 @@ function ExplorerTemplates() {
     }
   })
   
-  // 过滤模板
+  // 过滤模板并按id降序排序
   const filteredTemplates = Object.values(templatesData).filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesTag = !selectedTag || (template.piece_tags && template.piece_tags.includes(selectedTag))
     return matchesSearch && matchesTag
-  })
+  }).sort((a, b) => b.id - a.id)
   
   // 处理删除模板
   const handleDeleteTemplate = (templateId) => {
@@ -144,10 +144,11 @@ function ExplorerTemplates() {
   // 读取JSON文件
   const readJsonFile = (file) => {
     const reader = new FileReader()
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const templateJson = JSON.parse(e.target.result)
-        createTemplateFromJson(templateJson)
+        await createTemplateFromJson(templateJson)
+        alert('模板导入成功！')
         setShowImportModal(false)
       } catch (error) {
         alert('JSON格式错误，请检查文件内容')
