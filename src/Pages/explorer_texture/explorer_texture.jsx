@@ -73,11 +73,11 @@ function ExplorerTexture() {
   return (
     <div className="explorer-texture">
       <div className="explorer-header">
-        <button className="back-button" onClick={onBack}>
+        {/* <button className="back-button" onClick={onBack}>
           ← 返回
-        </button>
-        <h1>纹理资源管理器</h1>
-        <p>欢迎您！{userData.username}</p>
+        </button> */}
+        <h1 className='header-title'>纹理资源管理器</h1>
+        <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
       <TextureList
