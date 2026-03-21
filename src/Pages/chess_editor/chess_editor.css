@@ -1257,6 +1257,101 @@ input:checked+.toggle-label:before {
   }
 }
 
+/* HDR 预设选择器样式 */
+.hdr-selector-container {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.hdr-selector-toggle {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--fluent-transition);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--fluent-shadow);
+  color: var(--fluent-text);
+  font-weight: 500;
+}
+
+.hdr-selector-toggle:hover {
+  background: var(--fluent-primary);
+  color: white;
+  border-color: var(--fluent-primary);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
+.hdr-presets-dropdown {
+  position: absolute;
+  bottom: 50px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  padding: 15px;
+  min-width: 180px;
+  box-shadow: var(--fluent-shadow-hover);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: hdrDropdownSlideIn 0.2s ease-out;
+}
+
+@keyframes hdrDropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hdr-presets-dropdown h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fluent-text);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.hdr-presets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hdr-preset-item {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: var(--fluent-transition);
+  text-align: left;
+  color: var(--fluent-text);
+}
+
+.hdr-preset-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--fluent-primary);
+}
+
+.hdr-preset-item.active {
+  background: var(--fluent-primary);
+  color: white;
+  border-color: var(--fluent-primary);
+  font-weight: 500;
+}
+
 /* AI 生成器样式 */
 .ai-generator-panel {
   animation: aiPanelFadeIn 0.3s ease-out;

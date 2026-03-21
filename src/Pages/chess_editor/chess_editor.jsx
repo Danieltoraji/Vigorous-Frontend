@@ -37,6 +37,19 @@ function ChessEditor() {
   // 引用
   const editorContentRef = useRef(null);
 
+  // HDR 预设相关状态
+  const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
+  const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
+
+  // HDR 预设列表
+  const hdrPresets = [
+    { id: 'syria', name: '叙利亚', file: '/syria.hdr' },
+    { id: 'sky', name: '皆若空游无所依', file: '/sky.hdr' },
+    { id: 'ruralroad', name: '乡间小路', file: '/ruralroad.hdr' },
+    { id: 'glasshouse', name: '玻璃房', file: '/glasshouse.hdr' },
+    { id: 'cinema', name: '电影院', file: '/cinema.hdr' },
+  ];
+
   // 当chessData或location.state变化时更新currentChess
 
   const fetchData = async () => {
@@ -1928,7 +1941,42 @@ modelId 含义：
 
         {/* 中间预览区域 */}
         <main className="preview-area">
-          <ModelRenderer chess={currentChess} onModelReady={handleModelReady} />
+          <ModelRenderer
+            chess={currentChess}
+            onModelReady={handleModelReady}
+            hdrFile={hdrPresets.find(p => p.id === selectedHdrPreset)?.file || '/stage.hdr'}
+          />
+
+          {/* HDR 预设选择器 */}
+          <div className="hdr-selector-container">
+            <button
+              className="hdr-selector-toggle"
+              onClick={() => setShowHdrSelector(!showHdrSelector)}
+              title="选择环境贴图"
+            >
+              🌍 环境光
+            </button>
+
+            {showHdrSelector && (
+              <div className="hdr-presets-dropdown">
+                <h4>环境贴图预设</h4>
+                <div className="hdr-presets-list">
+                  {hdrPresets.map(preset => (
+                    <button
+                      key={preset.id}
+                      className={`hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedHdrPreset(preset.id);
+                        setShowHdrSelector(false);
+                      }}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </main>
 
       </div>
