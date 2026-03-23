@@ -95,7 +95,6 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
         <button 
           className="btn btn-secondary" 
           onClick={onClose}
-          style={{ borderRadius: '12px', backgroundColor: 'red' }}
         >
           取消
         </button>
@@ -103,7 +102,6 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
           className="btn btn-primary" 
           onClick={handleConfirm}
           disabled={!selectedId}
-          style={{ borderRadius: '12px', backgroundColor: 'blue' }}
         >
           {mode === 'selector' ? '选择此纹理并生成' : '生成浮雕'}
         </button>

@@ -1411,6 +1411,44 @@ input:checked+.toggle-label:before {
   flex-direction: column;
 }
 
+/* 纹理选择器弹窗头部 */
+.texture-selector-modal .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.texture-selector-modal .modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fluent-text);
+}
+
+.texture-selector-modal .close-button {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--fluent-text-secondary);
+  transition: color 0.2s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.texture-selector-modal .close-button:hover {
+  color: var(--fluent-text);
+  background: rgba(0, 0, 0, 0.05);
+}
+
 /* 响应式设计 */
 @media (max-width: 480px) {
   .export-modal {
