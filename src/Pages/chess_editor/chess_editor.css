@@ -551,6 +551,54 @@
   margin-bottom: 12px;
 }
 
+/* 自定义纹理按钮容器 - 垂直排列 */
+.editor-item .texture-mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.editor-item .texture-mode-button {
+  padding: 12px 24px;
+  border: 2px solid var(--fluent-border);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* 当只有一个按钮时，保持所有圆角 */
+.editor-item .texture-mode-button:only-child {
+  border-radius: 12px;
+}
+
+/* 当有多个按钮时，调整圆角使它们紧密连接 */
+.editor-item .texture-mode-buttons:not(:only-child) .texture-mode-button:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: -1px;
+}
+
+.editor-item .texture-mode-buttons:not(:only-child) .texture-mode-button:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.editor-item .texture-mode-button:hover {
+  background: linear-gradient(135deg, #5568d3, #6a4190);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
 .editor-item label {
   font-size: 13px;
   color: var(--fluent-text-secondary);
@@ -1238,6 +1286,129 @@ input:checked+.toggle-label:before {
 
 .export-option-button:active {
   transform: translateY(0);
+}
+
+/* 自定义纹理配置弹窗样式 */
+.custom-texture-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.texture-mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.texture-mode-button {
+  padding: 12px 24px;
+  border: 2px solid var(--fluent-border) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--fluent-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* 当只有一个按钮时，保持所有圆角 */
+.texture-mode-button:only-child {
+  border-radius: 12px;
+}
+
+/* 当有多个按钮时，调整圆角使它们紧密连接 */
+.texture-mode-buttons:not(:only-child) .texture-mode-button:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: -1px;
+}
+
+.texture-mode-buttons:not(:only-child) .texture-mode-button:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.texture-mode-button:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
+}
+
+.texture-mode-button.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+}
+
+.texture-mode-button.primary:hover {
+  background: linear-gradient(135deg, #5568d3, #6a4190);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.texture-mode-button.active {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.texture-mode-button.primary.active {
+  background: linear-gradient(135deg, #5568d3, #6a4190);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* 纹理选择器弹窗样式 */
+.texture-selector-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  width: 95%;
+  max-width: 900px;
+  height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.texture-selector-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.texture-selector-content .modal-content {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 响应式设计 */

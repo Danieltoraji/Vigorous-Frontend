@@ -5,7 +5,10 @@ import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
 // 从 THREE 命名空间获取常用几何体和工具
-const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader } = THREE;
+
+// 创建纹理加载器实例
+const textureLoader = new TextureLoader();
 
 /**
  * SceneContent component - contains all scene objects and model rendering logic
@@ -294,6 +297,48 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                 }
 
                 break;
+            case 'custom':
+                // 自定义纹理 - 使用灰度图生成浮雕
+                console.log('渲染自定义纹理 - Base:', pattern);
+                if (pattern.textureFile) {
+                    console.log('纹理路径:', pattern.textureFile);
+                    const texture = textureLoader.load(pattern.textureFile, 
+                        (loadedTexture) => {
+                            console.log('纹理加载成功:', loadedTexture);
+                            console.log('原始 flipY:', loadedTexture.flipY);
+                            loadedTexture.flipY = false; // 设置为 false，因为我们需要与默认相反的方向
+                            console.log('设置后 flipY:', loadedTexture.flipY);
+                            console.log('纹理图像尺寸:', loadedTexture.image?.width, 'x', loadedTexture.image?.height);
+                        },
+                        undefined,
+                        (error) => {
+                            console.error('纹理加载失败:', error);
+                        }
+                    );
+                    console.log('加载的纹理对象:', texture);
+                    patternelement = (
+                        <mesh 
+                            position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
+                            rotation={[-Math.PI / 2, 0, 0]}
+                            castShadow 
+                            receiveShadow
+                        >
+                            <planeGeometry args={[pattern.size || 10, pattern.size || 10, 64, 64]} />
+                            <meshStandardMaterial
+                                color="#CD853F"
+                                metalness={material.metalness}
+                                roughness={material.roughness}
+                                clearcoat={material.clearcoat}
+                                clearcoatRoughness={material.clearcoatRoughness}
+                                displacementMap={texture}
+                                displacementScale={-(pattern.depth || 1) * 3} // 使用负值反转置换方向，并放大 3 倍
+                            />
+                        </mesh>
+                    );
+                } else {
+                    console.log('缺少 textureFile 字段');
+                }
+                break;
             default:
                 patternelement = null;
                 break;
@@ -542,10 +587,53 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                 }
 
                 break;
+            case 'custom':
+                // 自定义纹理 - 使用灰度图生成浮雕
+                console.log('渲染自定义纹理 - Column:', pattern);
+                if (pattern.textureFile) {
+                    console.log('纹理路径:', pattern.textureFile);
+                    const texture = textureLoader.load(pattern.textureFile, 
+                        (loadedTexture) => {
+                            console.log('纹理加载成功:', loadedTexture);
+                            console.log('原始 flipY:', loadedTexture.flipY);
+                            loadedTexture.flipY = false; // 设置为 false，因为我们需要与默认相反的方向
+                            console.log('设置后 flipY:', loadedTexture.flipY);
+                            console.log('纹理图像尺寸:', loadedTexture.image?.width, 'x', loadedTexture.image?.height);
+                        },
+                        undefined,
+                        (error) => {
+                            console.error('纹理加载失败:', error);
+                        }
+                    );
+                    console.log('加载的纹理对象:', texture);
+                    patternelement = (
+                        <mesh 
+                            position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                            rotation={[-Math.PI / 2, 0, 0]}
+                            castShadow 
+                            receiveShadow
+                        >
+                            <planeGeometry args={[pattern.size || 10, pattern.size || 10, 64, 64]} />
+                            <meshStandardMaterial
+                                color="#CD853F"
+                                metalness={material.metalness}
+                                roughness={material.roughness}
+                                clearcoat={material.clearcoat}
+                                clearcoatRoughness={material.clearcoatRoughness}
+                                displacementMap={texture}
+                                displacementScale={-(pattern.depth || 1) * 3} // 使用负值反转置换方向，并放大 3 倍
+                            />
+                        </mesh>
+                    );
+                } else {
+                    console.log('缺少 textureFile 字段');
+                }
+                break;
             default:
                 patternelement = null;
                 break;
         }
+
         return (
             <group>
                 {bodyelement}

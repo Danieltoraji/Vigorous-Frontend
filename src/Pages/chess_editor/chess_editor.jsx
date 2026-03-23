@@ -5,6 +5,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './modelrenderer/modelrenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import csrfapi from '../../utils/csrfapi.js';
+import TextureGrid from './TextureGrid.jsx';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function ChessEditor() {
@@ -40,6 +41,32 @@ function ChessEditor() {
   // HDR 预设相关状态
   const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
   const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
+
+  // 自定义纹理相关状态
+  const [showCustomTextureModal, setShowCustomTextureModal] = useState(false); // 自定义纹理弹窗显示状态
+  const [showTextureSelector, setShowTextureSelector] = useState(false); // 纹理选择器显示状态
+  const [selectedTexture, setSelectedTexture] = useState(null); // 选中的纹理
+  const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
+
+  // 处理纹理选择
+  const handleTextureSelect = (texture) => {
+    setSelectedTexture(texture);
+    if (!currentChess || !selectedComponent) return;
+    
+    // 根据当前选中的组件更新对应的 pattern 数据
+    const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
+    
+    // 同时更新 textureFile 和 shape 字段，避免分开更新导致的数据覆盖
+    const patternData = {
+      textureFile: texture.file,
+      shape: 'custom',
+      size: 10,
+      depth: 1,
+      position: { x: 0, y: 0, z: 0 }
+    };
+    
+    handleDataUpdate(componentPath, patternData);
+  };
 
   // HDR 预设列表
   const hdrPresets = [
@@ -640,7 +667,7 @@ modelId 含义：
 
         {/* Pattern 部分 */}
         <div className="editor-section">
-          <h4>图案</h4>
+          <h4>浮雕与纹理</h4>
 
           <div className="editor-item">
             <label>形状：</label>
@@ -651,9 +678,31 @@ modelId 含义：
               <option value="none">无</option>
               <option value="text">文字</option>
               <option value="geometry">几何图形</option>
-              <option value="strange">奇异图形</option>
+              <option value="custom">自定义纹理</option>
             </select>
           </div>
+
+          {getSafeValue(pattern.shape, 'text') === 'custom' && (
+            <div className="editor-item">
+              <div className="texture-mode-buttons">
+                <button 
+                  className="texture-mode-button" 
+                  onClick={() => {
+                    setTextureMode('selector');
+                    setShowTextureSelector(true);
+                  }}
+                >
+                  📂 从浮雕纹理管理器中选择
+                </button>
+              </div>
+              {selectedTexture && (
+                <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600' }}>已选纹理：{selectedTexture.name}</p>
+                  <img src={selectedTexture.file} alt="预览" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', display: 'block' }} />
+                </div>
+              )}
+            </div>
+          )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
             <div className="editor-item">
@@ -746,7 +795,7 @@ modelId 含义：
             />
           </div>
 
-          {/* 图案位置 */}
+          {/* 浮雕位置 */}
           <div className="editor-subsection">
             <h5>位置</h5>
             <div className="editor-item">
@@ -1178,7 +1227,7 @@ modelId 含义：
 
         {/* Pattern 部分 */}
         <div className="editor-section">
-          <h4>图案</h4>
+          <h4>浮雕与纹理</h4>
 
           <div className="editor-item">
             <label>形状：</label>
@@ -1189,9 +1238,31 @@ modelId 含义：
               <option value="none">无</option>
               <option value="text">文字</option>
               <option value="geometry">几何图形</option>
-              <option value="strange">奇异图形</option>
+              <option value="custom">自定义纹理</option>
             </select>
           </div>
+
+          {getSafeValue(pattern.shape, 'text') === 'custom' && (
+            <div className="editor-item">
+              <div className="texture-mode-buttons">
+                <button 
+                  className="texture-mode-button" 
+                  onClick={() => {
+                    setTextureMode('selector');
+                    setShowTextureSelector(true);
+                  }}
+                >
+                  📂 从浮雕纹理管理器中选择
+                </button>
+              </div>
+              {selectedTexture && (
+                <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600' }}>已选纹理：{selectedTexture.name}</p>
+                  <img src={selectedTexture.file} alt="预览" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', display: 'block' }} />
+                </div>
+              )}
+            </div>
+          )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
             <div className="editor-item">
@@ -1284,7 +1355,7 @@ modelId 含义：
             />
           </div>
 
-          {/* 图案位置 */}
+          {/* 浮雕位置 */}
           <div className="editor-subsection">
             <h5>位置</h5>
             <div className="editor-item">
@@ -2020,21 +2091,42 @@ modelId 含义：
                   className="export-option-button"
                   onClick={() => handleExportAction('json')}
                 >
-                  JSON数据
+                  JSON 数据
                 </button>
                 <button
                   className="export-option-button"
                   onClick={() => handleExportAction('stl')}
                 >
-                  STL（适合3D打印）
+                  STL（适合 3D 打印）
                 </button>
                 <button
                   className="export-option-button"
                   onClick={() => handleExportAction('obj')}
                 >
-                  OBJ（适合3D建模软件）
+                  OBJ（适合 3D 建模软件）
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+{/* 纹理选择器弹窗 */}
+      {showTextureSelector && (
+        <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
+          <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
+              <button className="close-button" onClick={() => setShowTextureSelector(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-content texture-selector-content">
+              <TextureGrid 
+                onSelectTexture={handleTextureSelect}
+                onClose={() => setShowTextureSelector(false)}
+                mode={textureMode}
+              />
             </div>
           </div>
         </div>
