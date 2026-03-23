@@ -164,10 +164,94 @@
 }
 
 .view-controls {
-  margin-bottom: 0px;
+  margin-bottom: 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+}
+
+.template-actions-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--fluent-acrylic);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-radius: var(--fluent-radius);
+  padding: 32px;
+  box-shadow: var(--fluent-shadow-hover);
+  border: 1px solid var(--fluent-border);
+  min-width: 400px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--fluent-text);
+  margin-bottom: 16px;
+}
+
+.modal-content p {
+  color: var(--fluent-text-secondary);
+  margin-bottom: 32px;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 拖拽区域样式 */
+.drag-drop-area {
+  border: 2px dashed var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  padding: 32px;
+  margin: 24px 0;
+  text-align: center;
+  transition: var(--fluent-transition);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.drag-drop-area p {
+  margin: 8px 0;
+  color: var(--fluent-text-secondary);
+}
+
+.drag-hint {
+  font-size: 12px !important;
+  color: var(--fluent-text-tertiary) !important;
+}
+
+/* 拖拽激活状态 */
+.modal-content.drag-active {
+  box-shadow: 0 0 0 2px var(--fluent-primary), var(--fluent-shadow-hover);
+}
+
+.modal-content.drag-active .drag-drop-area {
+  border-color: var(--fluent-primary);
+  background: rgba(0, 120, 212, 0.05);
 }
 
 .view-buttons {
@@ -234,6 +318,9 @@
   padding: 16px;
   border-bottom: 1px solid var(--fluent-border-light);
   background: linear-gradient(135deg, #E6F4FF 0%, #D1E7FF 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .template-name {
@@ -241,6 +328,114 @@
   font-weight: 600;
   color: var(--fluent-primary);
   margin: 0;
+}
+
+/* 编辑图标样式 */
+.edit-icon {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--fluent-border);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  font-size: 14px;
+}
+
+.edit-icon:hover {
+  background: rgba(0, 120, 212, 0.1);
+  border-color: var(--fluent-primary);
+  box-shadow: 0 2px 4px rgba(0, 120, 212, 0.2);
+}
+
+.edit-icon.small {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.template-title-with-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 删除按钮样式 */
+.delete-btn {
+  color: #D13438;
+  border-color: #D13438;
+}
+
+.delete-btn:hover {
+  background: rgba(209, 52, 56, 0.1);
+  color: #D13438;
+}
+
+/* 编辑表单样式 */
+.edit-modal {
+  max-width: 500px;
+}
+
+.edit-modal h2 {
+  text-align: left;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--fluent-text);
+  font-size: 16px;
+  text-align: left;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  font-size: 14px;
+  transition: var(--fluent-transition);
+  background: white;
+  color: var(--fluent-text);
+  font-family: inherit;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--fluent-primary);
+  box-shadow: 0 0 0 2px var(--fluent-primary);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #999;
+  margin: 4px 0 0 0;
+  text-align: left;
 }
 
 .template-card-body {
