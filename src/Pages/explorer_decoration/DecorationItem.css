@@ -1,0 +1,152 @@
+.decoration-item {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.decoration-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.decoration-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.decoration-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.decoration-format {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.decoration-item-body {
+  padding: 20px;
+}
+
+.decoration-preview {
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #666;
+}
+
+.file-icon {
+  font-size: 32px;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.no-preview {
+  color: #999;
+  font-size: 14px;
+}
+
+.decoration-meta {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.decoration-meta-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.decoration-meta-item:last-child {
+  margin-bottom: 0;
+}
+
+.meta-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.meta-value {
+  color: #333;
+}
+
+.decoration-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.decoration-tag {
+  background: #e9ecef;
+  color: #495057;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.decoration-item-footer {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.decoration-item-footer .btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.decoration-item-footer .btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.decoration-item-footer .btn-secondary:hover {
+  background: #5a6268;
+}
+
+.decoration-item-footer .btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.decoration-item-footer .btn-danger:hover {
+  background: #c82333;
+}

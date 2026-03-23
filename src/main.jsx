@@ -6,6 +6,8 @@ import { UserProvider } from './hooks/useUser.jsx'
 import { ProjectProvider } from './hooks/useProject.jsx'
 import { ChessProvider } from './hooks/useChess.jsx'
 import { TemplatesProvider } from './hooks/useTemplates.jsx'
+import { TextureProvider } from './hooks/useTexture.jsx'
+import { DecorationProvider } from './hooks/useDecoration.jsx'
 
 
 
@@ -15,7 +17,11 @@ createRoot(document.getElementById('root')).render(
       <ProjectProvider>
         <ChessProvider>
           <TemplatesProvider>
-            <App />
+            <TextureProvider>
+              <DecorationProvider>
+                <App />
+              </DecorationProvider>
+            </TextureProvider>
           </TemplatesProvider>
         </ChessProvider>
       </ProjectProvider>

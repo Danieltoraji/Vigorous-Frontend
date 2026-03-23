@@ -8,6 +8,8 @@
   padding: 20px;
   transition: var(--fluent-transition);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .project-item:hover {
@@ -93,7 +95,9 @@
   border-top: 1px solid var(--fluent-border-light);
   padding-top: 16px;
   background: rgba(255, 255, 255, 0.5);
-  margin: -20px -20px 0 -20px;
+  margin-top: auto;
+  margin-left: -20px;
+  margin-right: -20px;
   padding: 16px 20px;
   transition: var(--fluent-transition);
 }
@@ -123,6 +127,7 @@
 
   .project-item-footer {
     padding: 12px 16px;
-    margin: -16px -16px 0 -16px;
+    margin-left: -16px;
+    margin-right: -16px;
   }
 }

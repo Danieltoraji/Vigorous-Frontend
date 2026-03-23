@@ -1,8 +1,7 @@
-.explorer-project {
-  width: 100%;
-  margin: 0;
+.explorer-decoration {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   padding: 100px 20px 20px;
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .explorer-header {
@@ -49,15 +48,43 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .explorer-project {
-    padding: 16px;
-  }
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  z-index: 10;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(5px);
+}
 
+.explorer-decoration .back-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
 
+.explorer-decoration .back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
 
-  .explorer-header p {
-    font-size: 14px;
-  }
+.explorer-decoration .explorer-header h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 28px;
+}
+
+.explorer-decoration .explorer-header p {
+  margin: 0;
+  opacity: 0.9;
 }

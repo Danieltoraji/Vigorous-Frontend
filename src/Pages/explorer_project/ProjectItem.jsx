@@ -40,7 +40,7 @@ function ProjectItem({ project, onEditProject, onDeleteProject }) {
       </div>
 
       <div className="project-item-body">
-        <p className="project-description">{project.description}</p>
+        <p className="project-description">{project.description || "暂无描述"}</p>
 
         <div className="project-meta">
           <div className="project-meta-item">
