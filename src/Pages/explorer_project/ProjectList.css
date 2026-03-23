@@ -41,7 +41,20 @@
   box-shadow: var(--fluent-shadow-hover);
 }
 
+.btn-create {
+  box-shadow: none !important;
+  height: 75px;
+  aspect-ratio: 2333/417;
+  background: url("/static/projectExplorer/createProjectButton.png") center / cover no-repeat;
+}
+
+.btn-create:hover:not(:disabled) {
+  box-shadow: none !important;
+  transform: translateY(-2px);
+}
+
 .btn-primary {
+
   background-color: var(--fluent-primary);
   color: white;
 }
