@@ -1,27 +1,98 @@
+/* 基础重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 .home-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.home-container a {
+  position: absolute;
+  pointer-events: auto;
+  /* 恢复按钮的可点击性 */
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: var(--fluent-background-gradient);
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: white;
+
+  /* 将定位点设为按钮中心，这样坐标更容易对齐背景图上的特定点 */
+  transform: translate(-50%, -50%);
+}
+
+/* 背景层 - 视差效果 */
+.background-layer {
+  position: fixed;
+  inset: -10%;
+  background: url('/static/menu/bg.png') no-repeat center center;
+  background-size: 90% 90%;
+  z-index: -1;
+  backface-visibility: hidden;
+  border: none !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
 }
 
 .home-header {
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  color: var(--fluent-primary);
-  padding: 2rem;
-  text-align: left;
-  box-shadow: var(--fluent-shadow);
-  border-bottom: 1px solid var(--fluent-border);
-  animation: headerFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(10px);
+  padding: 20px 2%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
-.home-header h1 {
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: 600;
+.header-title::before {
+  content: "";
+  display: inline-block;
+  background: url("/static/logo/white.png") center center no-repeat;
+  background-size: contain;
+  border-right: 2px solid #d4d4d4;
+  height: 2em;
+  vertical-align: middle;
+  aspect-ratio: 1308/501;
+  margin-right: 20px;
+  padding-right: 20px;
+  margin-bottom: 10px;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: -10px;
+}
+
+.user-welcome {
+  color: white;
+  font-weight: 500;
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .home-content {
@@ -29,65 +100,107 @@
   flex: 1;
   padding: 2rem;
   gap: 2rem;
+  margin-top: 80px;
+  margin-bottom: 60px;
   animation: contentFadeIn 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
 }
 
 .home-sidebar {
   width: 280px;
-  background: var(--fluent-acrylic-sidebar);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
+  background: rgba(255, 255, 255, 0);
+  backdrop-filter: blur(1px);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
-  animation: sidebarSlideIn 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
+  animation: sidebarSlideIn 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
 
 .nav-item {
-  padding: 10px 16px;
-  border-radius: var(--fluent-radius);
-  text-decoration: none;
-  color: var(--fluent-text-secondary);
-  font-weight: 500;
-  transition: var(--fluent-transition);
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 40px;
+  width: 15vw;
+  /* 按钮宽度随屏幕宽度缩放 */
+  aspect-ratio: 28.28/10;
+  /* 保持宽高比 */
+  transition: all 0.3s ease;
+
+}
+
+.project-btn {
+  background: url('/static/menu/btn1.png') no-repeat center center;
+  background-size: contain;
+  left: 20%;
+  top: 55%;
+}
+
+.texture-btn {
+  background: url('/static/menu/btn2.png') no-repeat center center;
+  background-size: contain;
+  left: 80%;
+  top: 50%;
+}
+
+.decoration-btn {
+  background: url('/static/menu/btn3.png') no-repeat center center;
+  background-size: contain;
+  left: 70%;
+  top: 15%;
+}
+
+.templates-btn {
+  background: url('/static/menu/btn4.png') no-repeat center center;
+  background-size: contain;
+  left: 38%;
+  top: 30%;
 }
 
 .nav-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--fluent-text);
-  box-shadow: var(--fluent-shadow-hover);
+  transform: translate(-50%, -55%) scale(1.05);
 }
 
-.nav-item.active {
-  background-color: var(--fluent-primary);
+/* 跟随鼠标的提示框样式 */
+.tooltip-following {
+  position: fixed;
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(10px);
   color: white;
-  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  animation: tooltipFadeIn 0.2s ease-out;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .home-main {
   flex: 1;
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
+  background: rgba(255, 255, 255, 0);
+  backdrop-filter: blur(1px);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+
   padding: 2rem;
-  animation: mainSlideIn 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
+  animation: mainSlideIn 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .quick-actions h2 {
@@ -98,57 +211,44 @@
   font-weight: 600;
 }
 
+/* 资源管理器按钮图片样式 */
+.explorer-btn {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  border-radius: var(--fluent-radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  box-shadow: var(--fluent-shadow);
+}
+
+.explorer-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.explorer-btn:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
 .action-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
-}
-
-.action-btn {
-  padding: 1.5rem;
-  border: 1px solid var(--fluent-primary);
-  border-radius: var(--fluent-radius);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--fluent-primary);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--fluent-transition);
-  box-shadow: var(--fluent-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  min-height: 120px;
-}
-
-.action-btn:hover {
-  background: var(--fluent-primary);
-  color: white;
-  box-shadow: var(--fluent-shadow-hover);
-  transform: translateY(-2px);
-}
-
-.action-btn:active {
-  transform: translateY(0);
+  margin-top: 50px;
 }
 
 /* 动画效果 */
-@keyframes headerFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* 动画效果 */
 @keyframes contentFadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -159,6 +259,7 @@
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -170,6 +271,7 @@
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -177,7 +279,29 @@
 }
 
 /* 响应式设计 */
+/* Footer 样式 */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  z-index: 10;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(5px);
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
   .home-content {
     flex-direction: column;
     padding: 1rem;
@@ -196,8 +320,12 @@
     grid-template-columns: 1fr;
   }
 
-  .home-header h1 {
-    font-size: 2rem;
+  .header-title {
+    font-size: 1.5rem;
+  }
+
+  .user-welcome {
+    font-size: 14px;
   }
 }
 
@@ -206,17 +334,11 @@
     padding: 1.5rem;
   }
 
-  .home-header h1 {
-    font-size: 1.8rem;
-  }
-
   .home-main {
     padding: 1.5rem;
   }
 
-  .action-btn {
-    padding: 1.2rem;
-    font-size: 14px;
+  .explorer-btn {
     min-height: 100px;
   }
 }

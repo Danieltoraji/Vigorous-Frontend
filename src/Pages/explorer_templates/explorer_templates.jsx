@@ -1,20 +1,23 @@
 import { useState } from 'react'
+import { useUser } from '../../hooks/useUser.jsx'
 import { useTemplates } from '../../hooks/useTemplates.jsx'
 import './explorer_templates.css'
 import { useNavigate } from 'react-router-dom'
+import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
 
 function ExplorerTemplates() {
   const { templatesData, loading, error, deleteTemplate } = useTemplates()
   const [viewMode, setViewMode] = useState('card') // 'card' or 'list'
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
+  const { userData } = useUser()
   const [moreActionsOpen, setMoreActionsOpen] = useState(null)
   const navigate = useNavigate()
 
   const onBack = () => {
     navigate('/menu')
   }
-  
+
   // 提取所有标签
   const allTags = new Set()
   Object.values(templatesData).forEach(template => {
@@ -22,19 +25,19 @@ function ExplorerTemplates() {
       template.piece_tags.forEach(tag => allTags.add(tag))
     }
   })
-  
+
   // 过滤模板
   const filteredTemplates = Object.values(templatesData).filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesTag = !selectedTag || (template.piece_tags && template.piece_tags.includes(selectedTag))
     return matchesSearch && matchesTag
   })
-  
+
   // 处理更多操作菜单
   const toggleMoreActions = (templateId) => {
     setMoreActionsOpen(moreActionsOpen === templateId ? null : templateId)
   }
-  
+
   // 处理删除模板
   const handleDeleteTemplate = (templateId) => {
     if (window.confirm('确定要删除这个模板吗？')) {
@@ -42,17 +45,17 @@ function ExplorerTemplates() {
       setMoreActionsOpen(null)
     }
   }
-  
+
   // 处理打开模板
   const handleOpenTemplate = (template) => {
     // TODO: 实现打开模板逻辑
   }
-  
+
   // 处理应用到项目
   const handleApplyToProject = (template) => {
     // TODO: 实现应用模板逻辑
   }
-  
+
   // 处理编辑信息
   const handleEditInfo = (template) => {
     setMoreActionsOpen(null)
@@ -61,33 +64,34 @@ function ExplorerTemplates() {
   if (loading) {
     return <div className="explorer-templates loading">加载中...</div>
   }
-//
-//  if (error) {
-//    return <div className="explorer-templates error">错误: {error}</div>
-//  }
-//
+  //
+  //  if (error) {
+  //    return <div className="explorer-templates error">错误: {error}</div>
+  //  }
+  //
   return (
     <div className="explorer-templates">
       <div className="explorer-header">
-        <button className="back-button" onClick={onBack}>
+        {/* <button className="back-button" onClick={onBack}>
           ← 返回
-        </button>
-        <h1>模板资源管理器</h1>
+        </button> */}
+        <h1 className='header-title'>模板资源管理器</h1>
+        <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
-      
+
       <div className="explorer-content">
         <div className="left-sidebar">
           <div className="filter-section">
             <h2>按标签筛选</h2>
             <div className="tag-filters">
-              <button 
+              <button
                 className={`tag-filter ${!selectedTag ? 'active' : ''}`}
                 onClick={() => setSelectedTag('')}
               >
                 全部
               </button>
               {Array.from(allTags).map(tag => (
-                <button 
+                <button
                   key={tag}
                   className={`tag-filter ${selectedTag === tag ? 'active' : ''}`}
                   onClick={() => setSelectedTag(tag)}
@@ -97,12 +101,12 @@ function ExplorerTemplates() {
               ))}
             </div>
           </div>
-          
+
           <div className="search-section">
             <h2>查找模板</h2>
             <div className="search-box">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="输入模板名称..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -110,17 +114,17 @@ function ExplorerTemplates() {
             </div>
           </div>
         </div>
-        
+
         <div className="right-content">
           <div className="view-controls">
             <div className="view-buttons">
-              <button 
+              <button
                 className={`view-button ${viewMode === 'card' ? 'active' : ''}`}
                 onClick={() => setViewMode('card')}
               >
                 卡片视图
               </button>
-              <button 
+              <button
                 className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
                 onClick={() => setViewMode('list')}
               >
@@ -128,7 +132,7 @@ function ExplorerTemplates() {
               </button>
             </div>
           </div>
-          
+
           {viewMode === 'card' ? (
             <div className="template-grid">
               {filteredTemplates.map(template => (
@@ -136,12 +140,12 @@ function ExplorerTemplates() {
                   <div className="template-card-header">
                     <h3 className="template-name">{template.name}</h3>
                   </div>
-                  
+
                   <div className="template-card-body">
                     <p className="template-description">
                       {template.description || '暂无描述'}
                     </p>
-                    
+
                     <div className="template-meta">
                       <div className="template-meta-item">
                         <span className="meta-label">ID：</span>
@@ -156,7 +160,7 @@ function ExplorerTemplates() {
                         <span className="meta-value">{template.edited_at}</span>
                       </div>
                     </div>
-                    
+
                     <div className="template-tags">
                       {template.piece_tags && template.piece_tags.length > 0 ? (
                         template.piece_tags.map((tag, index) => (
@@ -167,23 +171,23 @@ function ExplorerTemplates() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="template-card-footer">
                     <div className="template-actions">
-                      <button 
+                      <button
                         className="btn btn-secondary"
                         onClick={() => handleOpenTemplate(template)}
                       >
                         打开
                       </button>
-                      <button 
+                      <button
                         className="btn btn-primary"
                         onClick={() => handleApplyToProject(template)}
                       >
                         应用到项目
                       </button>
                       <div className="more-actions">
-                        <button 
+                        <button
                           className="btn btn-outline"
                           onClick={() => toggleMoreActions(template.id)}
                         >
@@ -191,13 +195,13 @@ function ExplorerTemplates() {
                         </button>
                         {moreActionsOpen === template.id && (
                           <div className="more-actions-menu">
-                            <button 
+                            <button
                               className="menu-item"
                               onClick={() => handleEditInfo(template)}
                             >
                               编辑信息
                             </button>
-                            <button 
+                            <button
                               className="menu-item delete"
                               onClick={() => handleDeleteTemplate(template.id)}
                             >
@@ -246,20 +250,20 @@ function ExplorerTemplates() {
                       </td>
                       <td>
                         <div className="template-actions list-actions">
-                          <button 
+                          <button
                             className="btn btn-secondary small"
                             onClick={() => handleOpenTemplate(template)}
                           >
                             打开
                           </button>
-                          <button 
+                          <button
                             className="btn btn-primary small"
                             onClick={() => handleApplyToProject(template)}
                           >
                             应用
                           </button>
                           <div className="more-actions">
-                            <button 
+                            <button
                               className="btn btn-outline small"
                               onClick={() => toggleMoreActions(template.id)}
                             >
@@ -267,13 +271,13 @@ function ExplorerTemplates() {
                             </button>
                             {moreActionsOpen === template.id && (
                               <div className="more-actions-menu">
-                                <button 
+                                <button
                                   className="menu-item"
                                   onClick={() => handleEditInfo(template)}
                                 >
                                   编辑信息
                                 </button>
-                                <button 
+                                <button
                                   className="menu-item delete"
                                   onClick={() => handleDeleteTemplate(template.id)}
                                 >
@@ -291,7 +295,10 @@ function ExplorerTemplates() {
             </div>
           )}
         </div>
+
       </div>
+
+      <ExplorerBottom />
     </div>
   )
 }
