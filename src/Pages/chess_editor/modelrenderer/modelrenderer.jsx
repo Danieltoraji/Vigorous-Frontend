@@ -11,7 +11,7 @@ const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
  */
-function SceneContent({ chess, onModelReady }) {
+function SceneContent({ chess, onModelReady, hdrFile }) {
     const modelRootRef = useRef();
 
     // Notify parent when model is ready
@@ -702,8 +702,8 @@ function SceneContent({ chess, onModelReady }) {
             {/* 基础环境光 */}
             <ambientLight intensity={0.5} />
 
-            {/* 使用本地 HDRI 贴图作为环境 */}
-            <Environment files="/stage.hdr" background />
+            {/* 使用选中的 HDRI 贴图作为环境 */}
+            <Environment files={hdrFile || '/stage.hdr'} background />
 
             {/* 主方向光 */}
             <directionalLight
@@ -732,7 +732,7 @@ function SceneContent({ chess, onModelReady }) {
     );
 }
 
-function ModelRenderer({ chess, onModelReady }) {
+function ModelRenderer({ chess, onModelReady, hdrFile }) {
     return (
         <Canvas
             camera={{ position: [40, 40, 40] }}
@@ -749,7 +749,7 @@ function ModelRenderer({ chess, onModelReady }) {
             }}
             gl={{ alpha: true, premultipliedAlpha: false }}
         >
-            <SceneContent chess={chess} onModelReady={onModelReady} />
+            <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} />
         </Canvas>
     )
 }

@@ -72,15 +72,16 @@ const generateCurvePoints = (controlPoints) => {
 };
 
 // 从控制点数组生成曲线点（带贝塞尔插值）- 用于平滑显示
-// 注意：这个函数只用于绘制显示，不用于3D模型生成
-// centerX: 中心线X坐标，用于生成镜像
+// 注意：这个函数只用于绘制显示，不用于 3D 模型生成
+// centerX: 中心线 X 坐标，用于生成镜像
 // showMirror: 是否显示镜像
 const generateSmoothCurvePoints = (controlPoints, centerX = 600, showMirror = false) => {
   if (!controlPoints || !Array.isArray(controlPoints) || controlPoints.length < 2) return [];
 
   const curvePoints = [];
   const mirrorPoints = [];
-  const segmentsPerSpan = 20;
+  // 降低采样密度，从 20 降到 10，显著提升性能
+  const segmentsPerSpan = 10;
 
   for (let i = 0; i < controlPoints.length - 1; i++) {
     const p0 = controlPoints[i];
@@ -112,19 +113,27 @@ const generateSmoothCurvePoints = (controlPoints, centerX = 600, showMirror = fa
         continue;
       }
 
+      // 优化：预先计算常用值
+      const dx = p1.pos[0] - p0.pos[0];
+      const dy = p1.pos[1] - p0.pos[1];
+      
       for (let t = 0; t <= segmentsPerSpan; t++) {
         const ratio = t / segmentsPerSpan;
         const invRatio = 1 - ratio;
+        const invRatio2 = invRatio * invRatio;
+        const invRatio3 = invRatio2 * invRatio;
+        const ratio2 = ratio * ratio;
+        const ratio3 = ratio2 * ratio;
 
-        const x = Math.pow(invRatio, 3) * p0.pos[0] +
-          3 * Math.pow(invRatio, 2) * ratio * cp1x +
-          3 * invRatio * Math.pow(ratio, 2) * cp2x +
-          Math.pow(ratio, 3) * p1.pos[0];
+        const x = invRatio3 * p0.pos[0] +
+          3 * invRatio2 * ratio * cp1x +
+          3 * invRatio * ratio2 * cp2x +
+          ratio3 * p1.pos[0];
 
-        const y = Math.pow(invRatio, 3) * p0.pos[1] +
-          3 * Math.pow(invRatio, 2) * ratio * cp1y +
-          3 * invRatio * Math.pow(ratio, 2) * cp2y +
-          Math.pow(ratio, 3) * p1.pos[1];
+        const y = invRatio3 * p0.pos[1] +
+          3 * invRatio2 * ratio * cp1y +
+          3 * invRatio * ratio2 * cp2y +
+          ratio3 * p1.pos[1];
 
         if (!isNaN(x) && !isNaN(y)) {
           curvePoints.push({ x, y });
@@ -171,7 +180,7 @@ const PreviewCanvas = ({ controlPoints, title, onCurveChange }) => {
   const sourceDimensions = { width: 1200, height: 675 };
   // 预览画布的尺寸
   const previewDimensions = { width: 280, height: 150 };
-  // 中心X坐标（预览画布中）
+  // 中心 X 坐标（预览画布中）
   const previewCenterX = previewDimensions.width / 2;
 
   // 计算缩放比例
@@ -182,15 +191,19 @@ const PreviewCanvas = ({ controlPoints, title, onCurveChange }) => {
   // 生成并缩放曲线点 - 使用平滑曲线（贝塞尔插值），用于显示扫掠生成几何体的实际点列
   const curvePoints = useMemo(() => {
     // 带镜像生成
-    const result = generateSmoothCurvePoints(controlPoints, sourceCenterX, true);
-    // 处理返回格式（可能是对象或数组）
-    const points = result.curvePoints || result;
-    // 通知父组件曲线点变化（使用原始平滑曲线点，用于3D模型）
+    return generateSmoothCurvePoints(controlPoints, sourceCenterX, true);
+  }, [controlPoints, sourceCenterX]);
+
+  // 通知父组件曲线点变化（使用 debounced 避免频繁更新）
+  useEffect(() => {
     if (onCurveChange) {
-      onCurveChange(points);
+      const points = curvePoints.curvePoints || curvePoints;
+      // 使用 requestAnimationFrame 延迟更新，避免阻塞渲染
+      requestAnimationFrame(() => {
+        onCurveChange(points);
+      });
     }
-    return result;
-  }, [controlPoints, onCurveChange, scaleX, scaleY]);
+  }, [curvePoints, onCurveChange]);
 
   // 绘制曲线 - 直接用直线连接所有点，显示模型截面真实形状（包括镜像）
   useEffect(() => {
@@ -337,7 +350,7 @@ const FullscreenEditor = ({
     setDragState({ isDragging: false, type: null, id: null, handle: null });
   }, []);
 
-  // 绘制所有内容（控制点、手柄、曲线、镜像）
+  // 绘制所有内容（控制点、手柄、曲线、镜像）- 使用缓存避免重复计算
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -345,8 +358,10 @@ const FullscreenEditor = ({
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
-    // 1. 先绘制镜像曲线（右侧）- 使用虚线样式
+    // 生成一次曲线数据，复用给绘制和镜像
     const mirrorData = generateSmoothCurvePoints(points, centerX, true);
+
+    // 1. 先绘制镜像曲线（右侧）- 使用虚线样式
     if (mirrorData.mirrorPoints && mirrorData.mirrorPoints.length >= 2) {
       ctx.strokeStyle = 'rgba(78, 205, 196, 0.4)'; // 淡色镜像
       ctx.lineWidth = 2;
@@ -1027,8 +1042,6 @@ export const ModelPreview = ({ profilePoints, pathPoints, generated }) => {
 const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleDataUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCurve, setEditingCurve] = useState('profile'); // 'profile' or 'path'
-  const [profileCurvePoints, setProfileCurvePoints] = useState([]);
-  const [pathCurvePoints, setPathCurvePoints] = useState([]);
 
   // 从棋子数据获取控制点
   const currentCustomShape = selectedComponent === 'base'
@@ -1060,13 +1073,14 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
     }
   }, [selectedComponent, handleDataUpdate]);
 
-  // 小窗口曲线点变化时更新（但不保存，只用于实时预览）
-  const handleProfileCurveChange = useCallback((points) => {
-    setProfileCurvePoints(points);
+  // 小窗口曲线点变化时更新（仅用于实时预览，不触发状态更新）
+  // 直接忽略这些回调，因为 PreviewCanvas 内部已经处理了显示
+  const handleProfileCurveChange = useCallback(() => {
+    // 不需要做任何事情，曲线已经在画布上绘制了
   }, []);
 
-  const handlePathCurveChange = useCallback((points) => {
-    setPathCurvePoints(points);
+  const handlePathCurveChange = useCallback(() => {
+    // 不需要做任何事情，曲线已经在画布上绘制了
   }, []);
 
   // 打开编辑窗口
@@ -1130,7 +1144,7 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
               onClick={handleGenerateGeometry}
               disabled={profileControlPoints.length < 2}
             >
-              🎮 生成3D模型
+              🎮 生成 3D 模型
             </button>
           ) : (
             <button
@@ -1141,7 +1155,7 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
             </button>
           )}
           {isGenerated && (
-            <span className="generated-status">✓ 3D模型已生成</span>
+            <span className="generated-status">✓ 3D 模型已生成</span>
           )}
         </div>
       </div>
