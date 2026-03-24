@@ -169,7 +169,7 @@
 }
 
 .view-controls {
-  margin-bottom: 24px;
+  justify-content: center;
   display: flex;
   justify-content: space-between;
   align-items: center;
