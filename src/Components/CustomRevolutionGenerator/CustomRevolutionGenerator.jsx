@@ -116,7 +116,7 @@ const generateSmoothCurvePoints = (controlPoints, centerX = 600, showMirror = fa
       // 优化：预先计算常用值
       const dx = p1.pos[0] - p0.pos[0];
       const dy = p1.pos[1] - p0.pos[1];
-      
+
       for (let t = 0; t <= segmentsPerSpan; t++) {
         const ratio = t / segmentsPerSpan;
         const invRatio = 1 - ratio;
@@ -254,11 +254,12 @@ const PreviewCanvas = ({ controlPoints, title, onCurveChange }) => {
         <h4>{title}</h4>
         <span className="points-count">曲线点：{(curvePoints.curvePoints || curvePoints).length}</span>
       </div>
-      <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <canvas
           ref={canvasRef}
           width={previewDimensions.width}
           height={previewDimensions.height}
+          className="preview-canvas"
           style={{ background: '#f5f5f5', borderRadius: '4px' }}
         />
         {/* 中心参考线 */}

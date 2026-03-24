@@ -24,7 +24,7 @@ function ChessEditor() {
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
 
   // 右侧面板固定宽度
-  const [rightWidth, setRightWidth] = useState(400); // 右侧面板宽度
+  const [rightWidth, setRightWidth] = useState(450); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
 
@@ -1958,7 +1958,7 @@ modelId 含义：
               onClick={() => setShowHdrSelector(!showHdrSelector)}
               title="选择环境贴图"
             >
-              🌍 环境光
+              🌍 切换天空盒
             </button>
 
             {showHdrSelector && (
