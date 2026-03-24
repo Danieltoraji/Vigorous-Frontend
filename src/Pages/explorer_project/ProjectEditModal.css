@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: transparent !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,16 +12,13 @@
   animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.modal-content {
-  background: var(--fluent-acrylic);
+.project-modal-content {
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow-hover);
-  border: 1px solid var(--fluent-border);
-  width: 90%;
-  max-width: 500px;
+  width: 75% !important;
+  max-width: 750px;
   max-height: 90vh;
+  background: transparent !important;
   overflow-y: auto;
   animation: slideIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
@@ -33,13 +30,13 @@
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid var(--fluent-border-light);
-  background: rgba(255, 255, 255, 0.5);
+  background: transparent !important;
 }
 
 .modal-header h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--fluent-text);
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: black;
   margin: 0;
 }
 
@@ -67,7 +64,12 @@
 }
 
 .modal-form {
-  padding: 20px;
+  background: url("/static/projectExplorer/sticker.png") center / cover no-repeat !important;
+  background-size: 100% 100% !important;
+  padding-top: 100px !important;
+  padding-right: 15% !important;
+  padding-bottom: 20px !important;
+  padding-left: 15% !important;
 }
 
 .form-group {
@@ -111,14 +113,14 @@
   min-height: 100px;
 }
 
-.modal-footer {
+.project-modal-footer {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   padding: 20px;
   border-top: 1px solid var(--fluent-border-light);
   margin-top: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  background: transparent;
 }
 
 /* 动画效果 */
@@ -126,6 +128,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -136,6 +139,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -144,14 +148,14 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .modal-content {
+  .project-modal-content {
     width: 95%;
     max-height: 85vh;
   }
 
   .modal-header,
   .modal-form,
-  .modal-footer {
+  .project-modal-footer {
     padding: 16px;
   }
 
