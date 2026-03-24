@@ -82,8 +82,10 @@ const generateSmoothCurvePoints = (controlPoints, centerX = 600, showMirror = fa
   const mirrorPoints = [];
   // 降低采样密度，从 20 降到 10，显著提升性能
   const segmentsPerSpan = 10;
+  const maxCurvePoints = 2000;
 
   for (let i = 0; i < controlPoints.length - 1; i++) {
+    if (curvePoints.length >= maxCurvePoints) break;
     const p0 = controlPoints[i];
     const p1 = controlPoints[i + 1];
 
@@ -167,8 +169,8 @@ const generateSmoothCurvePoints = (controlPoints, centerX = 600, showMirror = fa
     }
   }
 
-  const filteredPoints = curvePoints.filter(p => !isNaN(p.x) && !isNaN(p.y));
-  const filteredMirror = showMirror ? mirrorPoints.filter(p => !isNaN(p.x) && !isNaN(p.y)) : [];
+  const filteredPoints = curvePoints.filter(p => !isNaN(p.x) && !isNaN(p.y)).slice(0, 2000);
+  const filteredMirror = showMirror ? mirrorPoints.filter(p => !isNaN(p.x) && !isNaN(p.y)).slice(0, 2000) : [];
 
   return showMirror ? { curvePoints: filteredPoints, mirrorPoints: filteredMirror } : filteredPoints;
 };
@@ -818,24 +820,27 @@ const isValidPointArray = (points) => {
 };
 
 // 增强曲线点密度 - 在高度相近的点之间添加中间点，防止3D模型出现断层
-const densifyCurvePoints = (points, minHeightDiff = 0.5) => {
+// 限制最大点数，避免极端输入导致爆显存
+const densifyCurvePoints = (points, minHeightDiff = 0.5, maxPoints = 1200) => {
   if (!points || points.length < 2) return points;
 
   const result = [];
+  const maxInterpolations = 50;
 
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i];
     const p2 = points[i + 1];
 
     result.push(p1);
+    if (result.length >= maxPoints) break;
 
     // 计算高度差
     const heightDiff = Math.abs(p2.y - p1.y);
 
     // 如果高度差太小，添加中间点
     if (heightDiff < minHeightDiff && heightDiff > 0) {
-      const numInterpolate = Math.ceil(minHeightDiff / heightDiff);
-      for (let j = 1; j < numInterpolate; j++) {
+      const numInterpolate = Math.min(Math.ceil(minHeightDiff / heightDiff), maxInterpolations);
+      for (let j = 1; j < numInterpolate && result.length < maxPoints; j++) {
         const t = j / numInterpolate;
         result.push({
           x: p1.x + (p2.x - p1.x) * t,
@@ -845,8 +850,11 @@ const densifyCurvePoints = (points, minHeightDiff = 0.5) => {
     }
   }
 
-  result.push(points[points.length - 1]);
-  return result;
+  if (result.length < maxPoints) {
+    result.push(points[points.length - 1]);
+  }
+
+  return result.slice(0, maxPoints);
 };
 
 // 3D模型预览
@@ -902,10 +910,10 @@ export const ModelPreview = ({ profilePoints, pathPoints, generated }) => {
         return null;
       }
 
-      // 按高度排序（从下到上）
-      profile2D.sort((a, b) => a.height - b.height);
+      // 按原始顺序连接（保持ID顺序），而非按高度排序
+      // profile2D.sort((a, b) => a.height - b.height);
 
-      // 再次检查并添加中间点（防止排序后高度太接近）
+      // 再次检查并添加中间点（防止高度太接近）
       const densifiedProfile2D = densifyCurvePoints(profile2D.map(p => ({ x: p.radius, y: p.height })), 0.3);
 
       // 检查是否有路径曲线
@@ -947,6 +955,12 @@ export const ModelPreview = ({ profilePoints, pathPoints, generated }) => {
         const vertices = [];
         const profileSteps = profile3D.length;
         const pathSteps = path3D.length;
+
+        const maxSweepVertices = 300000;
+        if (profileSteps * pathSteps > maxSweepVertices) {
+          console.warn('Sweep resolution too high, aborting to avoid OOM', { profileSteps, pathSteps });
+          return null;
+        }
 
         for (let i = 0; i < pathSteps; i++) {
           const pathPoint = path3D[i];
