@@ -354,12 +354,6 @@ function ExplorerTemplates() {
                         删除
                       </button>
                       <div className="more-actions">
-                        <button
-                          className="btn btn-outline"
-                          onClick={() => toggleMoreActions(template.id)}
-                        >
-                          更多操作
-                        </button>
                         {moreActionsOpen === template.id && (
                           <div className="more-actions-menu">
                             <button
