@@ -17,7 +17,8 @@ const HeaderBar = ({ project, onSave, onBack }) => {
   return (
     <div className="header-bar">
       <div className="header-left">
-        <h1 className="editor-project-name">{project?.name || '项目编辑器'}</h1>
+        <h1 className="editor-project-name" onClick={onBack}>
+          ❮  {project?.name || '项目编辑器'}</h1>
       </div>
 
       <div className="header-right">
