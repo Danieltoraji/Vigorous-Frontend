@@ -1,14 +1,135 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
 // 从 THREE 命名空间获取常用几何体和工具
-const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, BufferGeometry, Float32BufferAttribute } = THREE;
 
 // 创建纹理加载器实例
 const textureLoader = new TextureLoader();
+
+/**
+ * 从灰度图生成体素网格几何体（只有顶面）
+ * @param {string} textureFile - 灰度图路径
+ * @param {number} size - 平面尺寸
+ * @param {number} depth - 最大深度（高度）
+ * @param {number} sampleRate - 采样率（每隔几个像素取一个点）
+ */
+function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
+  const [geometry, setGeometry] = useState(null);
+
+  useEffect(() => {
+    if (!textureFile) {
+      setGeometry(null);
+      return;
+    }
+
+    const loadTextureAndCreateGeometry = async () => {
+      try {
+        const texture = await new Promise((resolve, reject) => {
+          textureLoader.load(
+            textureFile,
+            resolve,
+            undefined,
+            reject
+          );
+        });
+
+        const image = texture.image;
+        if (!image) {
+          console.warn('纹理图像未加载完成');
+          return;
+        }
+
+        const width = image.width;
+        const height = image.height;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+        
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        
+        // 存储所有体素点的高度值
+        const heightMap = [];
+        const step = sampleRate;
+        
+        // 采样生成高度图
+        for (let y = 0; y < height; y += step) {
+          for (let x = 0; x < width; x += step) {
+            const idx = (y * width + x) * 4;
+            // 计算灰度值 (0-1)
+            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+            // 映射到高度（黑色=最高，白色=最低）
+            const h = (1 - gray) * depth;
+            heightMap.push({ x, y, height: h });
+          }
+        }
+        
+        // 生成网格顶点和索引（只有顶面）
+        const positions = [];
+        const indices = [];
+        
+        const gridWidth = Math.floor(width / step);
+        const gridHeight = Math.floor(height / step);
+        const planeSize = size / Math.max(gridWidth, gridHeight);
+        
+        // 生成顶点
+        for (let i = 0; i < heightMap.length; i++) {
+          const point = heightMap[i];
+          const px = (point.x - width / 2) * planeSize;
+          const pz = (point.y - height / 2) * planeSize;
+          const py = point.height;
+          
+          positions.push(px, py, pz);
+        }
+        
+        // 生成三角形索引（连接相邻点）
+        for (let row = 0; row < gridHeight - 1; row++) {
+          for (let col = 0; col < gridWidth - 1; col++) {
+            const a = row * gridWidth + col;
+            const b = row * gridWidth + (col + 1);
+            const c = (row + 1) * gridWidth + col;
+            const d = (row + 1) * gridWidth + (col + 1);
+            
+            // 两个三角形组成一个四边形
+            // 三角形 1: a-b-c
+            indices.push(a, b, c);
+            // 三角形 2: b-d-c
+            indices.push(b, d, c);
+          }
+        }
+        
+        // 创建几何体
+        const geom = new BufferGeometry();
+        geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+        geom.setIndex(indices);
+        geom.computeVertexNormals();
+        
+        console.log('体素几何体创建成功:', {
+          vertexCount: positions.length / 3,
+          triangleCount: indices.length / 3,
+          gridSize: `${gridWidth}x${gridHeight}`
+        });
+        
+        setGeometry(geom);
+      } catch (error) {
+        console.error('体素几何体创建失败:', error);
+        setGeometry(null);
+      }
+    };
+
+    loadTextureAndCreateGeometry();
+  }, [textureFile, size, depth, sampleRate]);
+
+  if (!geometry) return null;
+
+  return <primitive object={geometry} />;
+}
 
 /**
  * SceneContent component - contains all scene objects and model rendering logic
@@ -298,24 +419,10 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
 
                 break;
             case 'custom':
-                // 自定义纹理 - 使用灰度图生成浮雕
+                // 自定义纹理 - 使用体素网格生成浮雕（只有顶面）
                 console.log('渲染自定义纹理 - Base:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
-                    const texture = textureLoader.load(pattern.textureFile, 
-                        (loadedTexture) => {
-                            console.log('纹理加载成功:', loadedTexture);
-                            console.log('原始 flipY:', loadedTexture.flipY);
-                            loadedTexture.flipY = false; // 设置为 false，因为我们需要与默认相反的方向
-                            console.log('设置后 flipY:', loadedTexture.flipY);
-                            console.log('纹理图像尺寸:', loadedTexture.image?.width, 'x', loadedTexture.image?.height);
-                        },
-                        undefined,
-                        (error) => {
-                            console.error('纹理加载失败:', error);
-                        }
-                    );
-                    console.log('加载的纹理对象:', texture);
                     patternelement = (
                         <mesh 
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
@@ -323,15 +430,18 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                             castShadow 
                             receiveShadow
                         >
-                            <planeGeometry args={[pattern.size || 10, pattern.size || 10, 64, 64]} />
+                            <VoxelGeometry 
+                                textureFile={pattern.textureFile}
+                                size={pattern.size || 10}
+                                depth={pattern.depth || 1}
+                                sampleRate={2} // 每 2 个像素采样一次，平衡效果和性能
+                            />
                             <meshStandardMaterial
                                 color="#CD853F"
                                 metalness={material.metalness}
                                 roughness={material.roughness}
                                 clearcoat={material.clearcoat}
                                 clearcoatRoughness={material.clearcoatRoughness}
-                                displacementMap={texture}
-                                displacementScale={-(pattern.depth || 1) * 3} // 使用负值反转置换方向，并放大 3 倍
                             />
                         </mesh>
                     );
@@ -588,24 +698,10 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
 
                 break;
             case 'custom':
-                // 自定义纹理 - 使用灰度图生成浮雕
+                // 自定义纹理 - 使用体素网格生成浮雕（只有顶面）
                 console.log('渲染自定义纹理 - Column:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
-                    const texture = textureLoader.load(pattern.textureFile, 
-                        (loadedTexture) => {
-                            console.log('纹理加载成功:', loadedTexture);
-                            console.log('原始 flipY:', loadedTexture.flipY);
-                            loadedTexture.flipY = false; // 设置为 false，因为我们需要与默认相反的方向
-                            console.log('设置后 flipY:', loadedTexture.flipY);
-                            console.log('纹理图像尺寸:', loadedTexture.image?.width, 'x', loadedTexture.image?.height);
-                        },
-                        undefined,
-                        (error) => {
-                            console.error('纹理加载失败:', error);
-                        }
-                    );
-                    console.log('加载的纹理对象:', texture);
                     patternelement = (
                         <mesh 
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
@@ -613,15 +709,18 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                             castShadow 
                             receiveShadow
                         >
-                            <planeGeometry args={[pattern.size || 10, pattern.size || 10, 64, 64]} />
+                            <VoxelGeometry 
+                                textureFile={pattern.textureFile}
+                                size={pattern.size || 10}
+                                depth={pattern.depth || 1}
+                                sampleRate={2} // 每 2 个像素采样一次，平衡效果和性能
+                            />
                             <meshStandardMaterial
                                 color="#CD853F"
                                 metalness={material.metalness}
                                 roughness={material.roughness}
                                 clearcoat={material.clearcoat}
                                 clearcoatRoughness={material.clearcoatRoughness}
-                                displacementMap={texture}
-                                displacementScale={-(pattern.depth || 1) * 3} // 使用负值反转置换方向，并放大 3 倍
                             />
                         </mesh>
                     );
