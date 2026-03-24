@@ -857,178 +857,204 @@ const densifyCurvePoints = (points, minHeightDiff = 0.5, maxPoints = 1200) => {
   return result.slice(0, maxPoints);
 };
 
-// 3D模型预览
-export const ModelPreview = ({ profilePoints, pathPoints, generated }) => {
-  // 如果没有点击生成按钮，不渲染3D几何体
-  if (!generated) {
+// 生成3D几何体的函数 - 从控制点计算几何体
+const generateGeometries = (profilePoints, pathPoints) => {
+  const curveProfilePoints = densifyCurvePoints(convertControlPointsToCurvePoints(profilePoints), 2.0);
+  const curvePathPoints = densifyCurvePoints(convertControlPointsToCurvePoints(pathPoints), 2.0);
+
+  // 验证输入数据
+  if (!isValidPointArray(curveProfilePoints)) {
+    console.warn('Invalid profilePoints:', profilePoints);
     return null;
   }
 
-  // 将控制点转换为曲线点，并增强点密度
-  const curveProfilePoints = useMemo(() => {
-    const points = convertControlPointsToCurvePoints(profilePoints);
-    return densifyCurvePoints(points, 2.0); // 最小高度差2.0
-  }, [profilePoints]);
+  try {
+    // 轮廓曲线转换 - 添加严格验证
+    const profile2D = [];
+    for (const point of curveProfilePoints) {
+      const coords = extractPointCoords(point);
+      if (!coords) continue;
 
-  const curvePathPoints = useMemo(() => {
-    const points = convertControlPointsToCurvePoints(pathPoints);
-    return densifyCurvePoints(points, 2.0);
-  }, [pathPoints]);
+      // 确保坐标在合理范围内
+      const x = Math.max(0, Math.min(1200, coords.x));
+      const y = Math.max(0, Math.min(675, coords.y));
 
-  const geometries = useMemo(() => {
-    // 验证输入数据
-    if (!isValidPointArray(curveProfilePoints)) {
-      console.warn('Invalid profilePoints:', profilePoints);
+      // 转换为旋转体参数 (radius, height)
+      // 假设画布坐标系: x从左到右, y从上到下
+      // 转换为: radius从中心向外, height从下到上
+      const radius = Math.abs(x - 600) / 50;  // 中心在600
+      const height = (337.5 - y) / 30;        // 中心在337.5
+
+      // 验证转换后的值
+      if (!isNaN(radius) && !isNaN(height) && isFinite(radius) && isFinite(height)) {
+        profile2D.push({ radius, height });
+      }
+    }
+
+    if (profile2D.length < 2) {
+      console.warn('Not enough valid profile points:', profile2D.length);
       return null;
     }
 
-    try {
-      // 轮廓曲线转换 - 添加严格验证
-      const profile2D = [];
+    // 再次检查并添加中间点（防止高度太接近）
+    const densifiedProfile2D = densifyCurvePoints(profile2D.map(p => ({ x: p.radius, y: p.height })), 0.3);
+
+    // 检查是否有路径曲线
+    const hasPath = isValidPointArray(curvePathPoints);
+
+    if (hasPath) {
+      // 扫掠模式
+      const profile3D = [];
       for (const point of curveProfilePoints) {
         const coords = extractPointCoords(point);
         if (!coords) continue;
-
-        // 确保坐标在合理范围内
         const x = Math.max(0, Math.min(1200, coords.x));
         const y = Math.max(0, Math.min(675, coords.y));
-
-        // 转换为旋转体参数 (radius, height)
-        // 假设画布坐标系: x从左到右, y从上到下
-        // 转换为: radius从中心向外, height从下到上
-        const radius = Math.abs(x - 600) / 50;  // 中心在600
-        const height = (337.5 - y) / 30;        // 中心在337.5
-
-        // 验证转换后的值
-        if (!isNaN(radius) && !isNaN(height) && isFinite(radius) && isFinite(height)) {
-          profile2D.push({ radius, height });
+        const m = Math.abs(x - 600) / 600;
+        const n = (337.5 - y) / 30;
+        if (!isNaN(m) && !isNaN(n) && isFinite(m) && isFinite(n)) {
+          profile3D.push({ m, n });
         }
       }
 
-      if (profile2D.length < 2) {
-        console.warn('Not enough valid profile points:', profile2D.length);
+      const path3D = [];
+      for (const point of curvePathPoints) {
+        const coords = extractPointCoords(point);
+        if (!coords) continue;
+        const x = Math.max(0, Math.min(1200, coords.x));
+        const y = Math.max(0, Math.min(675, coords.y));
+        const px = (x - 600) / 100;
+        const pz = (337.5 - y) / 100;
+        if (!isNaN(px) && !isNaN(pz) && isFinite(px) && isFinite(pz)) {
+          path3D.push({ x: px, z: pz });
+        }
+      }
+
+      if (profile3D.length < 2 || path3D.length < 2) {
+        console.warn('Not enough valid points for sweep');
         return null;
       }
 
-      // 按原始顺序连接（保持ID顺序），而非按高度排序
-      // profile2D.sort((a, b) => a.height - b.height);
+      const vertices = [];
+      const profileSteps = profile3D.length;
+      const pathSteps = path3D.length;
 
-      // 再次检查并添加中间点（防止高度太接近）
-      const densifiedProfile2D = densifyCurvePoints(profile2D.map(p => ({ x: p.radius, y: p.height })), 0.3);
-
-      // 检查是否有路径曲线
-      const hasPath = isValidPointArray(curvePathPoints);
-
-      if (hasPath) {
-        // 扫掠模式
-        const profile3D = [];
-        for (const point of curveProfilePoints) {
-          const coords = extractPointCoords(point);
-          if (!coords) continue;
-          const x = Math.max(0, Math.min(1200, coords.x));
-          const y = Math.max(0, Math.min(675, coords.y));
-          const m = Math.abs(x - 600) / 600;
-          const n = (337.5 - y) / 30;
-          if (!isNaN(m) && !isNaN(n) && isFinite(m) && isFinite(n)) {
-            profile3D.push({ m, n });
-          }
-        }
-
-        const path3D = [];
-        for (const point of curvePathPoints) {
-          const coords = extractPointCoords(point);
-          if (!coords) continue;
-          const x = Math.max(0, Math.min(1200, coords.x));
-          const y = Math.max(0, Math.min(675, coords.y));
-          const px = (x - 600) / 100;
-          const pz = (337.5 - y) / 100;
-          if (!isNaN(px) && !isNaN(pz) && isFinite(px) && isFinite(pz)) {
-            path3D.push({ x: px, z: pz });
-          }
-        }
-
-        if (profile3D.length < 2 || path3D.length < 2) {
-          console.warn('Not enough valid points for sweep');
-          return null;
-        }
-
-        const vertices = [];
-        const profileSteps = profile3D.length;
-        const pathSteps = path3D.length;
-
-        const maxSweepVertices = 300000;
-        if (profileSteps * pathSteps > maxSweepVertices) {
-          console.warn('Sweep resolution too high, aborting to avoid OOM', { profileSteps, pathSteps });
-          return null;
-        }
-
-        for (let i = 0; i < pathSteps; i++) {
-          const pathPoint = path3D[i];
-          for (let j = 0; j < profileSteps; j++) {
-            const profilePoint = profile3D[j];
-            vertices.push(new Vector3(
-              profilePoint.m * pathPoint.x,
-              profilePoint.n,
-              profilePoint.m * pathPoint.z
-            ));
-          }
-        }
-
-        const positions = [];
-        const indices = [];
-
-        for (const vertex of vertices) {
-          // 最终验证
-          if (!isFinite(vertex.x) || !isFinite(vertex.y) || !isFinite(vertex.z)) {
-            continue;
-          }
-          positions.push(vertex.x, vertex.y, vertex.z);
-        }
-
-        if (positions.length < 9) {  // 至少需要3个点才能形成三角形
-          console.warn('Not enough valid vertices');
-          return null;
-        }
-
-        for (let i = 0; i < pathSteps - 1; i++) {
-          for (let j = 0; j < profileSteps - 1; j++) {
-            const a = i * profileSteps + j;
-            const b = i * profileSteps + (j + 1);
-            const c = (i + 1) * profileSteps + j;
-            const d = (i + 1) * profileSteps + (j + 1);
-            indices.push(a, b, c, c, b, d);
-          }
-        }
-
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-        geometry.setIndex(indices);
-        geometry.computeVertexNormals();
-
-        return { sweep: geometry };
-      } else {
-        // 旋转体模式 - 使用增强后的点
-        const profile3D = [];
-        for (const p of densifiedProfile2D) {
-          if (!isNaN(p.x) && !isNaN(p.y) && isFinite(p.x) && isFinite(p.y)) {
-            profile3D.push(new Vector3(Math.max(0.01, p.x), p.y, 0));
-          }
-        }
-
-        if (profile3D.length < 2) {
-          console.warn('Not enough valid profile3D points');
-          return null;
-        }
-
-        return {
-          main: new LatheGeometry(profile3D, 64, 0, Math.PI * 2)
-        };
+      const maxSweepVertices = 300000;
+      if (profileSteps * pathSteps > maxSweepVertices) {
+        console.warn('Sweep resolution too high, aborting to avoid OOM', { profileSteps, pathSteps });
+        return null;
       }
-    } catch (error) {
-      console.error('Geometry error:', error);
-      return null;
+
+      for (let i = 0; i < pathSteps; i++) {
+        const pathPoint = path3D[i];
+        for (let j = 0; j < profileSteps; j++) {
+          const profilePoint = profile3D[j];
+          vertices.push(new Vector3(
+            profilePoint.m * pathPoint.x,
+            profilePoint.n,
+            profilePoint.m * pathPoint.z
+          ));
+        }
+      }
+
+      const positions = [];
+      const indices = [];
+
+      for (const vertex of vertices) {
+        // 最终验证
+        if (!isFinite(vertex.x) || !isFinite(vertex.y) || !isFinite(vertex.z)) {
+          continue;
+        }
+        positions.push(vertex.x, vertex.y, vertex.z);
+      }
+
+      if (positions.length < 9) {  // 至少需要3个点才能形成三角形
+        console.warn('Not enough valid vertices');
+        return null;
+      }
+
+      for (let i = 0; i < pathSteps - 1; i++) {
+        for (let j = 0; j < profileSteps - 1; j++) {
+          const a = i * profileSteps + j;
+          const b = i * profileSteps + (j + 1);
+          const c = (i + 1) * profileSteps + j;
+          const d = (i + 1) * profileSteps + (j + 1);
+          indices.push(a, b, c, c, b, d);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+
+      return { sweep: geometry };
+    } else {
+      // 旋转体模式 - 使用增强后的点
+      const profile3D = [];
+      for (const p of densifiedProfile2D) {
+        if (!isNaN(p.x) && !isNaN(p.y) && isFinite(p.x) && isFinite(p.y)) {
+          profile3D.push(new Vector3(Math.max(0.01, p.x), p.y, 0));
+        }
+      }
+
+      if (profile3D.length < 2) {
+        console.warn('Not enough valid profile3D points');
+        return null;
+      }
+
+      return {
+        main: new LatheGeometry(profile3D, 64, 0, Math.PI * 2)
+      };
     }
-  }, [curveProfilePoints, curvePathPoints]);
+  } catch (error) {
+    console.error('Geometry error:', error);
+    return null;
+  }
+};
+
+// 3D 模型预览
+export const ModelPreview = ({ profilePoints, pathPoints, triggerSignal, onGeometryGenerated }) => {
+  const geometriesRef = useRef(null);
+  const prevProfilePointsRef = useRef(null);
+  const prevPathPointsRef = useRef(null);
+
+  // 清理旧几何体
+  useEffect(() => {
+    return () => {
+      if (geometriesRef.current) {
+        if (geometriesRef.current.sweep) {
+          geometriesRef.current.sweep.dispose();
+        }
+        if (geometriesRef.current.main) {
+          geometriesRef.current.main.dispose();
+        }
+      }
+    };
+  }, []);
+
+  // 生成几何体 - 只在 triggerSignal 变化或控制点变化时重新生成
+  const geometries = useMemo(() => {
+    const newGeometries = generateGeometries(profilePoints, pathPoints);
+
+    // 清理旧几何体
+    if (geometriesRef.current && geometriesRef.current !== newGeometries) {
+      if (geometriesRef.current.sweep) {
+        geometriesRef.current.sweep.dispose();
+      }
+      if (geometriesRef.current.main) {
+        geometriesRef.current.main.dispose();
+      }
+    }
+    geometriesRef.current = newGeometries;
+
+    // 通知父组件几何体已生成
+    if (onGeometryGenerated && newGeometries) {
+      onGeometryGenerated(newGeometries);
+    }
+
+    return newGeometries;
+  }, [triggerSignal, JSON.stringify(profilePoints), JSON.stringify(pathPoints)]);
 
   if (!geometries) return null;
 
@@ -1057,6 +1083,7 @@ export const ModelPreview = ({ profilePoints, pathPoints, generated }) => {
 const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleDataUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCurve, setEditingCurve] = useState('profile'); // 'profile' or 'path'
+  const [triggerGenerate, setTriggerGenerate] = useState(0); // 用于触发几何体生成的计数器
 
   // 从棋子数据获取控制点
   const currentCustomShape = selectedComponent === 'base'
@@ -1065,7 +1092,6 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
 
   const profileControlPoints = currentCustomShape?.profilePoints || [];
   const pathControlPoints = currentCustomShape?.pathPoints || [];
-  const isGenerated = currentCustomShape?.generated || false;
 
   // 轮廓曲线数据变化
   const handleProfileControlChange = useCallback((newControlPoints) => {
@@ -1081,8 +1107,12 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
     }
   }, [selectedComponent, handleDataUpdate]);
 
-  // 处理生成3D几何体 - 点击"生成"按钮时调用
+  // 处理生成 3D 几何体 - 点击"生成"按钮时调用
   const handleGenerateGeometry = useCallback(() => {
+    // 增加触发计数器，通知 ModelPreview 生成几何体
+    setTriggerGenerate(prev => prev + 1);
+    
+    // 同时更新数据库中的 generated 状态（用于持久化）
     if (handleDataUpdate) {
       handleDataUpdate(`parts.${selectedComponent}.customShape.generated`, true);
     }
@@ -1153,23 +1183,14 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
 
         {/* 生成按钮 */}
         <div className="generate-section">
-          {!isGenerated ? (
-            <button
-              className="generate-btn"
-              onClick={handleGenerateGeometry}
-              disabled={profileControlPoints.length < 2}
-            >
-              🎮 生成 3D 模型
-            </button>
-          ) : (
-            <button
-              className="generate-btn generated"
-              onClick={handleGenerateGeometry}
-            >
-              🔄 重新生成
-            </button>
-          )}
-          {isGenerated && (
+          <button
+            className="generate-btn"
+            onClick={handleGenerateGeometry}
+            disabled={profileControlPoints.length < 2}
+          >
+            🎮 生成 3D 模型
+          </button>
+          {triggerGenerate > 0 && (
             <span className="generated-status">✓ 3D 模型已生成</span>
           )}
         </div>
