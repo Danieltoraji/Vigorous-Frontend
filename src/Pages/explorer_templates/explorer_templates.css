@@ -1,8 +1,10 @@
 .explorer-templates {
   width: 100%;
   margin: 0;
-  padding: 100px 20px 20px;
+  padding: 20px 20px 20px;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: fixed url("/static/templateExplorer/bg.png") center center repeat;
+  background-size: cover;
 }
 
 .explorer-header {
@@ -64,6 +66,8 @@
 }
 
 .explorer-content {
+  margin-top: 100px;
+  margin-bottom: 50px;
   display: flex;
   gap: 24px;
 }
