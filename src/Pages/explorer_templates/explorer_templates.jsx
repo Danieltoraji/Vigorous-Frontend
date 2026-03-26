@@ -64,8 +64,7 @@ function ExplorerTemplates() {
 
   // 处理打开模板
   const handleOpenTemplate = (template) => {
-    alert("open");
-    // TODO: 实现打开模板逻辑
+    navigate(`/template-editor/${template.id}`)
   }
 
   // 处理应用到项目
