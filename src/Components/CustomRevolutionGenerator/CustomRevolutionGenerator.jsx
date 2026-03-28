@@ -990,11 +990,36 @@ const generateGeometries = (profilePoints, pathPoints) => {
 
       return { sweep: geometry };
     } else {
-      // 旋转体模式 - 使用增强后的点
+      // 旋转体模式 - 自动在首尾贴齐轴，生成完整的顶底cap面
+      const AXIS_ATTACHMENT_THRESHOLD = 0.1;  // 轮廓点到轴的距离阈值
       const profile3D = [];
+
+      // 1. 检查轮廓首点是否离轴太远，如果是则自动插入轴点
+      if (densifiedProfile2D.length > 0) {
+        const firstPoint = densifiedProfile2D[0];
+        if (firstPoint && !isNaN(firstPoint.x) && !isNaN(firstPoint.y) &&
+          isFinite(firstPoint.x) && isFinite(firstPoint.y) &&
+          firstPoint.x > AXIS_ATTACHMENT_THRESHOLD) {
+          // 在轮廓前插入轴上的点，高度与首点相同
+          profile3D.push(new Vector3(0, firstPoint.y, 0));
+        }
+      }
+
+      // 2. 添加轮廓的所有点（允许小值，不强制最小值0.01）
       for (const p of densifiedProfile2D) {
         if (!isNaN(p.x) && !isNaN(p.y) && isFinite(p.x) && isFinite(p.y)) {
-          profile3D.push(new Vector3(Math.max(0.01, p.x), p.y, 0));
+          profile3D.push(new Vector3(Math.max(0, p.x), p.y, 0));
+        }
+      }
+
+      // 3. 检查轮廓末点是否离轴太远，如果是则自动插入轴点
+      if (densifiedProfile2D.length > 0) {
+        const lastPoint = densifiedProfile2D[densifiedProfile2D.length - 1];
+        if (lastPoint && !isNaN(lastPoint.x) && !isNaN(lastPoint.y) &&
+          isFinite(lastPoint.x) && isFinite(lastPoint.y) &&
+          lastPoint.x > AXIS_ATTACHMENT_THRESHOLD) {
+          // 在轮廓后插入轴上的点，高度与末点相同
+          profile3D.push(new Vector3(0, lastPoint.y, 0));
         }
       }
 
@@ -1111,7 +1136,7 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
   const handleGenerateGeometry = useCallback(() => {
     // 增加触发计数器，通知 ModelPreview 生成几何体
     setTriggerGenerate(prev => prev + 1);
-    
+
     // 同时更新数据库中的 generated 状态（用于持久化）
     if (handleDataUpdate) {
       handleDataUpdate(`parts.${selectedComponent}.customShape.generated`, true);
