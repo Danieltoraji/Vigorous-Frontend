@@ -50,6 +50,55 @@ const generateId = () => {
   return idCounter;
 };
 
+// 检查两条线段是否相交（用于自交检测）
+// p1-p2: 线段1, p3-p4: 线段2
+const segmentsIntersect = (p1, p2, p3, p4) => {
+  // 排除共享端点的情况（相邻线段总是共享端点）
+  if ((p1 === p3 || p1 === p4) || (p2 === p3 || p2 === p4)) {
+    return false;
+  }
+
+  // 使用方向判断法（CCW cross product）
+  const ccw = (A, B, C) => {
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+  };
+
+  return ccw(p1, p3, p4) !== ccw(p2, p3, p4) &&
+    ccw(p1, p2, p3) !== ccw(p1, p2, p4);
+};
+
+// 检测曲线是否自交
+// 返回自交的线段索引对数组，若无自交则返回null
+const detectCurveIntersection = (curvePoints) => {
+  if (!curvePoints || !Array.isArray(curvePoints) || curvePoints.length < 4) {
+    return null;
+  }
+
+  const intersections = [];
+
+  // 检查所有不相邻的线段对
+  for (let i = 0; i < curvePoints.length - 1; i++) {
+    // 从i+2开始，跳过相邻的线段（相邻线段共享端点，不算自交）
+    for (let j = i + 2; j < curvePoints.length - 1; j++) {
+      if (segmentsIntersect(
+        curvePoints[i],
+        curvePoints[i + 1],
+        curvePoints[j],
+        curvePoints[j + 1]
+      )) {
+        intersections.push({
+          seg1Start: i,
+          seg1End: i + 1,
+          seg2Start: j,
+          seg2End: j + 1
+        });
+      }
+    }
+  }
+
+  return intersections.length > 0 ? intersections : null;
+};
+
 // 从控制点数组生成曲线点（用于3D生成和小窗口显示）- 不插值版本
 // 直接使用控制点，不进行贝塞尔曲线插值
 const generateCurvePoints = (controlPoints) => {
@@ -301,6 +350,7 @@ const FullscreenEditor = ({
   const [selectedPointId, setSelectedPointId] = useState(null);
   const [dragState, setDragState] = useState({ isDragging: false, type: null, id: null, handle: null });
   const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [intersectionWarning, setIntersectionWarning] = useState(null); // 自交警告
   const isInternalUpdate = useRef(false); // 标记是否内部更新
   const onControlPointsChangeRef = useRef(onControlPointsChange); // 使用 ref 避免无限循环
 
@@ -378,9 +428,14 @@ const FullscreenEditor = ({
       ctx.setLineDash([]); // 重置为实线
     }
 
-    // 2. 绘制原始曲线（左侧）- 使用平滑曲线显示，方便用户看到贝塞尔效果
+    // 2. 检测自交并绘制原始曲线（左侧） - 先绘制完整青色曲线，再叠加红色自交部分
     const curvePoints = mirrorData.curvePoints || mirrorData;
     if (curvePoints.length >= 2) {
+      // 检测自交
+      const intersections = detectCurveIntersection(curvePoints);
+      setIntersectionWarning(intersections); // 保存警告状态
+
+      // 2a. 先绘制完整的青色曲线（底层）
       ctx.strokeStyle = '#4ecdc4';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -389,6 +444,55 @@ const FullscreenEditor = ({
         ctx.lineTo(curvePoints[i].x, curvePoints[i].y);
       }
       ctx.stroke();
+
+      // 2b. 如果有自交，在其上叠加红色线段（顶层）
+      if (intersections && intersections.length > 0) {
+        // 标记所有自交的线段索引
+        const intersectedIndices = new Set();
+        intersections.forEach(inter => {
+          for (let idx = inter.seg1Start; idx <= inter.seg1End; idx++) {
+            intersectedIndices.add(idx);
+          }
+          for (let idx = inter.seg2Start; idx <= inter.seg2End; idx++) {
+            intersectedIndices.add(idx);
+          }
+        });
+
+        // 分段绘制红色自交部分
+        let inIntersection = false;
+        let segStartIdx = 0;
+
+        for (let i = 0; i <= curvePoints.length; i++) {
+          const isInIntersection = i < curvePoints.length ? intersectedIndices.has(i) : false;
+
+          // 检查状态是否改变或到达终点
+          if ((isInIntersection !== inIntersection && inIntersection) || i === curvePoints.length) {
+            // 绘制红色段
+            if (inIntersection) {
+              const segEndIdx = i;
+              ctx.strokeStyle = '#ff0000';
+              ctx.lineWidth = 4; // 稍微粗一点，使红色更突出
+              ctx.beginPath();
+              ctx.moveTo(curvePoints[segStartIdx].x, curvePoints[segStartIdx].y);
+              for (let j = segStartIdx + 1; j < segEndIdx; j++) {
+                ctx.lineTo(curvePoints[j].x, curvePoints[j].y);
+              }
+              ctx.stroke();
+              inIntersection = false;
+            }
+
+            if (i < curvePoints.length) {
+              if (isInIntersection) {
+                segStartIdx = i;
+                inIntersection = true;
+              }
+            }
+          } else if (isInIntersection !== inIntersection && isInIntersection) {
+            segStartIdx = i;
+            inIntersection = true;
+          }
+        }
+      }
     }
 
     // 3. 绘制控制点和手柄（只绘制左侧的点）
@@ -728,10 +832,19 @@ const FullscreenEditor = ({
       </div>
 
       {/* 提示 */}
-      <div className="editor-hint">
-        {tool === TOOL_TYPES.BEZIER && '💡 点击左侧添加贝塞尔锚点，拖动红色手柄调整曲率，拖动锚点移动位置。右侧显示镜像预览'}
-        {tool === TOOL_TYPES.POINT && '💡 点击左侧添加点，拖动点移动位置。右侧显示镜像预览'}
-        {tool === TOOL_TYPES.FREE && '💡 点击左侧添加自由绘制点。右侧显示镜像预览'}
+      <div className="editor-hint" style={intersectionWarning ? { backgroundColor: '#ffe6e6', color: '#c41e3a', fontWeight: 'bold' } : {}}>
+        {intersectionWarning ? (
+          <>
+            <span>⚠️ 检测到轮廓自交！</span>
+            <span style={{ marginLeft: '10px', fontWeight: 'normal' }}>曲线中红色部分表示自交区域，请调整控制点。</span>
+          </>
+        ) : (
+          <>
+            {tool === TOOL_TYPES.BEZIER && '💡 点击左侧添加贝塞尔锚点，拖动红色手柄调整曲率，拖动锚点移动位置。右侧显示镜像预览'}
+            {tool === TOOL_TYPES.POINT && '💡 点击左侧添加点，拖动点移动位置。右侧显示镜像预览'}
+            {tool === TOOL_TYPES.FREE && '💡 点击左侧添加自由绘制点。右侧显示镜像预览'}
+          </>
+        )}
       </div>
     </div>
   );
