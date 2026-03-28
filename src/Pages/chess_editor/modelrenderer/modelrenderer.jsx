@@ -5,7 +5,77 @@ import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
 // 从 THREE 命名空间获取常用几何体和工具
-const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector3 } = THREE;
+
+/**
+ * 创建无限网格 - 使用LineSegments，不创建实体
+ * @param {number} size 网格范围
+ * @param {number} divisions 分割数
+ * @returns {THREE.LineSegments} 网格线条
+ */
+function createGridLines(size = 200, divisions = 100) {
+    const geometry = new BufferGeometry();
+    const positions = [];
+
+    const step = size / divisions;
+    const halfSize = size / 2;
+
+    // 绘制网格线
+    for (let i = 0; i <= divisions; i++) {
+        const pos = -halfSize + i * step;
+
+        // X方向平行线
+        positions.push(pos, 0, -halfSize);
+        positions.push(pos, 0, halfSize);
+
+        // Z方向平行线
+        positions.push(-halfSize, 0, pos);
+        positions.push(halfSize, 0, pos);
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    const material = new LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+    return new LineSegments(geometry, material);
+}
+
+/**
+ * 创建坐标轴 - 使用LineSegments，不创建实体
+ * @param {number} length 轴线长度
+ * @param {number} thickness 轴线粗度（通过渲染时放大实现）
+ * @returns {Array<THREE.LineSegments>} 三个轴线对象
+ */
+function createAxisLines(length = 80, thickness = 2) {
+    const axes = [];
+
+    // X轴 - 红色
+    const xGeometry = new BufferGeometry();
+    xGeometry.setAttribute('position', new THREE.BufferAttribute(
+        new Float32Array([0, 0, 0, length, 0, 0]), 3
+    ));
+    const xMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: thickness });
+    const xAxis = new LineSegments(xGeometry, xMaterial);
+    axes.push(xAxis);
+
+    // Y轴 - 绿色
+    const yGeometry = new BufferGeometry();
+    yGeometry.setAttribute('position', new THREE.BufferAttribute(
+        new Float32Array([0, 0, 0, 0, length, 0]), 3
+    ));
+    const yMaterial = new LineBasicMaterial({ color: 0x00ff00, linewidth: thickness });
+    const yAxis = new LineSegments(yGeometry, yMaterial);
+    axes.push(yAxis);
+
+    // Z轴 - 蓝色
+    const zGeometry = new BufferGeometry();
+    zGeometry.setAttribute('position', new THREE.BufferAttribute(
+        new Float32Array([0, 0, 0, 0, 0, length]), 3
+    ));
+    const zMaterial = new LineBasicMaterial({ color: 0x0000ff, linewidth: thickness });
+    const zAxis = new LineSegments(zGeometry, zMaterial);
+    axes.push(zAxis);
+
+    return axes;
+}
 
 /**
  * SceneContent component - contains all scene objects and model rendering logic
@@ -712,10 +782,18 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                 castShadow
             />
 
-            <primitive object={new AxesHelper(30)} />
-            <Text position={[30.5, 0, 0]} fontSize={0.8} color="red">X</Text>
-            <Text position={[0, 30.5, 0]} fontSize={0.8} color="green">Y</Text>
-            <Text position={[0, 0, 30.5]} fontSize={0.8} color="blue">Z</Text>
+            {/* 加粗坐标轴 - 使用LineSegments，不会被导出 */}
+            {createAxisLines(600, 3).map((axis, index) => (
+                <primitive key={`axis-${index}`} object={axis} />
+            ))}
+
+            {/* XY平面网格 - 使用LineSegments绘制，不会被导出 */}
+            <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />
+
+            {/* 坐标轴标签 */}
+            <Text position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</Text>
+            <Text position={[0, 50, 0]} fontSize={3} color="green" anchorX="center">Y</Text>
+            <Text position={[0, 0, 50]} fontSize={3} color="blue" anchorX="left">Z</Text>
 
             {/* Model root group - contains only the chess model meshes */}
             <group ref={modelRootRef}>
@@ -734,23 +812,70 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
 
 function ModelRenderer({ chess, onModelReady, hdrFile }) {
     return (
-        <Canvas
-            camera={{ position: [40, 40, 40] }}
-            shadows
-            style={{
-                width: '100%',
-                height: '100%',
-                background: 'transparent',
-                display: 'block',
-                margin: 0,
-                padding: 0,
-                outline: 'none',
-                border: 'none'
-            }}
-            gl={{ alpha: true, premultipliedAlpha: false }}
-        >
-            <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} />
-        </Canvas>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <Canvas
+                camera={{ position: [40, 40, 40] }}
+                shadows
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    background: 'transparent',
+                    display: 'block',
+                    margin: 0,
+                    padding: 0,
+                    outline: 'none',
+                    border: 'none'
+                }}
+                gl={{ alpha: true, premultipliedAlpha: false }}
+            >
+                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} />
+            </Canvas>
+
+            {/* 页面左下角比例尺标签 */}
+            <div style={{
+                position: 'absolute',
+                bottom: '80px',
+                left: '20px',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '4px',
+                padding: '12px 16px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#333',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                fontFamily: 'sans-serif',
+                zIndex: 10,
+                pointerEvents: 'none'
+            }}>
+                <div style={{ marginBottom: '8px', fontWeight: '600' }}>Scale</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                        width: '30px',
+                        height: '2px',
+                        backgroundColor: '#333',
+                        position: 'relative'
+                    }}>
+                        <div style={{
+                            position: 'absolute',
+                            width: '2px',
+                            height: '6px',
+                            backgroundColor: '#333',
+                            left: '0',
+                            top: '-2px'
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            width: '2px',
+                            height: '6px',
+                            backgroundColor: '#333',
+                            right: '0',
+                            top: '-2px'
+                        }} />
+                    </div>
+                    <span>网格边长5单位</span>
+                </div>
+            </div>
+        </div>
     )
 }
 
