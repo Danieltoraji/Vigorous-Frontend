@@ -12,26 +12,23 @@
   animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.modal-content {
-  background: white;
-  border: 1px solid var(--fluent-border);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow-hover);
+.chess-modal-content {
+  background: none;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
-  overflow-y: auto;
+  position: fixed;
   animation: slideIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
 }
 
-.modal-header {
+.chess-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 20px 0px;
   border-bottom: 1px solid var(--fluent-border-light);
-  background: white;
+  background: none;
   transition: var(--fluent-transition);
 }
 
@@ -66,12 +63,13 @@
   box-shadow: var(--fluent-shadow);
 }
 
-.modal-form {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  transition: var(--fluent-transition);
+.chess-modal-form {
+  background: url("/static/projectEditor/sticker.png") center / cover no-repeat !important;
+  background-size: 100% 100% !important;
+  padding-top: 100px !important;
+  padding-right: 15% !important;
+  padding-bottom: 20px !important;
+  padding-left: 15% !important;
 }
 
 .modal-body {
@@ -212,8 +210,7 @@
   justify-content: flex-end;
   padding: 16px 20px;
   border-top: 1px solid var(--fluent-border-light);
-  background: white;
-  border-radius: 0 0 var(--fluent-radius) var(--fluent-radius);
+  background: none;
   transition: var(--fluent-transition);
 }
 
@@ -286,6 +283,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -296,6 +294,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -407,29 +406,29 @@
     width: 95%;
     max-height: 90vh;
   }
-  
+
   .modal-header {
     padding: 12px 16px;
   }
-  
+
   .modal-header h3 {
     font-size: 14px;
   }
-  
+
   .modal-form,
   .modal-body {
     padding: 16px;
   }
-  
+
   .modal-actions {
     padding: 12px 16px;
   }
-  
+
   .form-group input {
     padding: 6px 12px;
     font-size: 14px;
   }
-  
+
   .add-tag-button,
   .cancel-button,
   .save-button,
@@ -439,11 +438,11 @@
     padding: 6px 12px;
     font-size: 14px;
   }
-  
+
   .file-upload-area {
     padding: 16px;
   }
-  
+
   .file-upload-area h4 {
     font-size: 14px;
   }

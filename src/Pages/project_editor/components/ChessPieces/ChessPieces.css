@@ -1,11 +1,8 @@
 .chess-pieces {
-  background: var(--fluent-acrylic);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
+  margin-left: 50px;
   padding: 20px;
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
   flex: 1;
   display: flex;
   flex-direction: column;

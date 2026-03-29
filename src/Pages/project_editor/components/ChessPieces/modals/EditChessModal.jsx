@@ -39,14 +39,14 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h3>编辑棋子</h3>
-          <button className="modal-close" onClick={onCancel}>
-            ×
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="modal-form">
+      <div className="chess-modal-content">
+        <form onSubmit={handleSubmit} className="chess-modal-form">
+          <div className="chess-modal-header">
+            <h3>编辑棋子</h3>
+            <button className="modal-close" onClick={onCancel}>
+              ×
+            </button>
+          </div>
           <div className="form-group">
             <label htmlFor="chess-name">棋子名称</label>
             <input
@@ -78,8 +78,8 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
                 {localPiece.piece_tags.map((tag, index) => (
                   <span key={index} className="tag">
                     {tag}
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="tag-remove"
                       onClick={() => handleRemoveTag(tag)}
                     >
@@ -96,8 +96,8 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
                   onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
                   placeholder="添加标签"
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="add-tag-button"
                   onClick={handleAddTag}
                 >
