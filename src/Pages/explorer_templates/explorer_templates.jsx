@@ -4,6 +4,7 @@ import { useTemplates } from '../../hooks/useTemplates.jsx'
 import './explorer_templates.css'
 import { useNavigate } from 'react-router-dom'
 import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
+import ImportFromProject from './import_from_project/import_form_project.jsx'
 
 // 格式化日期时间
 function formatDateTime(dateString) {
@@ -194,10 +195,40 @@ function ExplorerTemplates() {
   }
   
   // 处理从项目棋子导入
+  const [showImportFromProjectModal, setShowImportFromProjectModal] = useState(false)
+  
   const handleImportFromProject = () => {
-    // TODO: 实现从项目棋子导入逻辑
-    alert('从项目棋子导入功能待实现')
+    setShowImportFromProjectModal(true)
     setShowImportModal(false)
+  }
+
+  const handleCloseImportFromProjectModal = () => {
+    setShowImportFromProjectModal(false)
+  }
+
+  const handleConfirmImportFromProject = async (selectedPieces) => {
+    if (!selectedPieces || selectedPieces.length === 0) {
+      return
+    }
+    
+    let successCount = 0
+    let failCount = 0
+    
+    for (const piece of selectedPieces) {
+      try {
+        await createTemplateFromJson(piece)
+        successCount++
+      } catch (error) {
+        console.error('创建模板失败:', error)
+        failCount++
+      }
+    }
+    
+    if (successCount > 0) {
+      alert(`成功导入 ${successCount} 个模板${failCount > 0 ? `，${failCount} 个失败` : ''}`)
+    } else {
+      alert('导入失败，请重试')
+    }
   }
 
   if (loading) {
@@ -568,6 +599,13 @@ function ExplorerTemplates() {
           </div>
         </div>
       )}
+
+      {/* 从项目棋子导入模态框 */}
+      <ImportFromProject
+        isOpen={showImportFromProjectModal}
+        onClose={handleCloseImportFromProjectModal}
+        onConfirm={handleConfirmImportFromProject}
+      />
 
       <ExplorerBottom />
     </div>

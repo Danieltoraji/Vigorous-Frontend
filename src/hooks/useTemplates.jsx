@@ -147,6 +147,7 @@ export function TemplatesProvider({ children }) {
   // 从既定的JSON中创建模板
   const createTemplateFromJson = async (templateJson) => {
     try {
+      console.log("从JSON创建模板，使用数据：",templateJson)
       const templateData = {
         name: '新模板',
         parts: {
