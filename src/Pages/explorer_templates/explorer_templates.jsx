@@ -4,7 +4,7 @@ import { useTemplates } from '../../hooks/useTemplates.jsx'
 import './explorer_templates.css'
 import { useNavigate } from 'react-router-dom'
 import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
-import ImportFromProject from './import_from_project/import_form_project.jsx'
+import ImportFromProject from './import_from_project/import_from_project.jsx'
 
 // 格式化日期时间
 function formatDateTime(dateString) {
@@ -504,32 +504,41 @@ function ExplorerTemplates() {
       {showImportModal && (
         <div className="modal-overlay">
           <div 
-            className={`modal-content ${dragActive ? 'drag-active' : ''}`}
+            className={`modal-content import-modal-two-column ${dragActive ? 'drag-active' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <h2>导入模板</h2>
-            <p>请选择导入方式：</p>
+            <h2 className="import-modal-title">导入模板</h2>
             
-            <div className="drag-drop-area">
-              <p>或直接拖拽JSON文件到此处</p>
-              <p className="drag-hint">支持 .json 文件</p>
+            <div className="import-columns">
+              <div className="import-column">
+                <h3 className="import-column-title">从JSON导入</h3>
+                <div className="drag-drop-area">
+                  <p>拖拽JSON文件到此处</p>
+                  <p className="drag-hint">支持 .json 文件</p>
+                </div>
+                <button 
+                  className="btn btn-primary import-column-btn"
+                  onClick={handleImportFromJson}
+                >
+                  从JSON文件导入
+                </button>
+              </div>
+              
+              <div className="import-column">
+                <h3 className="import-column-title">从项目导入</h3>
+                <p className="import-column-desc">从现有项目中导入棋子作为模板，可以选择项目中的多个棋子批量导入。</p>
+                <button 
+                  className="btn btn-primary import-column-btn large"
+                  onClick={handleImportFromProject}
+                >
+                  从项目棋子导入
+                </button>
+              </div>
             </div>
             
-            <div className="modal-actions">
-              <button 
-                className="btn btn-primary"
-                onClick={handleImportFromJson}
-              >
-                从JSON文件导入
-              </button>
-              <button 
-                className="btn btn-secondary"
-                onClick={handleImportFromProject}
-              >
-                从项目棋子导入
-              </button>
+            <div className="import-modal-footer">
               <button 
                 className="btn btn-outline"
                 onClick={handleCloseImportModal}
