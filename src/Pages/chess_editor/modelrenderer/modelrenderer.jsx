@@ -134,13 +134,13 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
             const idx = (y * width + x) * 4;
             // 计算灰度值 (0-1)
             const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-            // 映射到高度（黑色=最高，白色=最低）
+            // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
             const h = (1 - gray) * depth;
             heightMap.push({ x, y, height: h });
           }
         }
         
-        // 生成网格顶点和索引（只有顶面）
+         // 生成网格顶点和索引（只有顶面）
         const positions = [];
         const indices = [];
         
@@ -151,6 +151,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
         // 生成顶点
         for (let i = 0; i < heightMap.length; i++) {
           const point = heightMap[i];
+          // 不直接应用缩放，保持原始坐标
           const px = (point.x - width / 2) * planeSize;
           const py = (point.y - height / 2) * planeSize;
           const pz = point.height;
@@ -442,7 +443,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh 
+                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
+                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                castShadow 
+                                receiveShadow
+                            >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
@@ -456,7 +462,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh 
+                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
+                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                castShadow 
+                                receiveShadow
+                            >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
@@ -470,7 +481,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh 
+                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]} 
+                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                castShadow 
+                                receiveShadow
+                            >
                                 <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
@@ -480,6 +496,20 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                     clearcoatRoughness={material.clearcoatRoughness}
                                 />
                             </mesh>
+                        )
+                        break;
+                    case 'strange':
+                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
+                        const profilePoints = pattern.customShape?.profilePoints || [];
+                        const pathPoints = pattern.customShape?.pathPoints || [];
+                        patternelement = (
+                            <group position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}>
+                                <ModelPreview
+                                    profilePoints={profilePoints}
+                                    pathPoints={pathPoints}
+                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
+                                />
+                            </group>
                         )
                         break;
                     default:
@@ -497,6 +527,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         <mesh 
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
                             rotation={[-Math.PI / 2, 0, 0]}
+                            scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
                             castShadow 
                             receiveShadow
                         >
@@ -721,7 +752,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh 
+                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                castShadow 
+                                receiveShadow
+                            >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
                                 <meshStandardMaterial
                                     color="#CD853F"
@@ -735,7 +771,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh 
+                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                castShadow 
+                                receiveShadow
+                            >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
                                 <meshStandardMaterial
                                     color="#CD853F"
@@ -749,7 +790,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh 
+                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                castShadow 
+                                receiveShadow
+                            >
                                 <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
                                 <meshStandardMaterial
                                     color="#CD853F"
@@ -759,6 +805,20 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                     clearcoatRoughness={material.clearcoatRoughness}
                                 />
                             </mesh>
+                        )
+                        break;
+                    case 'strange':
+                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
+                        const profilePoints = pattern.customShape?.profilePoints || [];
+                        const pathPoints = pattern.customShape?.pathPoints || [];
+                        patternelement = (
+                            <group position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}>
+                                <ModelPreview
+                                    profilePoints={profilePoints}
+                                    pathPoints={pathPoints}
+                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
+                                />
+                            </group>
                         )
                         break;
                     default:
@@ -776,6 +836,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         <mesh 
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
                             rotation={[-Math.PI / 2, 0, 0]}
+                            scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
                             castShadow 
                             receiveShadow
                         >

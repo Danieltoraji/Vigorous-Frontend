@@ -753,46 +753,176 @@ modelId 含义：
             </>
           )}
 
+          {/* 尺寸拉伸功能栏 */}
           <div className="editor-item">
-            <label>尺寸：</label>
-            <input
-              type="range"
-              min="0"
-              max="16"
-              step="0.1"
-              value={getSafeValue(pattern.size, 10)}
-              onChange={(e) => handleDataUpdate('parts.base.pattern.size', parseFloat(e.target.value))}
-            />
-            <input
-              type="number"
-              min="0"
-              max="16"
-              step="0.1"
-              value={getSafeValue(pattern.size, 10)}
-              onChange={(e) => handleDataUpdate('parts.base.pattern.size', parseFloat(e.target.value))}
-              className="number-input"
-            />
-          </div>
-
-          <div className="editor-item">
-            <label>深度：</label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
-              onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
-            />
-            <input
-              type="number"
-              min="0"
-              max="5"
-              step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
-              onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
-              className="number-input"
-            />
+            <h5>尺寸拉伸</h5>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>X:</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value={getSafeValue(pattern.scaleX, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleX', parseFloat(e.target.value))}
+                  className="number-input"
+                  style={{ width: '50px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Y:</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value={getSafeValue(pattern.scaleY, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', parseFloat(e.target.value))}
+                  className="number-input"
+                  style={{ width: '50px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', Math.min(5, getSafeValue(pattern.scaleY, 1) + 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', Math.max(0.1, getSafeValue(pattern.scaleY, 1) - 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Z:</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value={getSafeValue(pattern.scaleZ, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleZ', parseFloat(e.target.value))}
+                  className="number-input"
+                  style={{ width: '50px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* 浮雕位置 */}
@@ -817,7 +947,7 @@ modelId 含义：
               />
             </div>
             <div className="editor-item">
-              <label>Y修正：</label>
+              <label>Y：</label>
               <input
                 type="range"
                 min="-20"
@@ -1171,7 +1301,7 @@ modelId 含义：
           </div>
 
           <div className="editor-item">
-            <label>Y修正：</label>
+            <label>Y：</label>
             <input
               type="range"
               min="-30"
@@ -1313,46 +1443,176 @@ modelId 含义：
             </>
           )}
 
+          {/* 尺寸拉伸功能栏 */}
           <div className="editor-item">
-            <label>尺寸：</label>
-            <input
-              type="range"
-              min="0"
-              max="16"
-              step="0.1"
-              value={getSafeValue(pattern.size, 10)}
-              onChange={(e) => handleDataUpdate('parts.column.pattern.size', parseFloat(e.target.value))}
-            />
-            <input
-              type="number"
-              min="0"
-              max="16"
-              step="0.1"
-              value={getSafeValue(pattern.size, 10)}
-              onChange={(e) => handleDataUpdate('parts.column.pattern.size', parseFloat(e.target.value))}
-              className="number-input"
-            />
-          </div>
-
-          <div className="editor-item">
-            <label>深度：</label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
-              onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
-            />
-            <input
-              type="number"
-              min="0"
-              max="5"
-              step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
-              onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
-              className="number-input"
-            />
+            <h5>尺寸拉伸</h5>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>X:</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value={getSafeValue(pattern.scaleX, 1)}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleX', parseFloat(e.target.value))}
+                  className="number-input"
+                  style={{ width: '50px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Y:</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value={getSafeValue(pattern.scaleY, 1)}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', parseFloat(e.target.value))}
+                  className="number-input"
+                  style={{ width: '50px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', Math.min(5, getSafeValue(pattern.scaleY, 1) + 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', Math.max(0.1, getSafeValue(pattern.scaleY, 1) - 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Z:</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value={getSafeValue(pattern.scaleZ, 1)}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleZ', parseFloat(e.target.value))}
+                  className="number-input"
+                  style={{ width: '50px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.1))}
+                    style={{
+                      width: '20px',
+                      height: '14px',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      lineHeight: '1',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                      background: '#f5f5f5'
+                    }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* 浮雕位置 */}
@@ -1377,7 +1637,7 @@ modelId 含义：
               />
             </div>
             <div className="editor-item">
-              <label>Y修正：</label>
+              <label>Y：</label>
               <input
                 type="range"
                 min="-20"
