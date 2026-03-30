@@ -43,14 +43,14 @@ function ExplorerTemplates() {
       template.piece_tags.forEach(tag => allTags.add(tag))
     }
   })
-  
+
   // 过滤模板并按id降序排序
   const filteredTemplates = Object.values(templatesData).filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesTag = !selectedTag || (template.piece_tags && template.piece_tags.includes(selectedTag))
     return matchesSearch && matchesTag
   }).sort((a, b) => b.id - a.id)
-  
+
   // 处理更多操作菜单
   const toggleMoreActions = (templateId) => {
     setMoreActionsOpen(moreActionsOpen === templateId ? null : templateId)
@@ -82,7 +82,7 @@ function ExplorerTemplates() {
     setEditTags(template.piece_tags ? template.piece_tags.join(', ') : '')
     setShowEditModal(true)
   }
-  
+
   // 处理关闭编辑模态框
   const handleCloseEditModal = () => {
     setShowEditModal(false)
@@ -91,14 +91,14 @@ function ExplorerTemplates() {
     setEditDescription('')
     setEditTags('')
   }
-  
+
   // 处理保存编辑
   const handleSaveEdit = async () => {
     if (!editName.trim()) {
       alert('模板名称不能为空')
       return
     }
-    
+
     try {
       const tagsArray = editTags.split(',').map(tag => tag.trim()).filter(tag => tag)
       await updateTemplate(editingTemplate.id, {
@@ -111,7 +111,7 @@ function ExplorerTemplates() {
       alert('保存失败：' + error.message)
     }
   }
-  
+
   // 处理新建模板
   const handleCreateTemplate = () => {
     createTemplate({
@@ -120,21 +120,21 @@ function ExplorerTemplates() {
       piece_tags: []
     })
   }
-  
+
   // 处理导入模板
   const [showImportModal, setShowImportModal] = useState(false)
-  
+
   const handleImportTemplate = () => {
     setShowImportModal(true)
   }
-  
+
   const handleCloseImportModal = () => {
     setShowImportModal(false)
   }
-  
+
   // 处理从JSON导入
   const [dragActive, setDragActive] = useState(false)
-  
+
   const handleImportFromJson = () => {
     // 打开文件选择对话框
     const fileInput = document.createElement('input')
@@ -148,7 +148,7 @@ function ExplorerTemplates() {
     }
     fileInput.click()
   }
-  
+
   // 读取JSON文件
   const readJsonFile = (file) => {
     const reader = new FileReader()
@@ -167,25 +167,25 @@ function ExplorerTemplates() {
     }
     reader.readAsText(file)
   }
-  
+
   // 拖拽事件处理
   const handleDragOver = (e) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(true)
   }
-  
+
   const handleDragLeave = (e) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
   }
-  
+
   const handleDrop = (e) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
+
     const file = e.dataTransfer.files[0]
     if (file && file.type === 'application/json') {
       readJsonFile(file)
@@ -193,7 +193,7 @@ function ExplorerTemplates() {
       alert('请上传JSON文件')
     }
   }
-  
+
   // 处理从项目棋子导入
   const handleImportFromProject = () => {
     // TODO: 实现从项目棋子导入逻辑
@@ -215,7 +215,8 @@ function ExplorerTemplates() {
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title'>模板资源管理器</h1>
+        <h1 className='header-title' onClick={onBack}>
+          ❮  模板资源管理器</h1>
         <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
@@ -272,13 +273,13 @@ function ExplorerTemplates() {
               </button>
             </div>
             <div className="template-actions-buttons">
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={handleCreateTemplate}
               >
                 新建模板
               </button>
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={handleImportTemplate}
               >
@@ -293,7 +294,7 @@ function ExplorerTemplates() {
                 <div key={template.id} className="template-card">
                   <div className="template-card-header">
                     <h3 className="template-name">{template.name}</h3>
-                    <button 
+                    <button
                       className="edit-icon"
                       onClick={() => handleEditInfo(template)}
                       title="编辑信息"
@@ -347,7 +348,7 @@ function ExplorerTemplates() {
                       >
                         应用到项目
                       </button>
-                      <button 
+                      <button
                         className="btn btn-outline delete-btn"
                         onClick={() => handleDeleteTemplate(template.id)}
                       >
@@ -402,7 +403,7 @@ function ExplorerTemplates() {
                       <td>
                         <div className="template-title-with-edit">
                           <span>{template.name}</span>
-                          <button 
+                          <button
                             className="edit-icon small"
                             onClick={() => handleEditInfo(template)}
                             title="编辑信息"
@@ -475,11 +476,11 @@ function ExplorerTemplates() {
         </div>
 
       </div>
-      
+
       {/* 导入模板模态框 */}
       {showImportModal && (
         <div className="modal-overlay">
-          <div 
+          <div
             className={`modal-content ${dragActive ? 'drag-active' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -487,26 +488,26 @@ function ExplorerTemplates() {
           >
             <h2>导入模板</h2>
             <p>请选择导入方式：</p>
-            
+
             <div className="drag-drop-area">
               <p>或直接拖拽JSON文件到此处</p>
               <p className="drag-hint">支持 .json 文件</p>
             </div>
-            
+
             <div className="modal-actions">
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={handleImportFromJson}
               >
                 从JSON文件导入
               </button>
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={handleImportFromProject}
               >
                 从项目棋子导入
               </button>
-              <button 
+              <button
                 className="btn btn-outline"
                 onClick={handleCloseImportModal}
               >
@@ -516,17 +517,17 @@ function ExplorerTemplates() {
           </div>
         </div>
       )}
-      
+
       {/* 编辑模板模态框 */}
       {showEditModal && (
         <div className="modal-overlay">
           <div className="modal-content edit-modal">
             <h2>编辑模板</h2>
-            
+
             <div className="edit-form">
               <div className="form-group">
                 <label>模板名称 *</label>
-                <input 
+                <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -534,10 +535,10 @@ function ExplorerTemplates() {
                   maxLength="100"
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>描述</label>
-                <textarea 
+                <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="请输入模板描述"
@@ -545,10 +546,10 @@ function ExplorerTemplates() {
                   maxLength="500"
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>标签</label>
-                <input 
+                <input
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
@@ -557,15 +558,15 @@ function ExplorerTemplates() {
                 />
               </div>
             </div>
-            
+
             <div className="modal-actions">
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={handleSaveEdit}
               >
                 保存
               </button>
-              <button 
+              <button
                 className="btn btn-outline"
                 onClick={handleCloseEditModal}
               >

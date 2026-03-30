@@ -8,9 +8,9 @@ function ProjectList({ projects, onEditProject, onDeleteProject, onCreateProject
   return (
     <div className="project-list">
       <div className="project-list-header">
-        <h2>我的项目</h2>
-        <button className="btn btn-primary" onClick={onCreateProject}>
-          添加新项目
+
+        <button className="btn btn-create" onClick={onCreateProject}>
+
         </button>
       </div>
 

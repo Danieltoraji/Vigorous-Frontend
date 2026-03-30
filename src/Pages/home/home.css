@@ -68,6 +68,7 @@ body {
 
 .header-title::before {
   content: "";
+  pointer-events: auto;
   display: inline-block;
   background: url("/static/logo/white.png") center center no-repeat;
   background-size: contain;
@@ -86,6 +87,7 @@ body {
   color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   margin-bottom: -10px;
+  cursor: pointer;
 }
 
 .user-welcome {

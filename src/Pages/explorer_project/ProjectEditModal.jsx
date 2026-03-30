@@ -56,15 +56,17 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>编辑项目信息</h2>
-          <button className="modal-close" onClick={onClose}>
-            ×
-          </button>
-        </div>
+      <div className="project-modal-content">
+
 
         <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="modal-header">
+            <h2> </h2>
+            <h2>项目信息编辑 </h2>
+            <button className="modal-close" onClick={onClose}>
+              ×
+            </button>
+          </div>
           <div className="form-group">
             <label htmlFor="name" className="form-label">项目名称</label>
             <input
@@ -118,7 +120,7 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
             />
           </div>
 
-          <div className="modal-footer">
+          <div className="project-modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               取消
             </button>

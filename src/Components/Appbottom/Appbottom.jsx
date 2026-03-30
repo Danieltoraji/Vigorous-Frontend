@@ -6,9 +6,9 @@
 import './Appbottom.css';
 
 function Appbottom() {
-  return(
-    <div className="app-bottom">
-      <p>by 衡有锦深团队 2026</p>
+  return (
+    <div className="footer">
+      <p>衡有锦深 2026</p>
     </div>
   )
 }

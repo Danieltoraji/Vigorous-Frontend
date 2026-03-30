@@ -343,6 +343,8 @@
   right: 0;
   top: 0;
   bottom: 0;
+  width: 380px;
+  /* 明确设置宽度，避免内容过多时面板过宽 */
   z-index: 10;
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(20px) saturate(180%);
@@ -353,6 +355,8 @@
   padding: 20px;
   transition: var(--fluent-transition);
   min-height: 0;
+  max-width: 90vw;
+  /* 在小屏幕上限制最大宽度 */
 }
 
 .data-panel.collapsed {
@@ -400,7 +404,8 @@
 }
 
 .toggle-right-panel.expanded {
-  right: 400px;
+  right: 450px;
+  /* 与面板宽度匹配 */
 }
 
 .data-panel::-webkit-scrollbar {
@@ -657,7 +662,7 @@ input:checked+.toggle-label:before {
 /* 过渡动画效果 */
 .editor-section {
   opacity: 1;
-  max-height: 500px;
+  max-height: 1000px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -672,7 +677,7 @@ input:checked+.toggle-label:before {
 
 .editor-section.visible {
   opacity: 1;
-  max-height: 500px;
+  max-height: 800px;
   margin-bottom: 25px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--fluent-border-light);
@@ -833,13 +838,13 @@ input:checked+.toggle-label:before {
 /* 当形状容器包含异形生成器时，应用特殊高度 */
 .editor-section:has(.custom-revolution-wrapper) {
   min-height: 650px;
-  max-height: 800px;
+  max-height: 1000px;
   overflow: visible;
 }
 
 .editor-section:has(.custom-revolution-wrapper).visible {
   min-height: 650px;
-  max-height: 800px;
+  max-height: 1000px;
 }
 
 /* 异形生成器可滚动容器 */
@@ -909,6 +914,8 @@ input:checked+.toggle-label:before {
   min-width: 0;
   flex-shrink: 0;
   display: block;
+  overflow: hidden;
+  /* 防止canvas溢出容器 */
 }
 
 .canvas-header {
@@ -1047,6 +1054,8 @@ input:checked+.toggle-label:before {
   height: 140px;
   max-width: 100%;
   touch-action: none;
+  box-sizing: border-box;
+  /* 确保边框和padding计算在内 */
 }
 
 .points-count {
@@ -1470,7 +1479,7 @@ input:checked+.toggle-label:before {
 .hdr-selector-container {
   position: absolute;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   z-index: 100;
 }
 
@@ -1516,6 +1525,7 @@ input:checked+.toggle-label:before {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1571,6 +1581,7 @@ input:checked+.toggle-label:before {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1649,6 +1660,13 @@ input:checked+.toggle-label:before {
   flex-direction: column;
   gap: 10px;
   width: 100%;
+}
+
+/* 确保canvas在右侧面板中正确显示 */
+.data-panel .simple-canvas {
+  max-width: 100%;
+  height: auto;
+  min-height: 120px;
 }
 
 /* 编辑按钮 */

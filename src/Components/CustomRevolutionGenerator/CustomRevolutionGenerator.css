@@ -16,6 +16,8 @@
     border: 1px solid rgba(78, 205, 196, 0.3);
     min-height: 500px;
     height: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 区块标题 */
@@ -54,6 +56,7 @@
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
 }
 
 .preview-canvas-container .canvas-header {
@@ -76,6 +79,10 @@
     background: rgba(78, 205, 196, 0.1);
     padding: 2px 8px;
     border-radius: 10px;
+}
+
+.preview-canvas {
+    margin: auto;
 }
 
 /* 编辑按钮 */
@@ -355,6 +362,8 @@
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid rgba(78, 205, 196, 0.2);
+    flex-shrink: 0;
+    /* 防止按钮区域被压缩 */
 }
 
 /* 生成按钮 */

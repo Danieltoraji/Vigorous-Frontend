@@ -72,7 +72,8 @@ function ExplorerProject() {
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title'>项目资源管理器</h1>
+        <h1 className='header-title' onClick={onBack}>
+          ❮  项目资源管理器</h1>
         <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
