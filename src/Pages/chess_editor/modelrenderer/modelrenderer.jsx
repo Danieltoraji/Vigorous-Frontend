@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
 // 从 THREE 命名空间获取常用几何体和工具
-const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector3 } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector3 } = THREE;
 
 /**
  * 创建无限网格 - 使用LineSegments，不创建实体
@@ -1021,45 +1021,52 @@ function ModelRenderer({ chess, onModelReady, hdrFile }) {
             {/* 页面左下角比例尺标签 */}
             <div style={{
                 position: 'absolute',
-                bottom: '80px',
+                bottom: '20px',
                 left: '20px',
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                borderRadius: '4px',
-                padding: '12px 16px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#333',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                backgroundColor: 'rgba(200, 200, 200, 0.6)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                padding: '0 16px',
+                minWidth: '120px',
+                height: '50px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                 fontFamily: 'sans-serif',
                 zIndex: 10,
                 pointerEvents: 'none'
             }}>
-                <div style={{ marginBottom: '8px', fontWeight: '600' }}>Scale</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <div style={{
-                        width: '30px',
+                        width: '25px',
                         height: '2px',
                         backgroundColor: '#333',
-                        position: 'relative'
+                        position: 'relative',
                     }}>
                         <div style={{
                             position: 'absolute',
                             width: '2px',
-                            height: '6px',
+                            height: '5px',
                             backgroundColor: '#333',
                             left: '0',
-                            top: '-2px'
+                            top: '-1.5px'
                         }} />
                         <div style={{
                             position: 'absolute',
                             width: '2px',
-                            height: '6px',
+                            height: '5px',
                             backgroundColor: '#333',
                             right: '0',
-                            top: '-2px'
+                            top: '-1.5px'
                         }} />
                     </div>
-                    <span>网格边长5单位</span>
+                    <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
                 </div>
             </div>
         </div>
