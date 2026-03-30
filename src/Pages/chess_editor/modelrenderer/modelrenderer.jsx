@@ -151,10 +151,10 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
         // 生成顶点
         for (let i = 0; i < heightMap.length; i++) {
           const point = heightMap[i];
-          // 不直接应用缩放，保持原始坐标
+          // 直接生成在 XZ 平面，高度沿 Y 轴
           const px = (point.x - width / 2) * planeSize;
-          const py = (point.y - height / 2) * planeSize;
-          const pz = point.height;
+          const py = point.height;
+          const pz = -(point.y - height / 2) * planeSize;
           
           positions.push(px, py, pz);
         }
@@ -526,7 +526,6 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                     patternelement = (
                         <mesh 
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
-                            rotation={[-Math.PI / 2, 0, 0]}
                             scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
                             castShadow 
                             receiveShadow
@@ -835,7 +834,6 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                     patternelement = (
                         <mesh 
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
-                            rotation={[-Math.PI / 2, 0, 0]}
                             scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
                             castShadow 
                             receiveShadow
@@ -844,7 +842,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                 textureFile={pattern.textureFile}
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
-                                sampleRate={2} // 每 2 个像素采样一次，平衡效果和性能
+                                sampleRate={2}
                             />
                             <meshStandardMaterial
                                 color="#CD853F"
