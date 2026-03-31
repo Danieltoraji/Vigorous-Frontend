@@ -128,15 +128,57 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
         const heightMap = [];
         const step = sampleRate;
         
-        // 采样生成高度图
+        // 先提取原始灰度数据到数组
+        const rawGrayData = [];
         for (let y = 0; y < height; y += step) {
+          const row = [];
           for (let x = 0; x < width; x += step) {
             const idx = (y * width + x) * 4;
             // 计算灰度值 (0-1)
             const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+            row.push(gray);
+          }
+          rawGrayData.push(row);
+        }
+        
+        // 应用简单的 3x3 均值滤波消除噪点
+        const filteredGrayData = [];
+        for (let row = 0; row < rawGrayData.length; row++) {
+          const filteredRow = [];
+          for (let col = 0; col < rawGrayData[row].length; col++) {
+            let sum = 0;
+            let count = 0;
+            
+            // 取周围 3x3 邻域的平均值
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const newRow = row + dy;
+                const newCol = col + dx;
+                
+                if (newRow >= 0 && newRow < rawGrayData.length && 
+                    newCol >= 0 && newCol < rawGrayData[row].length) {
+                  sum += rawGrayData[newRow][newCol];
+                  count++;
+                }
+              }
+            }
+            
+            filteredRow.push(sum / count);
+          }
+          filteredGrayData.push(filteredRow);
+        }
+        
+        // 使用滤波后的数据生成高度图
+        for (let row = 0; row < filteredGrayData.length; row++) {
+          for (let col = 0; col < filteredGrayData[row].length; col++) {
+            const gray = filteredGrayData[row][col];
             // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
             const h = (1 - gray) * depth;
-            heightMap.push({ x, y, height: h });
+            heightMap.push({ 
+              x: col * step, 
+              y: row * step, 
+              height: h 
+            });
           }
         }
         
@@ -551,7 +593,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                 textureFile={pattern.textureFile}
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
-                                sampleRate={1} // 每个像素都采样，最细腻的效果
+                                sampleRate={2} // 每 2 个像素采样一次，减少噪点影响
                             />
                             <meshStandardMaterial
                                 color="#CD853F"
