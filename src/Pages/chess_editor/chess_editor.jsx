@@ -47,6 +47,7 @@ function ChessEditor() {
   const [showTextureSelector, setShowTextureSelector] = useState(false); // 纹理选择器显示状态
   const [selectedTexture, setSelectedTexture] = useState(null); // 选中的纹理
   const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
+  const [smoothTexture, setSmoothTexture] = useState(false); // 是否启用平滑纹理
 
   // 处理纹理选择
   const handleTextureSelect = (texture) => {
@@ -530,8 +531,8 @@ modelId 含义：
 
   }, [handleMouseMove, handleMouseUp]);
 
-  // 渲染底座组件参数面板 - 使用 useMemo 缓存
-  const renderBasePanel = useMemo(() => () => {
+  // 渲染底座组件参数面板 - 使用普通函数以确保状态能正确更新
+  const renderBasePanel = () => {
     if (!currentChess || !currentChess.parts?.base) return null;
 
     const component = currentChess.parts.base;
@@ -693,6 +694,12 @@ modelId 含义：
                   }}
                 >
                   📂 从浮雕纹理管理器中选择
+                </button>
+                <button 
+                  className={`texture-mode-button ${smoothTexture ? 'active' : ''}`} 
+                  onClick={() => setSmoothTexture(prev => !prev)}
+                >
+                  {smoothTexture ? '✨ 平滑已启用' : '✨ 平滑纹理'}
                 </button>
               </div>
               {selectedTexture && (
@@ -1140,7 +1147,7 @@ modelId 含义：
         </div>
       </div>
     );
-  }, [currentChess, handleDataUpdate, selectedComponent]);
+  };
 
   // 渲染柱体组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderColumnPanel = () => {
@@ -1383,6 +1390,12 @@ modelId 含义：
                   }}
                 >
                   📂 从浮雕纹理管理器中选择
+                </button>
+                <button 
+                  className={`texture-mode-button ${smoothTexture ? 'active' : ''}`} 
+                  onClick={() => setSmoothTexture(prev => !prev)}
+                >
+                  {smoothTexture ? '✨ 平滑已启用' : '✨ 平滑纹理'}
                 </button>
               </div>
               {selectedTexture && (
@@ -2280,6 +2293,7 @@ modelId 含义：
             chess={currentChess}
             onModelReady={handleModelReady}
             hdrFile={hdrPresets.find(p => p.id === selectedHdrPreset)?.file || '/stage.hdr'}
+            smoothTexture={smoothTexture}
           />
 
           {/* HDR 预设选择器 */}

@@ -86,8 +86,9 @@ const textureLoader = new TextureLoader();
  * @param {number} size - 平面尺寸
  * @param {number} depth - 最大深度（高度）
  * @param {number} sampleRate - 采样率（每隔几个像素取一个点）
+ * @param {boolean} smooth - 是否启用平滑（3x3 均值滤波）
  */
-function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
+function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smooth = false }) {
   const [geometry, setGeometry] = useState(null);
 
   useEffect(() => {
@@ -141,37 +142,41 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
           rawGrayData.push(row);
         }
         
-        // 应用简单的 3x3 均值滤波消除噪点
-        const filteredGrayData = [];
-        for (let row = 0; row < rawGrayData.length; row++) {
-          const filteredRow = [];
-          for (let col = 0; col < rawGrayData[row].length; col++) {
-            let sum = 0;
-            let count = 0;
-            
-            // 取周围 3x3 邻域的平均值
-            for (let dy = -1; dy <= 1; dy++) {
-              for (let dx = -1; dx <= 1; dx++) {
-                const newRow = row + dy;
-                const newCol = col + dx;
-                
-                if (newRow >= 0 && newRow < rawGrayData.length && 
-                    newCol >= 0 && newCol < rawGrayData[row].length) {
-                  sum += rawGrayData[newRow][newCol];
-                  count++;
+        // 根据 smooth 参数决定是否应用 3x3 均值滤波
+        const grayDataToUse = smooth ? [] : rawGrayData;
+        
+        if (smooth) {
+          // 应用 3x3 均值滤波消除噪点
+          for (let row = 0; row < rawGrayData.length; row++) {
+            const filteredRow = [];
+            for (let col = 0; col < rawGrayData[row].length; col++) {
+              let sum = 0;
+              let count = 0;
+              
+              // 取周围 3x3 邻域的平均值
+              for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                  const newRow = row + dy;
+                  const newCol = col + dx;
+                  
+                  if (newRow >= 0 && newRow < rawGrayData.length && 
+                      newCol >= 0 && newCol < rawGrayData[row].length) {
+                    sum += rawGrayData[newRow][newCol];
+                    count++;
+                  }
                 }
               }
+              
+              filteredRow.push(sum / count);
             }
-            
-            filteredRow.push(sum / count);
+            grayDataToUse.push(filteredRow);
           }
-          filteredGrayData.push(filteredRow);
         }
         
-        // 使用滤波后的数据生成高度图
-        for (let row = 0; row < filteredGrayData.length; row++) {
-          for (let col = 0; col < filteredGrayData[row].length; col++) {
-            const gray = filteredGrayData[row][col];
+        // 使用选定的灰度数据生成高度图
+        for (let row = 0; row < grayDataToUse.length; row++) {
+          for (let col = 0; col < grayDataToUse[row].length; col++) {
+            const gray = grayDataToUse[row][col];
             // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
             const h = (1 - gray) * depth;
             heightMap.push({ 
@@ -238,7 +243,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
     };
 
     loadTextureAndCreateGeometry();
-  }, [textureFile, size, depth, sampleRate]);
+  }, [textureFile, size, depth, sampleRate, smooth]);
 
   if (!geometry) return null;
 
@@ -249,7 +254,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
  */
-function SceneContent({ chess, onModelReady, hdrFile }) {
+function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
     const modelRootRef = useRef();
 
     // Notify parent when model is ready
@@ -594,6 +599,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
                                 sampleRate={2} // 每 2 个像素采样一次，减少噪点影响
+                                smooth={smoothTexture} // 是否启用平滑
                             />
                             <meshStandardMaterial
                                 color="#CD853F"
@@ -918,6 +924,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
                                 sampleRate={2}
+                                smooth={smoothTexture} // 是否启用平滑
                             />
                             <meshStandardMaterial
                                 color="#CD853F"
@@ -1131,7 +1138,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
     );
 }
 
-function ModelRenderer({ chess, onModelReady, hdrFile }) {
+function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) {
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <Canvas
@@ -1149,7 +1156,7 @@ function ModelRenderer({ chess, onModelReady, hdrFile }) {
                 }}
                 gl={{ alpha: true, premultipliedAlpha: false }}
             >
-                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} />
+                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} />
             </Canvas>
 
             {/* 页面左下角比例尺标签 */}
