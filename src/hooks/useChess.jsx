@@ -121,7 +121,10 @@ export function ChessProvider({ children }) {
               "shape": "text",
               "position": { "x": 0, "y":0, "z": 0 },
               "size": 10,
-              "depth": 1
+              "depth": 1,
+              "scaleX": 1,
+              "scaleY": -1,
+              "scaleZ": 1
             },
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
@@ -145,7 +148,10 @@ export function ChessProvider({ children }) {
               "geometryType":"Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
-              "depth": 0.5
+              "depth": 0.5,
+              "scaleX": 1,
+              "scaleY": -1,
+              "scaleZ": 1
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },
@@ -197,7 +203,10 @@ export function ChessProvider({ children }) {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 10,
-              "depth": 1
+              "depth": 1,
+              "scaleX": 1,
+              "scaleY": -1,
+              "scaleZ": 1
             },
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
@@ -221,7 +230,10 @@ export function ChessProvider({ children }) {
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
-              "depth": 0.5
+              "depth": 0.5,
+              "scaleX": 1,
+              "scaleY": -1,
+              "scaleZ": 1
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },

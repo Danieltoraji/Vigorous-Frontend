@@ -819,15 +819,15 @@ modelId 含义：
                   min="0.1"
                   max="5"
                   step="0.1"
-                  value={getSafeValue(pattern.scaleY, 1)}
-                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', parseFloat(e.target.value))}
+                  value={Math.abs(getSafeValue(pattern.scaleY, -1))}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
                   className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', Math.min(5, getSafeValue(pattern.scaleY, 1) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.1))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -847,7 +847,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', Math.max(0.1, getSafeValue(pattern.scaleY, 1) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.1))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1509,15 +1509,15 @@ modelId 含义：
                   min="0.1"
                   max="5"
                   step="0.1"
-                  value={getSafeValue(pattern.scaleY, 1)}
-                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', parseFloat(e.target.value))}
+                  value={Math.abs(getSafeValue(pattern.scaleY, -1))}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
                   className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', Math.min(5, getSafeValue(pattern.scaleY, 1) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.1))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1537,7 +1537,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', Math.max(0.1, getSafeValue(pattern.scaleY, 1) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.1))}
                     style={{
                       width: '20px',
                       height: '14px',

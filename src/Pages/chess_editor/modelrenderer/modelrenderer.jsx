@@ -152,7 +152,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
         for (let i = 0; i < heightMap.length; i++) {
           const point = heightMap[i];
           // 直接生成在 XZ 平面，高度沿 Y 轴
-          const px = (point.x - width / 2) * planeSize;
+          const px = -(point.x - width / 2) * planeSize;
           const py = point.height;
           const pz = -(point.y - height / 2) * planeSize;
           
@@ -180,6 +180,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4 }) {
         geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
         geom.setIndex(indices);
         geom.computeVertexNormals();
+        
         
         console.log('体素几何体创建成功:', {
           vertexCount: positions.length / 3,
@@ -445,7 +446,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         patternelement = (
                             <mesh 
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
-                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                scale={[
+                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                                ]}
                                 castShadow 
                                 receiveShadow
                             >
@@ -464,7 +469,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         patternelement = (
                             <mesh 
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
-                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                scale={[
+                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                                ]}
                                 castShadow 
                                 receiveShadow
                             >
@@ -483,7 +492,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         patternelement = (
                             <mesh 
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]} 
-                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                scale={[
+                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                                ]}
                                 castShadow 
                                 receiveShadow
                             >
@@ -526,7 +539,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                     patternelement = (
                         <mesh 
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
-                            scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                            scale={[
+                                pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                            ]}
                             castShadow 
                             receiveShadow
                         >
@@ -753,7 +770,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         patternelement = (
                             <mesh 
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
-                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                scale={[
+                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                                ]}
                                 castShadow 
                                 receiveShadow
                             >
@@ -772,7 +793,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         patternelement = (
                             <mesh 
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
-                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                scale={[
+                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                                ]}
                                 castShadow 
                                 receiveShadow
                             >
@@ -791,7 +816,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         patternelement = (
                             <mesh 
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
-                                scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                                scale={[
+                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                                ]}
                                 castShadow 
                                 receiveShadow
                             >
@@ -834,7 +863,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                     patternelement = (
                         <mesh 
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
-                            scale={[pattern.scaleX || 1, pattern.scaleY || 1, pattern.scaleZ || 1]}
+                            scale={[
+                                pattern.scaleX !== undefined ? pattern.scaleX : 1,
+                                pattern.scaleY !== undefined ? pattern.scaleY : -1,
+                                pattern.scaleZ !== undefined ? pattern.scaleZ : 1
+                            ]}
                             castShadow 
                             receiveShadow
                         >
