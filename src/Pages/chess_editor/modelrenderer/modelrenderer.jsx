@@ -599,7 +599,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
                                 sampleRate={2} // 每 2 个像素采样一次，减少噪点影响
-                                smooth={smoothTexture} // 是否启用平滑
+                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
                             />
                             <meshStandardMaterial
                                 color="#CD853F"
@@ -924,7 +924,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
                                 sampleRate={2}
-                                smooth={smoothTexture} // 是否启用平滑
+                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
                             />
                             <meshStandardMaterial
                                 color="#CD853F"

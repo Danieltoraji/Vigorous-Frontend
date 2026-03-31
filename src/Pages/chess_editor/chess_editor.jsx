@@ -57,13 +57,14 @@ function ChessEditor() {
     // 根据当前选中的组件更新对应的 pattern 数据
     const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
     
-    // 同时更新 textureFile 和 shape 字段，避免分开更新导致的数据覆盖
+    // 同时更新 textureFile、shape 和 smooth 字段
     const patternData = {
       textureFile: texture.file,
       shape: 'custom',
       size: 10,
       depth: 1,
-      position: { x: 0, y: 0, z: 0 }
+      position: { x: 0, y: 0, z: 0 },
+      smooth: smoothTexture // 保存当前的平滑设置
     };
     
     handleDataUpdate(componentPath, patternData);
@@ -78,8 +79,8 @@ function ChessEditor() {
     { id: 'cinema', name: '电影院', file: '/static/chessbg/cinema.hdr' },
   ];
 
-  // 当chessData或location.state变化时更新currentChess
-
+  // 当 chessData 或 location.state 变化时更新 currentChess
+  
   const fetchData = async () => {
     try {
       console.log('正在获取棋子：', pieceId);
@@ -87,6 +88,15 @@ function ChessEditor() {
       if (fetchedData) {
         console.log('获取成功：', fetchedData);
         setCurrentChess(fetchedData);
+          
+        // 从保存的数据中恢复 smoothTexture 设置
+        const basePattern = fetchedData.parts?.base?.pattern;
+        const columnPattern = fetchedData.parts?.column?.pattern;
+        if (basePattern?.smooth !== undefined) {
+          setSmoothTexture(basePattern.smooth);
+        } else if (columnPattern?.smooth !== undefined) {
+          setSmoothTexture(columnPattern.smooth);
+        }
       }
     } catch (error) {
       console.error('获取失败:', error);
@@ -135,6 +145,27 @@ function ChessEditor() {
       [currentChess.id]: updatedChess
     }));
   }, [currentChess, setChessData]);
+
+  // 切换平滑纹理时，同时更新到数据中
+  const toggleSmoothTexture = useCallback(() => {
+    const newValue = !smoothTexture;
+    setSmoothTexture(newValue);
+    
+    // 如果当前有选中的纹理，同步更新到数据中
+    if (currentChess && selectedComponent) {
+      const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
+      const currentPattern = selectedComponent === 'base' 
+        ? currentChess.parts?.base?.pattern 
+        : currentChess.parts?.column?.pattern;
+      
+      if (currentPattern && currentPattern.shape === 'custom') {
+        handleDataUpdate(componentPath, {
+          ...currentPattern,
+          smooth: newValue
+        });
+      }
+    }
+  }, [smoothTexture, currentChess, selectedComponent, handleDataUpdate]);
 
   // 处理保存 - 使用 useCallback
   const handleSave = useCallback(async () => {
@@ -697,7 +728,7 @@ modelId 含义：
                 </button>
                 <button 
                   className={`texture-mode-button ${smoothTexture ? 'active' : ''}`} 
-                  onClick={() => setSmoothTexture(prev => !prev)}
+                  onClick={toggleSmoothTexture}
                 >
                   {smoothTexture ? '✨ 平滑已启用' : '✨ 平滑纹理'}
                 </button>
@@ -1393,7 +1424,7 @@ modelId 含义：
                 </button>
                 <button 
                   className={`texture-mode-button ${smoothTexture ? 'active' : ''}`} 
-                  onClick={() => setSmoothTexture(prev => !prev)}
+                  onClick={toggleSmoothTexture}
                 >
                   {smoothTexture ? '✨ 平滑已启用' : '✨ 平滑纹理'}
                 </button>
