@@ -2,7 +2,7 @@ import DecorationItem from './DecorationItem.jsx'
 import './DecorationList.css'
 
 
-function DecorationList({ decorations, onEditDecoration, onDeleteDecoration, onUploadDecoration }) {
+function DecorationList({ decorations, onEditDecoration, onDeleteDecoration, onUploadDecoration, onPreviewDecoration }) {
 
 
   return (
@@ -21,6 +21,7 @@ function DecorationList({ decorations, onEditDecoration, onDeleteDecoration, onU
             decoration={decoration}
             onEditDecoration={onEditDecoration}
             onDeleteDecoration={onDeleteDecoration}
+            onPreviewDecoration={onPreviewDecoration}
           />
         ))}
       </div>

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import './DecorationItem.css'
 
-function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
+function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration, onPreviewDecoration }) {
   const navigate = useNavigate()
 
   // 格式化日期
@@ -80,6 +80,9 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
       </div>
 
       <div className="decoration-item-footer">
+        <button className="btn btn-preview" onClick={() => onPreviewDecoration(decoration)}>
+          预览
+        </button>
         <button className="btn btn-secondary" onClick={() => onEditDecoration(decoration)}>
           编辑
         </button>

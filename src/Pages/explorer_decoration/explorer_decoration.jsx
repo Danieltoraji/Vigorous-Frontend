@@ -7,6 +7,7 @@ import { useUser } from '../../hooks/useUser.jsx'
 import { useDecoration } from '../../hooks/useDecoration.jsx'
 import DecorationList from './DecorationList.jsx'
 import DecorationUploadModal from './DecorationUploadModal.jsx'
+import DecorationPreviewModal from './DecorationPreviewModal.jsx'
 import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
 import './explorer_decoration.css'
 
@@ -16,6 +17,8 @@ function ExplorerDecoration() {
   const { decorationData, setDecorationData, updateDecoration, deleteDecoration, uploadDecoration } = useDecoration()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [currentDecoration, setCurrentDecoration] = useState(null)
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
+  const [previewDecoration, setPreviewDecoration] = useState(null)
 
   const onBack = () => {
     navigate('/menu')
@@ -70,6 +73,16 @@ function ExplorerDecoration() {
     }
   }
 
+  const handlePreviewDecoration = (decoration) => {
+    setPreviewDecoration(decoration)
+    setIsPreviewModalOpen(true)
+  }
+
+  const handleClosePreviewModal = () => {
+    setIsPreviewModalOpen(false)
+    setPreviewDecoration(null)
+  }
+
   return (
     <div className="explorer-decoration">
       <div className="explorer-header">
@@ -85,6 +98,7 @@ function ExplorerDecoration() {
         onEditDecoration={handleEditDecoration}
         onDeleteDecoration={deleteDecoration}
         onUploadDecoration={() => setIsUploadModalOpen(true)}
+        onPreviewDecoration={handlePreviewDecoration}
       />
 
       {isUploadModalOpen && (
@@ -93,6 +107,14 @@ function ExplorerDecoration() {
           onClose={handleCloseUploadModal}
           onUpdate={handleUpdateDecoration}
           onUpload={handleUploadDecoration}
+        />
+      )}
+
+      {isPreviewModalOpen && (
+        <DecorationPreviewModal
+          isOpen={isPreviewModalOpen}
+          onClose={handleClosePreviewModal}
+          decoration={previewDecoration}
         />
       )}
 

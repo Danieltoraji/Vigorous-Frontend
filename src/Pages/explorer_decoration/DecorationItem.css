@@ -150,3 +150,12 @@
 .decoration-item-footer .btn-danger:hover {
   background: #c82333;
 }
+
+.decoration-item-footer .btn-preview {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.decoration-item-footer .btn-preview:hover {
+  background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+}
