@@ -39,7 +39,7 @@ function ChessEditor() {
   const editorContentRef = useRef(null);
 
   // HDR 预设相关状态
-  const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
+  const [selectedHdrPreset, setSelectedHdrPreset] = useState('sky'); // 默认选中 sky.hdr
   const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
 
   // 自定义纹理相关状态
