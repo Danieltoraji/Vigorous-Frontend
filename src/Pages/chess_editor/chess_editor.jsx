@@ -1917,7 +1917,7 @@ modelId 含义：
           </div>
           <div className="chess-editor-editor-item">
             <button
-              className="btn chess-editor-btn-primary"
+              className="chess-editor-btn-primary"
               onClick={() => setShowAIGenerator(!showAIGenerator)}
               style={{ width: '100%', marginTop: '8px' }}
             >
@@ -1943,7 +1943,7 @@ modelId 含义：
                 </p>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '12px' }}>
+              <div style={{ marginBottom: '12px' }}>
                 <textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
@@ -1976,7 +1976,7 @@ modelId 含义：
               )}
 
               <button
-                className="btn chess-editor-btn-primary"
+                className="chess-editor-btn-primary"
                 onClick={handleAIGenerate}
                 disabled={isGenerating || !aiPrompt.trim()}
                 style={{

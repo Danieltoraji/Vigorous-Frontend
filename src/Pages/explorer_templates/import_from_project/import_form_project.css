@@ -80,7 +80,55 @@
 }
 
 .import-form-project-import-modal-footer .import-form-project-modal-actions {
+  display: flex;
+  gap: 10px;
   margin: 0;
+}
+
+.import-form-project-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+}
+
+.import-form-project-btn-secondary {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--fluent-text);
+  border: 1px solid var(--fluent-border);
+}
+
+.import-form-project-btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.import-form-project-btn-outline {
+  background: transparent;
+  border: 1px solid var(--fluent-border);
+  color: var(--fluent-text-secondary);
+}
+
+.import-form-project-btn-outline:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--fluent-text);
+}
+
+.import-form-project-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.import-form-project-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+}
+
+.import-form-project-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .loading-container,

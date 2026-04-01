@@ -242,7 +242,7 @@ function ExplorerTemplates() {
   return (
     <div className="explorer-templates">
       <div className="explorer-templates-explorer-header">
-        {/* <button className="back-button" onClick={onBack}>
+        {/* <button onClick={onBack}>
           ← 返回
         </button> */}
         <h1 className='explorer-templates-header-title' onClick={onBack}>

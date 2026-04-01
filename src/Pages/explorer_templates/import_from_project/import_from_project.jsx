@@ -18,7 +18,7 @@ function formatDateTime(dateString) {
 function ImportFromProject({ isOpen, onClose, onConfirm }) {
   const { projectData, loading: projectLoading } = useProject()
   const { getPiecesByProject, getChessById, loading: chessLoading } = useChess()
-  
+
   const [selectedProject, setSelectedProject] = useState(null)
   const [pieces, setPieces] = useState([])
   const [selectedPieces, setSelectedPieces] = useState([])
@@ -69,7 +69,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
       alert('请至少选择一个棋子')
       return
     }
-    
+
     try {
       // 使用 getChessById 获取每个选中棋子的完整数据
       const completePieces = []
@@ -77,7 +77,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
         const completePiece = await getChessById(piece.id)
         completePieces.push(completePiece)
       }
-      
+
       console.log(completePieces)
       onConfirm(completePieces)
       onClose()
@@ -92,12 +92,12 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
   const projects = Object.values(projectData || {})
 
   return (
-    <div className="modal-overlay import-modal-overlay">
-      <div className="modal-content import-modal-content">
+    <div className="import-modal-overlay">
+      <div className="import-modal-content">
         <div className="import-modal-header">
           {selectedProject ? (
             <>
-              <button className="import-form-project-btn btn-secondary back-btn" onClick={handleBackToProjects}>
+              <button className="import-form-project-btn import-form-project-btn-secondary back-btn" onClick={handleBackToProjects}>
                 ← 返回项目列表
               </button>
               <h2>选择棋子 - {selectedProject.name}</h2>
@@ -120,8 +120,8 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
               ) : (
                 <div className="pieces-grid">
                   {pieces.map(piece => (
-                    <div 
-                      key={piece.id} 
+                    <div
+                      key={piece.id}
                       className={`piece-card ${selectedPieces.some(p => p.id === piece.id) ? 'selected' : ''}`}
                       onClick={() => handlePieceSelect(piece)}
                     >
@@ -153,8 +153,8 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
           ) : (
             <div className="projects-grid">
               {projects.map(project => (
-                <div 
-                  key={project.id} 
+                <div
+                  key={project.id}
                   className="project-card"
                   onClick={() => handleProjectClick(project)}
                 >
@@ -199,12 +199,12 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
             </div>
           )}
           <div className="import-form-project-modal-actions">
-            <button className="import-form-project-btn btn-outline" onClick={onClose}>
+            <button className="import-form-project-btn import-form-project-btn-outline" onClick={onClose}>
               取消
             </button>
             {selectedProject && (
-              <button 
-                className="import-form-project-btn btn-primary" 
+              <button
+                className="import-form-project-btn import-form-project-btn-primary"
                 onClick={handleConfirm}
                 disabled={selectedPieces.length === 0}
               >
