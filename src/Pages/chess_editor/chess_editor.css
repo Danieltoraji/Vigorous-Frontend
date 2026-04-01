@@ -9,19 +9,22 @@
 }
 
 /* 顶部标题栏 */
-.editor-header {
+.chess-editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  height: 60px;
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: none;
-  flex-shrink: 0;
+  padding: 20px 2%;
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--fluent-text);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+  border-bottom: 1px solid var(--fluent-border);
   transition: var(--fluent-transition);
 }
 
@@ -31,35 +34,34 @@
   gap: 15px;
 }
 
-.back-button {
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--fluent-border);
-  border-radius: var(--fluent-radius);
-  cursor: pointer;
-  font-size: 14px;
-  transition: var(--fluent-transition);
-  color: var(--fluent-text);
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.chess-name::before {
+  content: "";
+  display: inline-block;
+  background: url("/static/logo/white.png") center center no-repeat;
+  background-size: contain;
+  border-right: 2px solid #d4d4d4;
+  height: 2em;
+  vertical-align: middle;
+  aspect-ratio: 1308/501;
+  margin-right: 20px;
+  padding-right: 20px;
+  margin-bottom: 10px;
 
-.back-button:hover {
-  background: rgba(0, 0, 0, 0.05);
-  box-shadow: var(--fluent-shadow-hover);
 }
 
 .chess-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--fluent-text);
+  font-size: 24px !important;
+  font-weight: bold;
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: -10px;
+  cursor: pointer;
 }
 
 .last-saved {
-  font-size: 12px;
-  color: var(--fluent-text-tertiary);
+  padding-top: 10px;
+  font-size: 20px;
+  color: #AAAAAA;
 }
 
 .header-right {
@@ -348,7 +350,7 @@
   border-left: none;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
+  padding: 100px 20px 20px 20px !important;
   transition: var(--fluent-transition);
   min-height: 0;
   max-width: 90vw;

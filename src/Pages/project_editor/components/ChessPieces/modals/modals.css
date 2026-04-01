@@ -17,7 +17,8 @@
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
-  position: fixed;
+  position: relative;
+  margin: 0 auto;
   animation: slideIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   transition: var(--fluent-transition);
 }
@@ -731,37 +732,37 @@
   .file-upload-area h4 {
     font-size: 14px;
   }
-  
+
   .template-selector-modal {
     max-width: 95%;
   }
-  
+
   .template-selector-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .template-selector-controls {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .template-list.card-view {
     grid-template-columns: 1fr;
   }
-  
+
   .template-list-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .template-list-details {
     align-items: flex-start;
     width: 100%;
   }
-  
+
   .template-list-tags {
     justify-content: flex-start;
     width: 100%;

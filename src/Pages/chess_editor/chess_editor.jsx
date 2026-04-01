@@ -2280,10 +2280,9 @@ modelId 含义：
   return (
     <div className="chess-editor">
       {/* 顶部标题栏 */}
-      <header className="editor-header">
+      <header className="chess-editor-header">
         <div className="header-left">
-          <button className="back-button" onClick={handleBack}>← 返回</button>
-          <h1 className="chess-name">{currentChess?.name || '棋子编辑器'}</h1>
+          <h1 className="chess-name" onClick={handleBack}>❮  {currentChess?.name || '棋子编辑器'}</h1>
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
