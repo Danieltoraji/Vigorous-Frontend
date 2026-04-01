@@ -191,15 +191,15 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="textureuploadmodal-modal-overlay" onClick={onClose}>
+      <div className="textureuploadmodal-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="textureuploadmodal-modal-header">
           <h2>{texture ? '编辑纹理' : '上传纹理'}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="textureuploadmodal-close-button" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="texture-form">
-          <div className="form-group">
+          <div className="textureuploadmodal-form-group">
             <label>纹理名称</label>
             <input
               type="text"
@@ -210,7 +210,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="textureuploadmodal-form-group">
             <label>选择文件</label>
             <input
               type="file"
@@ -222,7 +222,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           </div>
 
           {previewUrl && (
-            <div className="form-group">
+            <div className="textureuploadmodal-form-group">
               <label>预览，确认无误，点击下方按钮进行色彩处理（彩色变黑白，黑白变反色）</label>
               <div className="preview-container">
                 <img src={previewUrl} alt="预览" className="preview-image" />
@@ -230,7 +230,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
               <button 
                 type="button" 
                 onClick={convertToGrayscale} 
-                className="btn btn-grayscale"
+                className="textureuploadmodal-btn btn-grayscale"
                 style={{ width: '100%', marginTop: '10px' }}
               >
                 🎨 色彩处理🎨 
@@ -238,9 +238,9 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
             </div>
           )}
 
-          <div className="form-group">
+          <div className="textureuploadmodal-form-group">
             <label>标签</label>
-            <div className="tag-input-container">
+            <div className="textureuploadmodal-tag-input-container">
               <input
                 type="text"
                 value={tagInput}
@@ -253,18 +253,18 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                   }
                 }}
               />
-              <button type="button" onClick={handleAddTag} className="btn btn-secondary">
+              <button type="button" onClick={handleAddTag} className="textureuploadmodal-btn textureuploadmodal-btn-secondary">
                 添加
               </button>
             </div>
-            <div className="tags-container">
+            <div className="textureuploadmodal-tags-container">
               {formData.texture_tags.map((tag, index) => (
-                <span key={index} className="tag">
+                <span key={index} className="textureuploadmodal-tag">
                   {tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="remove-tag"
+                    className="textureuploadmodal-remove-tag"
                   >
                     ×
                   </button>
@@ -273,11 +273,11 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+          <div className="textureuploadmodal-form-actions">
+            <button type="button" onClick={onClose} className="textureuploadmodal-btn textureuploadmodal-btn-secondary">
               取消
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="textureuploadmodal-btn textureuploadmodal-btn-primary">
               {texture ? '保存修改' : '上传'}
             </button>
           </div>

@@ -217,13 +217,13 @@
   transition: var(--fluent-transition);
 }
 
-.action-buttons {
+.views-action-buttons {
   display: flex;
   gap: 6px;
   transition: var(--fluent-transition);
 }
 
-.action-buttons .action-button {
+.views-action-buttons .action-button {
   flex: none;
   padding: 4px 8px;
   font-size: 12px;
@@ -266,12 +266,12 @@
     display: none;
   }
 
-  .action-buttons {
+  .views-action-buttons {
     flex-direction: column;
     gap: 4px;
   }
 
-  .action-buttons .action-button {
+  .views-action-buttons .action-button {
     width: 100%;
   }
 

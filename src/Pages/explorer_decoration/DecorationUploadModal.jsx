@@ -83,15 +83,15 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="decorationuploadmodal-modal-overlay" onClick={onClose}>
+      <div className="decorationuploadmodal-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="decorationuploadmodal-modal-header">
           <h2>{decoration ? '编辑装饰' : '上传装饰'}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="decorationuploadmodal-close-button" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="decoration-form">
-          <div className="form-group">
+          <div className="decorationuploadmodal-form-group">
             <label>装饰名称</label>
             <input
               type="text"
@@ -102,7 +102,7 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="decorationuploadmodal-form-group">
             <label>选择文件</label>
             <input
               type="file"
@@ -114,18 +114,18 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
           </div>
 
           {fileName && (
-            <div className="form-group">
+            <div className="decorationuploadmodal-form-group">
               <label>已选文件</label>
               <div className="file-info-display">
-                <span className="file-icon">📦</span>
-                <span className="file-name">{fileName}</span>
+                <span className="decorationuploadmodal-file-icon">📦</span>
+                <span className="decorationuploadmodal-file-name">{fileName}</span>
               </div>
             </div>
           )}
 
-          <div className="form-group">
+          <div className="decorationuploadmodal-form-group">
             <label>标签</label>
-            <div className="tag-input-container">
+            <div className="decorationuploadmodal-tag-input-container">
               <input
                 type="text"
                 value={tagInput}
@@ -138,18 +138,18 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
                   }
                 }}
               />
-              <button type="button" onClick={handleAddTag} className="btn btn-secondary">
+              <button type="button" onClick={handleAddTag} className="decorationuploadmodal-btn decorationuploadmodal-btn-secondary">
                 添加
               </button>
             </div>
-            <div className="tags-container">
+            <div className="decorationuploadmodal-tags-container">
               {formData.decoration_tags.map((tag, index) => (
-                <span key={index} className="tag">
+                <span key={index} className="decorationuploadmodal-tag">
                   {tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="remove-tag"
+                    className="decorationuploadmodal-remove-tag"
                   >
                     ×
                   </button>
@@ -158,11 +158,11 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+          <div className="decorationuploadmodal-form-actions">
+            <button type="button" onClick={onClose} className="decorationuploadmodal-btn decorationuploadmodal-btn-secondary">
               取消
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="decorationuploadmodal-btn decorationuploadmodal-btn-primary">
               {decoration ? '保存修改' : '上传'}
             </button>
           </div>

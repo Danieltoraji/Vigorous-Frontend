@@ -8,7 +8,7 @@
   background-size: cover;
 }
 
-.explorer-header {
+.explorer-texture-explorer-header {
   background: linear-gradient(135deg, #202020 0%, #393939 100%);
   backdrop-filter: blur(10px);
   padding: 20px 2%;
@@ -23,7 +23,7 @@
   z-index: 1000;
 }
 
-.header-title::before {
+.explorer-texture-header-title::before {
   content: "";
   display: inline-block;
   background: url("/static/logo/white.png") center center no-repeat;
@@ -37,7 +37,7 @@
   margin-bottom: 10px;
 }
 
-.explorer-header .header-title {
+.explorer-texture-explorer-header .explorer-texture-header-title {
   font-size: 24px !important;
   font-weight: bold;
   color: white !important;
@@ -46,14 +46,14 @@
   cursor: pointer;
 }
 
-.explorer-header .user-welcome {
+.explorer-texture-explorer-header .explorer-texture-user-welcome {
   color: white;
   font-weight: 500;
   font-size: 16px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.explorer-texture .back-button {
+.explorer-texture .explorer-texture-back-button {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
@@ -64,17 +64,17 @@
   transition: background 0.3s;
 }
 
-.explorer-texture .back-button:hover {
+.explorer-texture .explorer-texture-back-button:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.explorer-texture .explorer-header h1 {
+.explorer-texture .explorer-texture-explorer-header h1 {
   flex: 1;
   margin: 0;
   font-size: 28px;
 }
 
-.explorer-texture .explorer-header p {
+.explorer-texture .explorer-texture-explorer-header p {
   margin: 0;
   opacity: 0.9;
 }

@@ -58,7 +58,7 @@ const ListView = ({ pieces, onEdit, onOpen, onDelete }) => {
               </td>
               <td>{formatDate(piece.created_at)}</td>
               <td>{formatDate(piece.edited_at)}</td>
-              <td className="action-buttons">
+              <td className="views-action-buttons">
                 <button
                   className="action-button edit-button"
                   onClick={() => onEdit(piece)}

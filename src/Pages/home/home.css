@@ -66,7 +66,7 @@ body {
   z-index: 1000;
 }
 
-.header-title::before {
+.home-header-title::before {
   content: "";
   pointer-events: auto;
   display: inline-block;
@@ -81,7 +81,7 @@ body {
   margin-bottom: 10px;
 }
 
-.header-title {
+.home-header-title {
   font-size: 24px;
   font-weight: bold;
   color: white;
@@ -90,7 +90,7 @@ body {
   cursor: pointer;
 }
 
-.user-welcome {
+.home-user-welcome {
   color: white;
   font-weight: 500;
   font-size: 16px;
@@ -237,7 +237,7 @@ body {
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.action-buttons {
+.home-action-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
@@ -282,7 +282,7 @@ body {
 
 /* 响应式设计 */
 /* Footer 样式 */
-.footer {
+.home-footer {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -318,15 +318,15 @@ body {
     order: 2;
   }
 
-  .action-buttons {
+  .home-action-buttons {
     grid-template-columns: 1fr;
   }
 
-  .header-title {
+  .home-header-title {
     font-size: 1.5rem;
   }
 
-  .user-welcome {
+  .home-user-welcome {
     font-size: 14px;
   }
 }

@@ -7,7 +7,7 @@
   background-size: cover;
 }
 
-.explorer-header {
+.explorer-templates-explorer-header {
   background: linear-gradient(135deg, #202020 0%, #393939 100%);
   backdrop-filter: blur(10px);
   padding: 20px 2%;
@@ -22,7 +22,7 @@
   z-index: 1000;
 }
 
-.header-title::before {
+.explorer-templates-header-title::before {
   content: "";
   display: inline-block;
   background: url("/static/logo/white.png") center center no-repeat;
@@ -36,7 +36,7 @@
   margin-bottom: 10px;
 }
 
-.header-title {
+.explorer-templates-header-title {
   font-size: 24px;
   font-weight: bold;
   color: white;
@@ -45,21 +45,21 @@
   cursor: pointer;
 }
 
-.user-welcome {
+.explorer-templates-user-welcome {
   color: white;
   font-weight: 500;
   font-size: 16px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.explorer-header h1 {
+.explorer-templates-explorer-header h1 {
   font-size: 2rem;
   font-weight: 600;
   color: var(--fluent-text);
   margin-bottom: 10px;
 }
 
-.explorer-header p {
+.explorer-templates-explorer-header p {
   font-size: 1rem;
   color: var(--fluent-text-secondary);
   margin: 0;
@@ -168,7 +168,7 @@
   flex: 1;
 }
 
-.view-controls {
+.explorer-templates-view-controls {
   justify-content: center;
   display: flex;
   justify-content: space-between;
@@ -181,7 +181,7 @@
 }
 
 /* 模态框样式 */
-.modal-overlay {
+.explorer-templates-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -194,7 +194,7 @@
   z-index: 1000;
 }
 
-.modal-content {
+.explorer-templates-modal-content {
   background: var(--fluent-acrylic);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
@@ -208,20 +208,20 @@
   text-align: center;
 }
 
-.modal-content h2 {
+.explorer-templates-modal-content h2 {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--fluent-text);
   margin-bottom: 16px;
 }
 
-.modal-content p {
+.explorer-templates-modal-content p {
   color: var(--fluent-text-secondary);
   margin-bottom: 32px;
   font-size: 14px;
 }
 
-.modal-actions {
+.explorer-templates-modal-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
@@ -250,11 +250,11 @@
 }
 
 /* 拖拽激活状态 */
-.modal-content.drag-active {
+.explorer-templates-modal-content.drag-active {
   box-shadow: 0 0 0 2px var(--fluent-primary), var(--fluent-shadow-hover);
 }
 
-.modal-content.drag-active .drag-drop-area {
+.explorer-templates-modal-content.drag-active .drag-drop-area {
   border-color: var(--fluent-primary);
   background: rgba(0, 120, 212, 0.05);
 }
@@ -269,7 +269,7 @@
   border: 1px solid var(--fluent-border);
 }
 
-.view-button {
+.explorer-templates-view-button {
   padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -285,11 +285,11 @@
   gap: 4px;
 }
 
-.view-button:hover {
+.explorer-templates-view-button:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
-.view-button.active {
+.explorer-templates-view-button.active {
   background-color: var(--fluent-primary);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 120, 212, 0.3);
@@ -328,7 +328,7 @@
   align-items: center;
 }
 
-.template-name {
+.explorer-templates-template-name {
   font-size: 16px;
   font-weight: 600;
   color: var(--fluent-primary);
@@ -395,22 +395,22 @@
   margin-bottom: 24px;
 }
 
-.form-group {
+.explorer-templates-form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: flex-start;
 }
 
-.form-group label {
+.explorer-templates-form-group label {
   font-weight: 500;
   color: var(--fluent-text);
   font-size: 16px;
   text-align: left;
 }
 
-.form-group input,
-.form-group textarea {
+.explorer-templates-form-group input,
+.explorer-templates-form-group textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--fluent-border);
@@ -424,14 +424,14 @@
   box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
+.explorer-templates-form-group input:focus,
+.explorer-templates-form-group textarea:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 2px var(--fluent-primary);
 }
 
-.form-group textarea {
+.explorer-templates-form-group textarea {
   resize: vertical;
   min-height: 80px;
 }
@@ -465,12 +465,12 @@
   font-size: 12px;
 }
 
-.meta-label {
+.explorer-templates-meta-label {
   color: var(--fluent-text-tertiary);
   font-weight: 500;
 }
 
-.meta-value {
+.explorer-templates-meta-value {
   color: var(--fluent-text-secondary);
   font-weight: 500;
 }
@@ -504,7 +504,7 @@
   flex-wrap: wrap;
 }
 
-.btn {
+.explorer-templates-btn {
   padding: 8px 16px;
   border-radius: var(--fluent-radius);
   font-size: 14px;
@@ -519,28 +519,28 @@
   gap: 8px;
 }
 
-.btn:disabled {
+.explorer-templates-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.btn-primary {
+.explorer-templates-btn-primary {
   background-color: var(--fluent-primary);
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
+.explorer-templates-btn-primary:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.btn-secondary {
+.explorer-templates-btn-secondary {
   background-color: white;
   color: var(--fluent-text);
   border: 1px solid var(--fluent-border);
 }
 
-.btn-secondary:hover:not(:disabled) {
+.explorer-templates-btn-secondary:hover:not(:disabled) {
   background-color: rgba(0, 0, 0, 0.05);
   box-shadow: var(--fluent-shadow-hover);
 }
@@ -556,7 +556,7 @@
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.btn.small {
+.explorer-templates-btn.small {
   padding: 6px 12px;
   font-size: 12px;
   min-height: 28px;
@@ -685,11 +685,11 @@
     padding: 16px;
   }
 
-  .explorer-header h1 {
+  .explorer-templates-explorer-header h1 {
     font-size: 1.5rem;
   }
 
-  .explorer-header p {
+  .explorer-templates-explorer-header p {
     font-size: 14px;
   }
 
@@ -710,11 +710,11 @@
     align-items: stretch;
   }
 
-  .btn {
+  .explorer-templates-btn {
     width: 100%;
   }
 
-  .view-controls {
+  .explorer-templates-view-controls {
     justify-content: center;
   }
 
@@ -805,7 +805,7 @@
   min-height: 48px;
 }
 
-.import-modal-footer {
+.explorer-templates-import-modal-footer {
   display: flex;
   justify-content: center;
   gap: 12px;

@@ -241,13 +241,13 @@ function ExplorerTemplates() {
   //
   return (
     <div className="explorer-templates">
-      <div className="explorer-header">
+      <div className="explorer-templates-explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title' onClick={onBack}>
+        <h1 className='explorer-templates-header-title' onClick={onBack}>
           ❮  模板资源管理器</h1>
-        <p className='user-welcome'>欢迎您！{userData.username}</p>
+        <p className='explorer-templates-user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
       <div className="explorer-content">
@@ -287,16 +287,16 @@ function ExplorerTemplates() {
         </div>
 
         <div className="right-content">
-          <div className="view-controls">
+          <div className="explorer-templates-view-controls">
             <div className="view-buttons">
               <button
-                className={`view-button ${viewMode === 'card' ? 'active' : ''}`}
+                className={`explorer-templates-view-button ${viewMode === 'card' ? 'active' : ''}`}
                 onClick={() => setViewMode('card')}
               >
                 卡片视图
               </button>
               <button
-                className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
+                className={`explorer-templates-view-button ${viewMode === 'list' ? 'active' : ''}`}
                 onClick={() => setViewMode('list')}
               >
                 列表视图
@@ -304,13 +304,13 @@ function ExplorerTemplates() {
             </div>
             <div className="template-actions-buttons">
               <button
-                className="btn btn-primary"
+                className="explorer-templates-btn explorer-templates-btn-primary"
                 onClick={handleCreateTemplate}
               >
                 新建模板
               </button>
               <button
-                className="btn btn-secondary"
+                className="explorer-templates-btn explorer-templates-btn-secondary"
                 onClick={handleImportTemplate}
               >
                 导入模板
@@ -323,7 +323,7 @@ function ExplorerTemplates() {
               {filteredTemplates.map(template => (
                 <div key={template.id} className="template-card">
                   <div className="template-card-header">
-                    <h3 className="template-name">{template.name}</h3>
+                    <h3 className="explorer-templates-template-name">{template.name}</h3>
                     <button
                       className="edit-icon"
                       onClick={() => handleEditInfo(template)}
@@ -340,16 +340,16 @@ function ExplorerTemplates() {
 
                     <div className="template-meta">
                       <div className="template-meta-item">
-                        <span className="meta-label">ID：</span>
-                        <span className="meta-value">{template.id}</span>
+                        <span className="explorer-templates-meta-label">ID：</span>
+                        <span className="explorer-templates-meta-value">{template.id}</span>
                       </div>
                       <div className="template-meta-item">
-                        <span className="meta-label">创建时间：</span>
-                        <span className="meta-value">{formatDateTime(template.created_at)}</span>
+                        <span className="explorer-templates-meta-label">创建时间：</span>
+                        <span className="explorer-templates-meta-value">{formatDateTime(template.created_at)}</span>
                       </div>
                       <div className="template-meta-item">
-                        <span className="meta-label">修改时间：</span>
-                        <span className="meta-value">{formatDateTime(template.edited_at)}</span>
+                        <span className="explorer-templates-meta-label">修改时间：</span>
+                        <span className="explorer-templates-meta-value">{formatDateTime(template.edited_at)}</span>
                       </div>
                     </div>
 
@@ -367,19 +367,19 @@ function ExplorerTemplates() {
                   <div className="template-card-footer">
                     <div className="template-actions">
                       <button
-                        className="btn btn-secondary"
+                        className="explorer-templates-btn explorer-templates-btn-secondary"
                         onClick={() => handleOpenTemplate(template)}
                       >
                         打开
                       </button>
                       <button
-                        className="btn btn-primary"
+                        className="explorer-templates-btn explorer-templates-btn-primary"
                         onClick={() => handleApplyToProject(template)}
                       >
                         应用到项目
                       </button>
                       <button
-                        className="btn btn-outline delete-btn"
+                        className="explorer-templates-btn btn-outline delete-btn"
                         onClick={() => handleDeleteTemplate(template.id)}
                       >
                         删除
@@ -454,20 +454,20 @@ function ExplorerTemplates() {
                       <td>
                         <div className="template-actions list-actions">
                           <button
-                            className="btn btn-secondary small"
+                            className="explorer-templates-btn explorer-templates-btn-secondary small"
                             onClick={() => handleOpenTemplate(template)}
                           >
                             打开
                           </button>
                           <button
-                            className="btn btn-primary small"
+                            className="explorer-templates-btn explorer-templates-btn-primary small"
                             onClick={() => handleApplyToProject(template)}
                           >
                             应用
                           </button>
                           <div className="more-actions">
                             <button
-                              className="btn btn-outline small"
+                              className="explorer-templates-btn btn-outline small"
                               onClick={() => toggleMoreActions(template.id)}
                             >
                               更多
@@ -503,9 +503,9 @@ function ExplorerTemplates() {
 
       {/* 导入模板模态框 */}
       {showImportModal && (
-        <div className="modal-overlay">
+        <div className="explorer-templates-modal-overlay">
           <div
-            className={`modal-content import-modal-two-column ${dragActive ? 'drag-active' : ''}`}
+            className={`explorer-templates-modal-content import-modal-two-column ${dragActive ? 'drag-active' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -520,7 +520,7 @@ function ExplorerTemplates() {
                   <p className="drag-hint">支持 .json 文件</p>
                 </div>
                 <button
-                  className="btn btn-primary import-column-btn"
+                  className="explorer-templates-btn explorer-templates-btn-primary import-column-btn"
                   onClick={handleImportFromJson}
                 >
                   从JSON文件导入
@@ -531,7 +531,7 @@ function ExplorerTemplates() {
                 <h3 className="import-column-title">从项目导入</h3>
                 <p className="import-column-desc">从现有项目中导入棋子作为模板，可以选择项目中的多个棋子批量导入。</p>
                 <button
-                  className="btn btn-primary import-column-btn large"
+                  className="explorer-templates-btn explorer-templates-btn-primary import-column-btn large"
                   onClick={handleImportFromProject}
                 >
                   从项目棋子导入
@@ -539,9 +539,9 @@ function ExplorerTemplates() {
               </div>
             </div>
 
-            <div className="import-modal-footer">
+            <div className="explorer-templates-import-modal-footer">
               <button
-                className="btn btn-outline"
+                className="explorer-templates-btn btn-outline"
                 onClick={handleCloseImportModal}
               >
                 取消
@@ -553,12 +553,12 @@ function ExplorerTemplates() {
 
       {/* 编辑模板模态框 */}
       {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal-content edit-modal">
+        <div className="explorer-templates-modal-overlay">
+          <div className="explorer-templates-modal-content edit-modal">
             <h2>编辑模板</h2>
 
             <div className="edit-form">
-              <div className="form-group">
+              <div className="explorer-templates-form-group">
                 <label>模板名称 *</label>
                 <input
                   type="text"
@@ -569,7 +569,7 @@ function ExplorerTemplates() {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="explorer-templates-form-group">
                 <label>描述</label>
                 <textarea
                   value={editDescription}
@@ -580,7 +580,7 @@ function ExplorerTemplates() {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="explorer-templates-form-group">
                 <label>标签</label>
                 <input
                   type="text"
@@ -592,15 +592,15 @@ function ExplorerTemplates() {
               </div>
             </div>
 
-            <div className="modal-actions">
+            <div className="explorer-templates-modal-actions">
               <button
-                className="btn btn-primary"
+                className="explorer-templates-btn explorer-templates-btn-primary"
                 onClick={handleSaveEdit}
               >
                 保存
               </button>
               <button
-                className="btn btn-outline"
+                className="explorer-templates-btn btn-outline"
                 onClick={handleCloseEditModal}
               >
                 取消

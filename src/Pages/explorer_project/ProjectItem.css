@@ -24,7 +24,7 @@
   padding-bottom: 15px;
 }
 
-.project-name {
+.projectitem-project-name {
   font-size: 24px !important;
   font-weight: 700 !important;
   color: black !important;
@@ -46,39 +46,39 @@
   margin-bottom: 20px;
 }
 
-.project-description {
+.projectitem-project-description {
   font-size: 16px;
   color: var(--fluent-text-secondary);
   margin-bottom: 16px;
   line-height: 1.4;
 }
 
-.project-meta {
+.projectitem-project-meta {
   margin-bottom: 16px;
 }
 
-.project-meta-item {
+.projectitem-project-meta-item {
   font-size: 12px;
   margin-bottom: 4px;
 }
 
-.meta-label {
+.projectitem-meta-label {
   color: var(--fluent-text-tertiary);
   margin-right: 4px;
   font-weight: 500;
 }
 
-.meta-value {
+.projectitem-meta-value {
   color: var(--fluent-text-secondary);
 }
 
-.project-tags {
+.projectitem-project-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.project-tag {
+.projectitem-project-tag {
   padding: 4px 8px;
   border-radius: var(--fluent-radius-full);
   font-size: 12px;
@@ -87,7 +87,7 @@
   transition: var(--fluent-transition);
 }
 
-.project-tag:hover {
+.projectitem-project-tag:hover {
   background: rgba(0, 120, 212, 0.2);
 }
 
@@ -112,16 +112,16 @@
     margin-bottom: 12px;
   }
 
-  .project-name {
+  .projectitem-project-name {
     font-size: 14px;
   }
 
-  .project-description {
+  .projectitem-project-description {
     font-size: 14px;
     margin-bottom: 12px;
   }
 
-  .project-meta {
+  .projectitem-project-meta {
     margin-bottom: 12px;
   }
 

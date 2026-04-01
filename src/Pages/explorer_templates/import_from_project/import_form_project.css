@@ -36,7 +36,7 @@
   font-size: 13px;
 }
 
-.close-btn {
+.import-form-project-close-btn {
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid var(--fluent-border);
   border-radius: 4px;
@@ -51,7 +51,7 @@
   color: var(--fluent-text-secondary);
 }
 
-.close-btn:hover {
+.import-form-project-close-btn:hover {
   background: rgba(209, 52, 56, 0.1);
   border-color: #D13438;
   color: #D13438;
@@ -64,7 +64,7 @@
   min-height: 300px;
 }
 
-.import-modal-footer {
+.import-form-project-import-modal-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--fluent-border-light);
   background: rgba(255, 255, 255, 0.5);
@@ -79,7 +79,7 @@
   font-size: 14px;
 }
 
-.import-modal-footer .modal-actions {
+.import-form-project-import-modal-footer .import-form-project-modal-actions {
   margin: 0;
 }
 
@@ -129,7 +129,7 @@
   align-items: center;
 }
 
-.project-name,
+.import-form-project-project-name,
 .piece-name {
   font-size: 14px;
   font-weight: 600;
@@ -142,7 +142,7 @@
   padding: 12px 16px;
 }
 
-.project-description {
+.import-form-project-project-description {
   color: var(--fluent-text-secondary);
   font-size: 13px;
   margin-bottom: 12px;
@@ -153,12 +153,12 @@
   overflow: hidden;
 }
 
-.project-meta,
+.import-form-project-project-meta,
 .piece-meta {
   margin-bottom: 8px;
 }
 
-.project-meta-item,
+.import-form-project-project-meta-item,
 .piece-meta-item {
   display: flex;
   justify-content: space-between;
@@ -166,24 +166,24 @@
   font-size: 12px;
 }
 
-.meta-label {
+.import-form-project-meta-label {
   color: var(--fluent-text-tertiary);
   font-weight: 500;
 }
 
-.meta-value {
+.import-form-project-meta-value {
   color: var(--fluent-text-secondary);
   font-weight: 500;
 }
 
-.project-tags {
+.import-form-project-project-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
 }
 
-.project-tag {
+.import-form-project-project-tag {
   padding: 2px 8px;
   background: rgba(0, 120, 212, 0.1);
   color: var(--fluent-primary);
@@ -251,7 +251,7 @@
     order: 1;
   }
 
-  .close-btn {
+  .import-form-project-close-btn {
     order: 3;
   }
 
@@ -260,17 +260,17 @@
     grid-template-columns: 1fr;
   }
 
-  .import-modal-footer {
+  .import-form-project-import-modal-footer {
     flex-direction: column;
     gap: 12px;
   }
 
-  .import-modal-footer .modal-actions {
+  .import-form-project-import-modal-footer .import-form-project-modal-actions {
     width: 100%;
     justify-content: stretch;
   }
 
-  .import-modal-footer .modal-actions .btn {
+  .import-form-project-import-modal-footer .import-form-project-modal-actions .import-form-project-btn {
     flex: 1;
   }
 }

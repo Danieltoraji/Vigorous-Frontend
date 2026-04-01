@@ -72,14 +72,14 @@ function ExplorerDecoration() {
 
   return (
     <div className="explorer-decoration">
-      <div className="explorer-header">
-        {/* <button className="back-button" onClick={onBack}>
+      <div className="explorer-decoration-explorer-header">
+        {/* <button className="explorer-decoration-back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title' onClick={onBack}>
+        <h1 className='explorer-decoration-header-title' onClick={onBack}>
           ❮  装饰资源管理器
         </h1>
-        <p className='user-welcome'>欢迎您！{userData.username}</p>
+        <p className='explorer-decoration-user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
       <DecorationList

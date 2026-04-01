@@ -1,5 +1,5 @@
 /* 主容器 */
-.chess-editor {
+.chess-editor-chess-editor {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -28,13 +28,13 @@
   transition: var(--fluent-transition);
 }
 
-.header-left {
+.chess-editor-header-left {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.chess-name::before {
+.chess-editor-chess-name::before {
   content: "";
   display: inline-block;
   background: url("/static/logo/white.png") center center no-repeat;
@@ -49,7 +49,7 @@
 
 }
 
-.chess-name {
+.chess-editor-chess-name {
   font-size: 24px !important;
   font-weight: bold;
   color: white !important;
@@ -58,19 +58,19 @@
   cursor: pointer;
 }
 
-.last-saved {
+.chess-editor-last-saved {
   padding-top: 10px;
   font-size: 20px;
   color: #AAAAAA;
 }
 
-.header-right {
+.chess-editor-header-right {
   display: flex;
   gap: 10px;
 }
 
-.save-button,
-.export-button {
+.chess-editor-save-button,
+.chess-editor-export-button {
   padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -84,28 +84,28 @@
   font-weight: 500;
 }
 
-.save-button {
+.chess-editor-save-button {
   background-color: #5c3100;
   color: white;
 }
 
-.save-button:hover:not(:disabled) {
+.chess-editor-save-button:hover:not(:disabled) {
   background-color: #510205;
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.export-button {
+.chess-editor-export-button {
   background-color: var(--fluent-primary);
   color: white;
 }
 
-.export-button:hover:not(:disabled) {
+.chess-editor-export-button:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
 
 /* 内容区域 */
-.editor-content {
+.chess-editor-editor-content {
   display: flex;
   flex: 1;
   overflow: hidden;
@@ -117,7 +117,7 @@
 }
 
 /* 左侧组件选择面板 */
-.part-selector {
+.chess-editor-part-selector {
   position: absolute;
   left: 0;
   top: 0;
@@ -136,7 +136,7 @@
   overflow-y: auto;
 }
 
-.part-selector.collapsed {
+.chess-editor-part-selector.collapsed {
   padding: 0;
   overflow: hidden;
   border-right: none !important;
@@ -149,7 +149,7 @@
 }
 
 /* 确保左侧面板收起时，切换按钮仍然可见 */
-.toggle-left-panel {
+.chess-editor-toggle-left-panel {
   position: absolute;
   left: 200px;
   top: 50%;
@@ -172,34 +172,34 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-left-panel:hover {
+.chess-editor-toggle-left-panel:hover {
   background: rgba(167, 167, 167, 0.5);
   width: 28px;
 }
 
-.toggle-left-panel.collapsed {
+.chess-editor-toggle-left-panel.collapsed {
   left: 0;
   border-radius: 0 8px 8px 0;
 }
 
-.toggle-left-panel.expanded {
+.chess-editor-toggle-left-panel.expanded {
   left: 200px;
 }
 
-.part-selector h3 {
+.chess-editor-part-selector h3 {
   margin: 0 0 15px 0;
   color: var(--fluent-text);
   font-size: 16px;
   font-weight: 600;
 }
 
-.part-buttons {
+.chess-editor-part-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.part-button {
+.chess-editor-part-button {
   padding: 10px 15px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--fluent-border);
@@ -211,19 +211,19 @@
   text-align: left;
 }
 
-.part-button:hover {
+.chess-editor-part-button:hover {
   background: rgba(0, 0, 0, 0.05);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.part-button.active {
+.chess-editor-part-button.active {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
 }
 
 /* 左侧面板切换按钮 */
-.toggle-left-panel {
+.chess-editor-toggle-left-panel {
   position: absolute;
   left: 200px;
   top: 50%;
@@ -246,21 +246,21 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-left-panel:hover {
+.chess-editor-toggle-left-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.toggle-left-panel.collapsed {
+.chess-editor-toggle-left-panel.collapsed {
   left: 0;
 }
 
-.toggle-left-panel.expanded {
+.chess-editor-toggle-left-panel.expanded {
   left: 200px;
 }
 
 /* 中间预览区域 */
-.preview-area {
+.chess-editor-preview-area {
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -272,8 +272,8 @@
   height: 100%;
 }
 
-/* 让 Canvas 元素扩展到整个 preview-area 区域 */
-.preview-area canvas {
+/* 让 Canvas 元素扩展到整个 chess-editor-preview-area 区域 */
+.chess-editor-preview-area canvas {
   position: absolute;
   top: 0;
   left: 0;
@@ -288,7 +288,7 @@
 }
 
 /* 左侧组件选择 - 三个半透明小方块 */
-.component-squares {
+.chess-editor-component-squares {
   position: absolute;
   left: 20px;
   top: 50%;
@@ -299,7 +299,7 @@
   z-index: 10;
 }
 
-.square {
+.chess-editor-square {
   width: 50px;
   height: 50px;
   background: rgba(200, 200, 200, 0.5);
@@ -312,20 +312,20 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.square:hover {
+.chess-editor-square:hover {
   background: rgba(136, 136, 136, 0.469);
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.square.active {
+.chess-editor-square.active {
   background: rgba(162, 162, 162, 0.524);
   border-color: #3140ca;
   box-shadow: 0 0 11px rgba(15, 19, 59, 0.6);
 }
 
-.square-label {
+.chess-editor-square-label {
   display: block;
   color: #333;
   font-size: 16px;
@@ -336,7 +336,7 @@
 }
 
 /* 右侧数据调节面板 - 覆盖在 Canvas 上方 */
-.data-panel {
+.chess-editor-data-panel {
   position: absolute;
   right: 0;
   top: 0;
@@ -357,7 +357,7 @@
   /* 在小屏幕上限制最大宽度 */
 }
 
-.data-panel.collapsed {
+.chess-editor-data-panel.collapsed {
   padding: 0;
   overflow: hidden;
   border-left: none !important;
@@ -369,7 +369,7 @@
 }
 
 /* 右侧面板切换按钮 */
-.toggle-right-panel {
+.chess-editor-toggle-right-panel {
   position: absolute;
   right: 0;
   top: 50%;
@@ -392,46 +392,46 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-right-panel:hover {
+.chess-editor-toggle-right-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.toggle-right-panel.collapsed {
+.chess-editor-toggle-right-panel.collapsed {
   right: 0;
 }
 
-.toggle-right-panel.expanded {
+.chess-editor-toggle-right-panel.expanded {
   right: 450px;
   /* 与面板宽度匹配 */
 }
 
-.data-panel::-webkit-scrollbar {
+.chess-editor-data-panel::-webkit-scrollbar {
   width: 8px;
 }
 
-.data-panel::-webkit-scrollbar-track {
+.chess-editor-data-panel::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 
-.data-panel::-webkit-scrollbar-thumb {
+.chess-editor-data-panel::-webkit-scrollbar-thumb {
   background: rgba(133, 133, 133, 0.329);
   border-radius: 4px;
 }
 
-.data-panel::-webkit-scrollbar-thumb:hover {
+.chess-editor-data-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.716);
 }
 
 /* 确保数据编辑器内容可以正常流动 */
-.data-editor {
+.chess-editor-data-editor {
   flex: 1;
   min-width: 0;
 }
 
 /* 异形生成器容器样式优化 */
-.custom-revolution-wrapper {
+.chess-editor-custom-revolution-wrapper {
   margin-top: 15px;
   padding: 10px;
   background: rgba(78, 205, 196, 0.05);
@@ -444,33 +444,33 @@
 }
 
 /* 异形生成器可滚动容器 */
-.custom-revolution-scroll-container {
+.chess-editor-custom-revolution-scroll-container {
   max-height: none;
   overflow-y: visible;
   overflow-x: hidden;
   padding-right: 5px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar-track {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(78, 205, 196, 0.5);
   border-radius: 3px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(78, 205, 196, 0.8);
 }
 
 /* 右侧拖拽手柄样式 */
-.resize-handle {
+.chess-editor-resize-handle {
   width: 6px;
   cursor: col-resize;
   transition: var(--fluent-transition);
@@ -479,17 +479,17 @@
   background-color: transparent;
 }
 
-.resize-handle:hover {
+.chess-editor-resize-handle:hover {
   background-color: rgba(0, 92, 212, 0.76);
 }
 
-.resize-handle.dragging {
+.chess-editor-resize-handle.dragging {
   background-color: rgba(16, 0, 243, 0.997);
   width: 8px;
 }
 
 /* 拖拽手柄视觉指示器 */
-.resize-handle::before {
+.chess-editor-resize-handle::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -502,24 +502,24 @@
   transition: var(--fluent-transition);
 }
 
-.resize-handle:hover::before {
+.chess-editor-resize-handle:hover::before {
   opacity: 1;
 }
 
-.resize-handle.dragging::before {
+.chess-editor-resize-handle.dragging::before {
   background-color: var(--fluent-primary);
   opacity: 1;
 }
 
 
-.data-editor h3 {
+.chess-editor-data-editor h3 {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 20px;
   color: var(--fluent-text);
 }
 
-.editor-section {
+.chess-editor-editor-section {
   margin-bottom: 20px;
   padding: 15px;
   background: rgba(255, 255, 255, 0.5);
@@ -527,27 +527,27 @@
   border: 1px solid var(--fluent-border);
 }
 
-.editor-section h4 {
+.chess-editor-editor-section h4 {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 15px;
   color: var(--fluent-text);
 }
 
-.editor-subsection {
+.chess-editor-editor-subsection {
   margin-top: 15px;
   padding-left: 15px;
   border-left: 2px solid var(--fluent-border-light);
 }
 
-.editor-subsection h5 {
+.chess-editor-editor-subsection h5 {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 10px;
   color: var(--fluent-text-secondary);
 }
 
-.editor-item {
+.chess-editor-editor-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -555,7 +555,7 @@
 }
 
 /* 自定义纹理按钮容器 - 垂直排列 */
-.editor-item .texture-mode-buttons {
+.chess-editor-editor-item .texture-mode-buttons {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -563,7 +563,7 @@
   margin-bottom: 10px;
 }
 
-.editor-item .texture-mode-button {
+.chess-editor-editor-item .texture-mode-button {
   padding: 12px 24px;
   border: 2px solid var(--fluent-border);
   border-radius: 12px;
@@ -580,29 +580,29 @@
 }
 
 /* 当只有一个按钮时，保持所有圆角 */
-.editor-item .texture-mode-button:only-child {
+.chess-editor-editor-item .texture-mode-button:only-child {
   border-radius: 12px;
 }
 
 /* 当有多个按钮时，调整圆角使它们紧密连接 */
-.editor-item .texture-mode-buttons:not(:only-child) .texture-mode-button:first-child {
+.chess-editor-editor-item .texture-mode-buttons:not(:only-child) .texture-mode-button:first-child {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   margin-bottom: -1px;
 }
 
-.editor-item .texture-mode-buttons:not(:only-child) .texture-mode-button:last-child {
+.chess-editor-editor-item .texture-mode-buttons:not(:only-child) .texture-mode-button:last-child {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
-.editor-item .texture-mode-button:hover {
+.chess-editor-editor-item .texture-mode-button:hover {
   background: linear-gradient(135deg, #5568d3, #6a4190);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
 }
 
-.editor-item label {
+.chess-editor-editor-item label {
   font-size: 13px;
   color: var(--fluent-text-secondary);
   width: 60px;
@@ -611,20 +611,20 @@
 }
 
 /* 开关样式 */
-.toggle-switch {
+.chess-editor-toggle-switch {
   position: relative;
   display: inline-block;
   width: 50px;
   height: 24px;
 }
 
-.toggle-switch input {
+.chess-editor-toggle-switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.toggle-label {
+.chess-editor-toggle-label {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -636,7 +636,7 @@
   border-radius: 24px;
 }
 
-.toggle-label:before {
+.chess-editor-toggle-label:before {
   position: absolute;
   content: "";
   height: 18px;
@@ -649,23 +649,23 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-input:checked+.toggle-label {
+input:checked+.chess-editor-toggle-label {
   background-color: var(--fluent-primary);
 }
 
-input:checked+.toggle-label:before {
+input:checked+.chess-editor-toggle-label:before {
   transform: translateX(26px);
 }
 
 /* 过渡动画效果 */
-.editor-section {
+.chess-editor-editor-section {
   opacity: 1;
   max-height: 1000px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.editor-section.hidden {
+.chess-editor-editor-section.hidden {
   opacity: 0;
   max-height: 0;
   margin-bottom: 0;
@@ -673,7 +673,7 @@ input:checked+.toggle-label:before {
   border-bottom: none;
 }
 
-.editor-section.visible {
+.chess-editor-editor-section.chess-editor-visible {
   opacity: 1;
   max-height: 800px;
   margin-bottom: 25px;
@@ -681,8 +681,8 @@ input:checked+.toggle-label:before {
   border-bottom: 1px solid var(--fluent-border-light);
 }
 
-.editor-item input[type="text"],
-.editor-item select {
+.chess-editor-editor-item input[type="text"],
+.chess-editor-editor-item select {
   flex: 1;
   padding: 6px 12px;
   border: 1px solid var(--fluent-border);
@@ -693,19 +693,19 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.editor-item input[type="text"]:hover,
-.editor-item select:hover {
+.chess-editor-editor-item input[type="text"]:hover,
+.chess-editor-editor-item select:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.editor-item input[type="text"]:focus,
-.editor-item select:focus {
+.chess-editor-editor-item input[type="text"]:focus,
+.chess-editor-editor-item select:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.editor-item input[type="range"] {
+.chess-editor-editor-item input[type="range"] {
   flex: 1;
   height: 6px;
   background: var(--fluent-border);
@@ -714,7 +714,7 @@ input:checked+.toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.editor-item input[type="range"]::-webkit-slider-thumb {
+.chess-editor-editor-item input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 16px;
@@ -726,12 +726,12 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(21, 6, 189, 0.1);
 }
 
-.editor-item input[type="range"]::-webkit-slider-thumb:hover {
+.chess-editor-editor-item input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 42, 212, 0.3);
   transform: scale(1.1);
 }
 
-.editor-item input[type="range"]::-moz-range-thumb {
+.chess-editor-editor-item input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: #2e0cf0;
@@ -742,13 +742,13 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.editor-item input[type="range"]::-moz-range-thumb:hover {
+.chess-editor-editor-item input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
   transform: scale(1.1);
 }
 
 /* 边缘处理按钮样式 */
-.edge-toggle-button {
+.chess-editor-edge-toggle-button {
   padding: 8px 16px;
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
@@ -761,28 +761,28 @@ input:checked+.toggle-label:before {
   font-weight: 500;
 }
 
-.edge-toggle-button:hover {
+.chess-editor-edge-toggle-button:hover {
   background: rgba(55, 0, 255, 0.5);
   border-color: var(--fluent-primary);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.edge-toggle-button.active {
+.chess-editor-edge-toggle-button.active {
   background: #4648b2;
   color: white;
   border-color: #4648b2;
 }
 
-.edge-toggle-button.active:hover {
+.chess-editor-edge-toggle-button.active:hover {
   background: #0a118591;
 }
 
-.number-input {
+.chess-editor-number-input {
   width: 60px !important;
   text-align: center;
 }
 
-.color-picker {
+.chess-editor-color-picker {
   width: 40px;
   height: 30px;
   border: 1px solid var(--fluent-border);
@@ -792,25 +792,25 @@ input:checked+.toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.color-picker:hover {
+.chess-editor-color-picker:hover {
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.color-input {
+.chess-editor-color-input {
   width: 80px !important;
   text-transform: uppercase;
 }
 
 /* 禁用输入框样式 */
-.disabled-input {
+.chess-editor-disabled-input {
   background-color: #f5f5f5;
   color: #999;
   cursor: not-allowed;
 }
 
 /* 模型导入按钮样式 */
-.import-model-button {
+.chess-editor-import-model-button {
   background: linear-gradient(45deg, #4CAF50, #45a049);
   color: white;
   border: none;
@@ -822,56 +822,56 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.import-model-button:hover {
+.chess-editor-import-model-button:hover {
   background: linear-gradient(45deg, #45a049, #3d8b40);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.import-model-button:active {
+.chess-editor-import-model-button:active {
   transform: translateY(0);
 }
 
 /* 当形状容器包含异形生成器时，应用特殊高度 */
-.editor-section:has(.custom-revolution-wrapper) {
+.chess-editor-editor-section:has(.chess-editor-custom-revolution-wrapper) {
   min-height: 650px;
   max-height: 1000px;
   overflow: visible;
 }
 
-.editor-section:has(.custom-revolution-wrapper).visible {
+.chess-editor-editor-section:has(.chess-editor-custom-revolution-wrapper).chess-editor-visible {
   min-height: 650px;
   max-height: 1000px;
 }
 
 /* 异形生成器可滚动容器 */
-.custom-revolution-scroll-container {
+.chess-editor-custom-revolution-scroll-container {
   max-height: none;
   overflow-y: visible;
   overflow-x: hidden;
   padding-right: 5px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar-track {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(78, 205, 196, 0.5);
   border-radius: 3px;
 }
 
-.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+.chess-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(78, 205, 196, 0.8);
 }
 
 /* 自定义旋转体生成器样式 */
-.custom-revolution-panel {
+.chess-editor-custom-revolution-panel {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   padding: 12px;
@@ -882,19 +882,19 @@ input:checked+.toggle-label:before {
 }
 
 /* 响应式设计 */
-.panel-section h3 {
+.chess-editor-panel-section h3 {
   margin: 0 0 6px 0;
   color: var(--fluent-text);
   font-size: 15px;
 }
 
-.panel-description {
+.chess-editor-panel-description {
   margin: 0 0 12px 0;
   color: var(--fluent-text-secondary);
   font-size: 12px;
 }
 
-.canvases-row {
+.chess-editor-canvases-row {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -902,7 +902,7 @@ input:checked+.toggle-label:before {
   width: 100%;
 }
 
-.simple-canvas-container {
+.chess-editor-simple-canvas-container {
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
@@ -915,27 +915,27 @@ input:checked+.toggle-label:before {
   /* 防止canvas溢出容器 */
 }
 
-.canvas-header {
+.chess-editor-canvas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.canvas-header h4 {
+.chess-editor-canvas-header h4 {
   margin: 0;
   color: var(--fluent-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.header-buttons {
+.chess-editor-header-buttons {
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-.mode-btn {
+.chess-editor-mode-btn {
   background: #ffffffb3;
   color: var(--fluent-text);
   border: 1px solid var(--fluent-border);
@@ -948,25 +948,25 @@ input:checked+.toggle-label:before {
   white-space: nowrap;
 }
 
-.mode-btn:hover {
+.chess-editor-mode-btn:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: #0078d4;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.mode-btn.active {
+.chess-editor-mode-btn.active {
   background: var(--fluent-primary);
   color: #fff;
   border-color: var(--fluent-primary);
   box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
 }
 
-.mode-btn.free-mode.active {
+.chess-editor-mode-btn.free-mode.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-color: #667eea;
 }
 
-.bezier-hint {
+.chess-editor-bezier-hint {
   background: rgba(0, 120, 212, 0.1);
   border-left: 3px solid var(--fluent-primary);
   padding: 6px 10px;
@@ -989,7 +989,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.clear-btn {
+.chess-editor-clear-btn {
   background: #ff6b6b;
   color: white;
   border: none;
@@ -1000,17 +1000,17 @@ input:checked+.toggle-label:before {
   font-weight: 500;
 }
 
-.clear-btn:hover {
+.chess-editor-clear-btn:hover {
   background: #ff5252;
 }
 
-.equation-input-small {
+.chess-editor-equation-input-small {
   display: flex;
   gap: 6px;
   margin-bottom: 8px;
 }
 
-.equation-input-small input {
+.chess-editor-equation-input-small input {
   flex: 1;
   padding: 6px 10px;
   border: 1px solid var(--fluent-border);
@@ -1021,11 +1021,11 @@ input:checked+.toggle-label:before {
   min-width: 0;
 }
 
-.equation-input-small input::placeholder {
+.chess-editor-equation-input-small input::placeholder {
   color: rgba(0, 0, 0, 0.4);
 }
 
-.equation-input-small button {
+.chess-editor-equation-input-small button {
   background: var(--fluent-primary);
   color: white;
   border: none;
@@ -1037,11 +1037,11 @@ input:checked+.toggle-label:before {
   font-weight: 500;
 }
 
-.equation-input-small button:hover {
+.chess-editor-equation-input-small button:hover {
   opacity: 0.9;
 }
 
-.simple-canvas {
+.chess-editor-simple-canvas {
   border: 1px solid var(--fluent-border);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.3);
@@ -1055,25 +1055,25 @@ input:checked+.toggle-label:before {
   /* 确保边框和padding计算在内 */
 }
 
-.points-count {
+.chess-editor-points-count {
   text-align: center;
   font-size: 11px;
   color: var(--fluent-text-secondary);
   margin-top: 4px;
 }
 
-.preview-section {
+.chess-editor-preview-section {
   margin-top: 12px;
 }
 
-.preview-section h4 {
+.chess-editor-preview-section h4 {
   margin: 0 0 8px 0;
   color: var(--fluent-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.preview-canvas-wrapper {
+.chess-editor-preview-canvas-wrapper {
   height: 220px;
   border-radius: 6px;
   overflow: hidden;
@@ -1082,7 +1082,7 @@ input:checked+.toggle-label:before {
   width: 100%;
 }
 
-.instructions-small {
+.chess-editor-instructions-small {
   margin-top: 12px;
   padding: 8px;
   background: rgba(0, 0, 0, 0.1);
@@ -1090,59 +1090,59 @@ input:checked+.toggle-label:before {
   font-size: 11px;
 }
 
-.instructions-small p {
+.chess-editor-instructions-small p {
   margin: 0 0 6px 0;
   color: var(--fluent-text);
   font-size: 11px;
 }
 
-.instructions-small ul {
+.chess-editor-instructions-small ul {
   margin: 0;
   padding-left: 14px;
 }
 
-.instructions-small li {
+.chess-editor-instructions-small li {
   margin-bottom: 3px;
   color: var(--fluent-text-secondary);
   font-size: 11px;
 }
 
 @media (max-width: 992px) {
-  .canvases-row {
+  .chess-editor-canvases-row {
     flex-direction: column;
   }
 
-  .editor-content {
+  .chess-editor-editor-content {
     flex-direction: column;
   }
 
-  .part-selector {
+  .chess-editor-part-selector {
     width: 100% !important;
     height: 120px;
     border-right: none;
     border-bottom: 1px solid var(--fluent-border);
   }
 
-  .resize-handle {
+  .chess-editor-resize-handle {
     display: none;
   }
 
-  .part-buttons {
+  .chess-editor-part-buttons {
     flex-direction: row;
     justify-content: space-around;
   }
 
-  .part-button {
+  .chess-editor-part-button {
     flex: 1;
     text-align: center;
   }
 
-  .preview-area {
+  .chess-editor-preview-area {
     flex: 1;
     min-height: 400px;
   }
 
-  .data-panel {
+  .chess-editor-data-panel {
     width: 100% !important;
     height: auto;
     min-height: 300px;
@@ -1152,16 +1152,16 @@ input:checked+.toggle-label:before {
 }
 
 /* 优化右侧面板中的异形生成器显示 */
-.data-panel .canvases-row {
+.chess-editor-data-panel .chess-editor-canvases-row {
   gap: 12px;
 }
 
-.data-panel .simple-canvas-container {
+.chess-editor-data-panel .chess-editor-simple-canvas-container {
   max-width: 100%;
 }
 
 /* 导出窗口样式 */
-.modal-overlay {
+.chess-editor-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1187,7 +1187,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.export-modal {
+.chess-editor-export-modal {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1211,7 +1211,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.modal-header {
+.chess-editor-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1220,14 +1220,14 @@ input:checked+.toggle-label:before {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.modal-header h2 {
+.chess-editor-modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.close-button {
+.chess-editor-close-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -1242,32 +1242,32 @@ input:checked+.toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.close-button:hover {
+.chess-editor-close-button:hover {
   background: rgba(0, 0, 0, 0.1);
   color: var(--fluent-text);
 }
 
-.modal-content {
+.chess-editor-modal-content {
   padding: 30px 20px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.modal-content p {
+.chess-editor-modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
   text-align: center;
 }
 
-.export-buttons {
+.chess-editor-export-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
 }
 
-.export-option-button {
+.chess-editor-export-option-button {
   padding: 12px 20px;
   border: 1px solid var(--fluent-border);
   border-radius: 8px;
@@ -1282,7 +1282,7 @@ input:checked+.toggle-label:before {
   box-sizing: border-box;
 }
 
-.export-option-button:hover {
+.chess-editor-export-option-button:hover {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
@@ -1290,7 +1290,7 @@ input:checked+.toggle-label:before {
   transform: translateY(-1px);
 }
 
-.export-option-button:active {
+.chess-editor-export-option-button:active {
   transform: translateY(0);
 }
 
@@ -1411,7 +1411,7 @@ input:checked+.toggle-label:before {
   padding: 0;
 }
 
-.texture-selector-content .modal-content {
+.texture-selector-content .chess-editor-modal-content {
   padding: 0;
   height: 100%;
   display: flex;
@@ -1419,7 +1419,7 @@ input:checked+.toggle-label:before {
 }
 
 /* 纹理选择器弹窗头部 */
-.texture-selector-modal .modal-header {
+.texture-selector-modal .chess-editor-modal-header {
   padding: 20px 24px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
@@ -1428,14 +1428,14 @@ input:checked+.toggle-label:before {
   background: rgba(255, 255, 255, 0.95);
 }
 
-.texture-selector-modal .modal-header h2 {
+.texture-selector-modal .chess-editor-modal-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.texture-selector-modal .close-button {
+.texture-selector-modal .chess-editor-close-button {
   background: transparent;
   border: none;
   font-size: 28px;
@@ -1451,37 +1451,37 @@ input:checked+.toggle-label:before {
   border-radius: 6px;
 }
 
-.texture-selector-modal .close-button:hover {
+.texture-selector-modal .chess-editor-close-button:hover {
   color: var(--fluent-text);
   background: rgba(0, 0, 0, 0.05);
 }
 
 /* 响应式设计 */
 @media (max-width: 480px) {
-  .export-modal {
+  .chess-editor-export-modal {
     width: 95%;
     max-width: none;
   }
 
-  .modal-content {
+  .chess-editor-modal-content {
     padding: 20px 15px;
   }
 
-  .export-option-button {
+  .chess-editor-export-option-button {
     padding: 10px 16px;
     font-size: 13px;
   }
 }
 
 /* HDR 预设选择器样式 */
-.hdr-selector-container {
+.chess-editor-hdr-selector-container {
   position: absolute;
   bottom: 80px;
   left: 20px;
   z-index: 100;
 }
 
-.hdr-selector-toggle {
+.chess-editor-hdr-selector-toggle {
   min-width: unset;
   height: 50px;
   background: rgba(200, 200, 200, 0.6);
@@ -1501,20 +1501,20 @@ input:checked+.toggle-label:before {
   font-weight: 500;
 }
 
-.hdr-selector-toggle:hover {
+.chess-editor-hdr-selector-toggle:hover {
   background: rgba(220, 220, 220, 0.7);
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.hdr-selector-toggle.active {
+.chess-editor-hdr-selector-toggle.active {
   background: rgba(180, 180, 180, 0.7);
   border-color: #4653ccfc;
   box-shadow: 0 0 15px rgba(70, 83, 204, 0.5);
 }
 
-.hdr-presets-dropdown {
+.chess-editor-hdr-presets-dropdown {
   position: absolute;
   bottom: 50px;
   left: 0;
@@ -1541,7 +1541,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.hdr-presets-dropdown h4 {
+.chess-editor-hdr-presets-dropdown h4 {
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
@@ -1550,13 +1550,13 @@ input:checked+.toggle-label:before {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.hdr-presets-list {
+.chess-editor-hdr-presets-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.hdr-preset-item {
+.chess-editor-hdr-preset-item {
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -1568,12 +1568,12 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.hdr-preset-item:hover {
+.chess-editor-hdr-preset-item:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: var(--fluent-primary);
 }
 
-.hdr-preset-item.active {
+.chess-editor-hdr-preset-item.active {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
@@ -1581,7 +1581,7 @@ input:checked+.toggle-label:before {
 }
 
 /* AI 生成器样式 */
-.ai-generator-panel {
+.chess-editor-ai-generator-panel {
   animation: aiPanelFadeIn 0.3s ease-out;
 }
 
@@ -1597,13 +1597,13 @@ input:checked+.toggle-label:before {
   }
 }
 
-.ai-generator-panel textarea:focus {
+.chess-editor-ai-generator-panel textarea:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.ai-generator-panel .btn-primary {
+.chess-editor-ai-generator-panel .chess-editor-btn-primary {
   background: linear-gradient(135deg, #667eea, #764ba2) !important;
   color: white;
   border: none;
@@ -1615,17 +1615,17 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.ai-generator-panel .btn-primary:hover:not(:disabled) {
+.chess-editor-ai-generator-panel .chess-editor-btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #5568d3, #6a4190) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.ai-generator-panel .btn-primary:active:not(:disabled) {
+.chess-editor-ai-generator-panel .chess-editor-btn-primary:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.ai-generator-panel .btn-primary:disabled {
+.chess-editor-ai-generator-panel .chess-editor-btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -1634,28 +1634,28 @@ input:checked+.toggle-label:before {
 /* ==================== 异形生成器新增样式 ==================== */
 
 /* 小窗口预览容器 */
-.preview-canvas-container {
+.chess-editor-preview-canvas-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   padding: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.preview-canvas-container .canvas-header {
+.chess-editor-preview-canvas-container .chess-editor-canvas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.preview-canvas-container .canvas-header h4 {
+.chess-editor-preview-canvas-container .chess-editor-canvas-header h4 {
   margin: 0;
   color: #333;
   font-size: 14px;
   font-weight: 600;
 }
 
-.preview-canvas-container .points-count {
+.chess-editor-preview-canvas-container .chess-editor-points-count {
   font-size: 12px;
   color: #666;
   background: rgba(78, 205, 196, 0.1);
@@ -1664,7 +1664,7 @@ input:checked+.toggle-label:before {
 }
 
 /* 画布包装器 */
-.canvas-wrapper {
+.chess-editor-canvas-wrapper {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1672,14 +1672,14 @@ input:checked+.toggle-label:before {
 }
 
 /* 确保canvas在右侧面板中正确显示 */
-.data-panel .simple-canvas {
+.chess-editor-data-panel .chess-editor-simple-canvas {
   max-width: 100%;
   height: auto;
   min-height: 120px;
 }
 
 /* 编辑按钮 */
-.edit-btn {
+.chess-editor-edit-btn {
   background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
   color: white;
   border: none;
@@ -1694,17 +1694,17 @@ input:checked+.toggle-label:before {
   min-width: 120px;
 }
 
-.edit-btn:hover {
+.chess-editor-edit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
 }
 
-.edit-btn:active {
+.chess-editor-edit-btn:active {
   transform: translateY(0);
 }
 
 /* 全屏编辑器 */
-.fullscreen-editor {
+.chess-editor-fullscreen-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1712,7 +1712,7 @@ input:checked+.toggle-label:before {
 }
 
 /* 编辑器工具栏 */
-.editor-toolbar {
+.chess-editor-editor-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1722,12 +1722,12 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.tool-group {
+.chess-editor-tool-group {
   display: flex;
   gap: 10px;
 }
 
-.tool-btn {
+.chess-editor-tool-btn {
   padding: 10px 18px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
@@ -1739,29 +1739,29 @@ input:checked+.toggle-label:before {
   transition: all 0.2s ease;
 }
 
-.tool-btn:hover:not(:disabled) {
+.chess-editor-tool-btn:hover:not(:disabled) {
   border-color: #4ecdc4;
   color: #4ecdc4;
 }
 
-.tool-btn.active {
+.chess-editor-tool-btn.active {
   background: #4ecdc4;
   border-color: #4ecdc4;
   color: white;
   box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
 }
 
-.tool-btn:disabled {
+.chess-editor-tool-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.action-group {
+.chess-editor-action-group {
   display: flex;
   gap: 10px;
 }
 
-.action-btn {
+.chess-editor-action-btn {
   padding: 10px 18px;
   border: none;
   border-radius: 8px;
@@ -1771,32 +1771,32 @@ input:checked+.toggle-label:before {
   transition: all 0.2s ease;
 }
 
-.action-btn.delete {
+.chess-editor-action-btn.delete {
   background: #ff6b6b;
   color: white;
 }
 
-.action-btn.delete:hover:not(:disabled) {
+.chess-editor-action-btn.delete:hover:not(:disabled) {
   background: #ff5252;
   box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
-.action-btn.clear {
+.chess-editor-action-btn.clear {
   background: #f0f0f0;
   color: #666;
 }
 
-.action-btn.clear:hover:not(:disabled) {
+.chess-editor-action-btn.clear:hover:not(:disabled) {
   background: #e0e0e0;
 }
 
-.action-btn:disabled {
+.chess-editor-action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* 画布容器 */
-.editor-canvas-container {
+.chess-editor-editor-canvas-container {
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -1806,7 +1806,7 @@ input:checked+.toggle-label:before {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.editor-canvas-container canvas {
+.chess-editor-editor-canvas-container canvas {
   display: block;
   width: 100%;
   height: 100%;
@@ -1814,7 +1814,7 @@ input:checked+.toggle-label:before {
 }
 
 /* 编辑器提示 */
-.editor-hint {
+.chess-editor-editor-hint {
   padding: 12px 20px;
   background: #e8f5e9;
   color: #2e7d32;
@@ -1824,7 +1824,7 @@ input:checked+.toggle-label:before {
 }
 
 /* 模态窗口样式 */
-.modal-overlay {
+.chess-editor-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1840,7 +1840,7 @@ input:checked+.toggle-label:before {
   animation: fadeIn 0.2s ease;
 }
 
-.modal-overlay .modal-content {
+.chess-editor-modal-overlay .chess-editor-modal-content {
   background: white;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -1875,7 +1875,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.modal-overlay .modal-header {
+.chess-editor-modal-overlay .chess-editor-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1884,13 +1884,13 @@ input:checked+.toggle-label:before {
   color: white;
 }
 
-.modal-overlay .modal-header h3 {
+.chess-editor-modal-overlay .chess-editor-modal-header h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
 }
 
-.modal-overlay .close-btn {
+.chess-editor-modal-overlay .chess-editor-close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   width: 36px;
@@ -1905,12 +1905,12 @@ input:checked+.toggle-label:before {
   transition: all 0.2s ease;
 }
 
-.modal-overlay .close-btn:hover {
+.chess-editor-modal-overlay .chess-editor-close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: rotate(90deg);
 }
 
-.modal-overlay .modal-footer {
+.chess-editor-modal-overlay .chess-editor-modal-footer {
   padding: 15px 25px;
   background: #f8f9fa;
   border-top: 1px solid #e0e0e0;
@@ -1918,7 +1918,7 @@ input:checked+.toggle-label:before {
   justify-content: flex-end;
 }
 
-.modal-overlay .done-btn {
+.chess-editor-modal-overlay .chess-editor-done-btn {
   background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
   color: white;
   border: none;
@@ -1931,19 +1931,19 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
 }
 
-.modal-overlay .done-btn:hover {
+.chess-editor-modal-overlay .chess-editor-done-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(78, 205, 196, 0.4);
 }
 
 /* 方程输入框样式优化 */
-.equation-input-small {
+.chess-editor-equation-input-small {
   display: flex;
   gap: 5px;
   margin-bottom: 10px;
 }
 
-.equation-input-small input {
+.chess-editor-equation-input-small input {
   flex: 1;
   padding: 6px 8px;
   border: 1px solid var(--fluent-border);
@@ -1953,11 +1953,11 @@ input:checked+.toggle-label:before {
   font-size: 12px;
 }
 
-.equation-input-small input::placeholder {
+.chess-editor-equation-input-small input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
-.equation-input-small button {
+.chess-editor-equation-input-small button {
   background: var(--fluent-primary);
   color: white;
   border: none;
@@ -1969,27 +1969,27 @@ input:checked+.toggle-label:before {
   min-width: 60px;
 }
 
-.equation-input-small button:hover {
+.chess-editor-equation-input-small button:hover {
   background: var(--fluent-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.equation-input-small button:active {
+.chess-editor-equation-input-small button:active {
   transform: translateY(0);
 }
 
 /* 响应式设计 */
 @media (max-width: 992px) {
-  .canvases-row {
+  .chess-editor-canvases-row {
     flex-direction: column;
   }
 
-  .editor-content {
+  .chess-editor-editor-content {
     flex-direction: column;
   }
 
-  .component-squares {
+  .chess-editor-component-squares {
     position: relative;
     left: 0;
     top: 0;
@@ -2002,16 +2002,16 @@ input:checked+.toggle-label:before {
     backdrop-filter: blur(10px);
   }
 
-  .resize-handle {
+  .chess-editor-resize-handle {
     display: none;
   }
 
-  .preview-area {
+  .chess-editor-preview-area {
     flex: 1;
     min-height: 400px;
   }
 
-  .data-panel {
+  .chess-editor-data-panel {
     width: 100% !important;
     height: auto;
     min-height: 300px;
@@ -2021,16 +2021,16 @@ input:checked+.toggle-label:before {
 }
 
 /* 优化右侧面板中的异形生成器显示 */
-.data-panel .canvases-row {
+.chess-editor-data-panel .chess-editor-canvases-row {
   gap: 12px;
 }
 
-.data-panel .simple-canvas-container {
+.chess-editor-data-panel .chess-editor-simple-canvas-container {
   max-width: 100%;
 }
 
 /* 导出窗口样式 */
-.modal-overlay {
+.chess-editor-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -2056,7 +2056,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.export-modal {
+.chess-editor-export-modal {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -2080,7 +2080,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.modal-header {
+.chess-editor-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2089,14 +2089,14 @@ input:checked+.toggle-label:before {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.modal-header h2 {
+.chess-editor-modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.close-button {
+.chess-editor-close-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -2111,32 +2111,32 @@ input:checked+.toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.close-button:hover {
+.chess-editor-close-button:hover {
   background: rgba(0, 0, 0, 0.1);
   color: var(--fluent-text);
 }
 
-.modal-content {
+.chess-editor-modal-content {
   padding: 30px 20px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.modal-content p {
+.chess-editor-modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
   text-align: center;
 }
 
-.export-buttons {
+.chess-editor-export-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
 }
 
-.export-option-button {
+.chess-editor-export-option-button {
   padding: 12px 20px;
   border: 1px solid var(--fluent-border);
   border-radius: 8px;
@@ -2151,7 +2151,7 @@ input:checked+.toggle-label:before {
   box-sizing: border-box;
 }
 
-.export-option-button:hover {
+.chess-editor-export-option-button:hover {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
@@ -2159,22 +2159,22 @@ input:checked+.toggle-label:before {
   transform: translateY(-1px);
 }
 
-.export-option-button:active {
+.chess-editor-export-option-button:active {
   transform: translateY(0);
 }
 
 /* 响应式设计 */
 @media (max-width: 480px) {
-  .export-modal {
+  .chess-editor-export-modal {
     width: 95%;
     max-width: none;
   }
 
-  .modal-content {
+  .chess-editor-modal-content {
     padding: 20px 15px;
   }
 
-  .export-option-button {
+  .chess-editor-export-option-button {
     padding: 10px 16px;
     font-size: 13px;
   }

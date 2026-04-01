@@ -1,4 +1,4 @@
-.modal-overlay {
+.decorationuploadmodal-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -21,7 +21,7 @@
   }
 }
 
-.modal-content {
+.decorationuploadmodal-modal-content {
   background: white;
   border-radius: 12px;
   width: 90%;
@@ -43,7 +43,7 @@
   }
 }
 
-.modal-header {
+.decorationuploadmodal-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -51,13 +51,13 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.modal-header h2 {
+.decorationuploadmodal-modal-header h2 {
   margin: 0;
   color: #333;
   font-size: 24px;
 }
 
-.close-button {
+.decorationuploadmodal-close-button {
   background: none;
   border: none;
   font-size: 32px;
@@ -72,7 +72,7 @@
   transition: all 0.2s;
 }
 
-.close-button:hover {
+.decorationuploadmodal-close-button:hover {
   background: #f5f5f5;
   color: #333;
 }
@@ -81,11 +81,11 @@
   padding: 20px;
 }
 
-.form-group {
+.decorationuploadmodal-form-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.decorationuploadmodal-form-group label {
   display: block;
   margin-bottom: 8px;
   color: #333;
@@ -93,7 +93,7 @@
   font-size: 14px;
 }
 
-.form-group input[type="text"] {
+.decorationuploadmodal-form-group input[type="text"] {
   width: 100%;
   padding: 10px 15px;
   border: 2px solid #e9ecef;
@@ -103,12 +103,12 @@
   box-sizing: border-box;
 }
 
-.form-group input[type="text"]:focus {
+.decorationuploadmodal-form-group input[type="text"]:focus {
   outline: none;
   border-color: #f093fb;
 }
 
-.form-group input[type="file"] {
+.decorationuploadmodal-form-group input[type="file"] {
   width: 100%;
   padding: 10px;
   border: 2px dashed #e9ecef;
@@ -118,11 +118,11 @@
   box-sizing: border-box;
 }
 
-.form-group input[type="file"]:hover {
+.decorationuploadmodal-form-group input[type="file"]:hover {
   border-color: #f093fb;
 }
 
-.form-group small {
+.decorationuploadmodal-form-group small {
   display: block;
   margin-top: 5px;
   color: #999;
@@ -139,26 +139,26 @@
   border: 1px solid #e9ecef;
 }
 
-.file-info-display .file-icon {
+.file-info-display .decorationuploadmodal-file-icon {
   font-size: 24px;
 }
 
-.file-info-display .file-name {
+.file-info-display .decorationuploadmodal-file-name {
   font-size: 14px;
   color: #333;
   word-break: break-all;
 }
 
-.tag-input-container {
+.decorationuploadmodal-tag-input-container {
   display: flex;
   gap: 10px;
 }
 
-.tag-input-container input[type="text"] {
+.decorationuploadmodal-tag-input-container input[type="text"] {
   flex: 1;
 }
 
-.tag-input-container .btn-secondary {
+.decorationuploadmodal-tag-input-container .decorationuploadmodal-btn-secondary {
   background: #6c757d;
   color: white;
   border: none;
@@ -169,18 +169,18 @@
   transition: background 0.2s;
 }
 
-.tag-input-container .btn-secondary:hover {
+.decorationuploadmodal-tag-input-container .decorationuploadmodal-btn-secondary:hover {
   background: #5a6268;
 }
 
-.tags-container {
+.decorationuploadmodal-tags-container {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
 }
 
-.tag {
+.decorationuploadmodal-tag {
   background: #f093fb;
   color: white;
   padding: 6px 12px;
@@ -192,7 +192,7 @@
   gap: 6px;
 }
 
-.tag .remove-tag {
+.decorationuploadmodal-tag .decorationuploadmodal-remove-tag {
   background: rgba(255, 255, 255, 0.3);
   border: none;
   color: white;
@@ -208,18 +208,18 @@
   transition: background 0.2s;
 }
 
-.tag .remove-tag:hover {
+.decorationuploadmodal-tag .decorationuploadmodal-remove-tag:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
-.form-actions {
+.decorationuploadmodal-form-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   margin-top: 30px;
 }
 
-.form-actions .btn {
+.decorationuploadmodal-form-actions .decorationuploadmodal-btn {
   padding: 12px 24px;
   border: none;
   border-radius: 6px;
@@ -229,21 +229,21 @@
   transition: all 0.2s;
 }
 
-.form-actions .btn-secondary {
+.decorationuploadmodal-form-actions .decorationuploadmodal-btn-secondary {
   background: #e9ecef;
   color: #495057;
 }
 
-.form-actions .btn-secondary:hover {
+.decorationuploadmodal-form-actions .decorationuploadmodal-btn-secondary:hover {
   background: #dee2e6;
 }
 
-.form-actions .btn-primary {
+.decorationuploadmodal-form-actions .decorationuploadmodal-btn-primary {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
 }
 
-.form-actions .btn-primary:hover {
+.decorationuploadmodal-form-actions .decorationuploadmodal-btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(240, 147, 251, 0.4);
 }

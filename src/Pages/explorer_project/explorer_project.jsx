@@ -68,13 +68,13 @@ function ExplorerProject() {
 
   return (
     <div className="explorer-project">
-      <div className="explorer-header">
+      <div className="explorer-project-explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title' onClick={onBack}>
+        <h1 className='explorer-project-header-title' onClick={onBack}>
           ❮  项目资源管理器</h1>
-        <p className='user-welcome'>欢迎您！{userData.username}</p>
+        <p className='explorer-project-user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
       <ProjectList

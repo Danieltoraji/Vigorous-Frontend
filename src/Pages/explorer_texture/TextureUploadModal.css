@@ -1,4 +1,4 @@
-.modal-overlay {
+.textureuploadmodal-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -21,7 +21,7 @@
   }
 }
 
-.modal-content {
+.textureuploadmodal-modal-content {
   background: white;
   border-radius: 12px;
   width: 80%;
@@ -36,21 +36,21 @@
   scrollbar-color: #667eea #f5f5f5;
 }
 
-.modal-content::-webkit-scrollbar {
+.textureuploadmodal-modal-content::-webkit-scrollbar {
   width: 10px;
 }
 
-.modal-content::-webkit-scrollbar-track {
+.textureuploadmodal-modal-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 5px;
 }
 
-.modal-content::-webkit-scrollbar-thumb {
+.textureuploadmodal-modal-content::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 5px;
 }
 
-.modal-content::-webkit-scrollbar-thumb:hover {
+.textureuploadmodal-modal-content::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
 
@@ -65,7 +65,7 @@
   }
 }
 
-.modal-header {
+.textureuploadmodal-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -73,13 +73,13 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.modal-header h2 {
+.textureuploadmodal-modal-header h2 {
   margin: 0;
   color: #333;
   font-size: 24px;
 }
 
-.close-button {
+.textureuploadmodal-close-button {
   background: none;
   border: none;
   font-size: 32px;
@@ -94,7 +94,7 @@
   transition: all 0.2s;
 }
 
-.close-button:hover {
+.textureuploadmodal-close-button:hover {
   background: #f5f5f5;
   color: #333;
 }
@@ -103,11 +103,11 @@
   padding: 20px;
 }
 
-.form-group {
+.textureuploadmodal-form-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.textureuploadmodal-form-group label {
   display: block;
   margin-bottom: 8px;
   color: #333;
@@ -115,7 +115,7 @@
   font-size: 14px;
 }
 
-.form-group input[type="text"] {
+.textureuploadmodal-form-group input[type="text"] {
   width: 100%;
   padding: 10px 15px;
   border: 2px solid #e9ecef;
@@ -125,12 +125,12 @@
   box-sizing: border-box;
 }
 
-.form-group input[type="text"]:focus {
+.textureuploadmodal-form-group input[type="text"]:focus {
   outline: none;
   border-color: #667eea;
 }
 
-.form-group input[type="file"] {
+.textureuploadmodal-form-group input[type="file"] {
   width: 100%;
   padding: 10px;
   border: 2px dashed #e9ecef;
@@ -140,11 +140,11 @@
   box-sizing: border-box;
 }
 
-.form-group input[type="file"]:hover {
+.textureuploadmodal-form-group input[type="file"]:hover {
   border-color: #667eea;
 }
 
-.form-group small {
+.textureuploadmodal-form-group small {
   display: block;
   margin-top: 5px;
   color: #999;
@@ -192,16 +192,16 @@
   box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
 }
 
-.tag-input-container {
+.textureuploadmodal-tag-input-container {
   display: flex;
   gap: 10px;
 }
 
-.tag-input-container input[type="text"] {
+.textureuploadmodal-tag-input-container input[type="text"] {
   flex: 1;
 }
 
-.tag-input-container .btn-secondary {
+.textureuploadmodal-tag-input-container .textureuploadmodal-btn-secondary {
   background: #6c757d;
   color: white;
   border: none;
@@ -212,18 +212,18 @@
   transition: background 0.2s;
 }
 
-.tag-input-container .btn-secondary:hover {
+.textureuploadmodal-tag-input-container .textureuploadmodal-btn-secondary:hover {
   background: #5a6268;
 }
 
-.tags-container {
+.textureuploadmodal-tags-container {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
 }
 
-.tag {
+.textureuploadmodal-tag {
   background: #667eea;
   color: white;
   padding: 6px 12px;
@@ -235,7 +235,7 @@
   gap: 6px;
 }
 
-.tag .remove-tag {
+.textureuploadmodal-tag .textureuploadmodal-remove-tag {
   background: rgba(255, 255, 255, 0.3);
   border: none;
   color: white;
@@ -251,11 +251,11 @@
   transition: background 0.2s;
 }
 
-.tag .remove-tag:hover {
+.textureuploadmodal-tag .textureuploadmodal-remove-tag:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
-.form-actions {
+.textureuploadmodal-form-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -263,7 +263,7 @@
   padding-bottom: 10px;
 }
 
-.form-actions .btn {
+.textureuploadmodal-form-actions .textureuploadmodal-btn {
   padding: 12px 24px;
   border: none;
   border-radius: 6px;
@@ -273,21 +273,21 @@
   transition: all 0.2s;
 }
 
-.form-actions .btn-secondary {
+.textureuploadmodal-form-actions .textureuploadmodal-btn-secondary {
   background: #e9ecef;
   color: #495057;
 }
 
-.form-actions .btn-secondary:hover {
+.textureuploadmodal-form-actions .textureuploadmodal-btn-secondary:hover {
   background: #dee2e6;
 }
 
-.form-actions .btn-primary {
+.textureuploadmodal-form-actions .textureuploadmodal-btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.form-actions .btn-primary:hover {
+.textureuploadmodal-form-actions .textureuploadmodal-btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
 }

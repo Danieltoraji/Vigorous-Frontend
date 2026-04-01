@@ -300,10 +300,10 @@ const PreviewCanvas = ({ controlPoints, title, onCurveChange }) => {
   }, [curvePoints, previewDimensions, scaleX, scaleY]);
 
   return (
-    <div className="preview-canvas-container">
-      <div className="canvas-header">
+    <div className="customrevolutiongenerator-preview-canvas-container">
+      <div className="customrevolutiongenerator-canvas-header">
         <h4>{title}</h4>
-        <span className="points-count">曲线点：{(curvePoints.curvePoints || curvePoints).length}</span>
+        <span className="customrevolutiongenerator-points-count">曲线点：{(curvePoints.curvePoints || curvePoints).length}</span>
       </div>
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <canvas
@@ -763,44 +763,44 @@ const FullscreenEditor = ({
   }, [points, selectedPointId, handlePointsChange]);
 
   return (
-    <div className="fullscreen-editor">
+    <div className="customrevolutiongenerator-fullscreen-editor">
       {/* 工具栏 */}
-      <div className="editor-toolbar">
-        <div className="tool-group">
+      <div className="customrevolutiongenerator-editor-toolbar">
+        <div className="customrevolutiongenerator-tool-group">
           <button
-            className={`tool-btn ${tool === TOOL_TYPES.POINT ? 'active' : ''}`}
+            className={`customrevolutiongenerator-tool-btn ${tool === TOOL_TYPES.POINT ? 'active' : ''}`}
             onClick={() => setTool(TOOL_TYPES.POINT)}
             disabled={readOnly}
           >
             ✏️ 点绘
           </button>
           <button
-            className={`tool-btn ${tool === TOOL_TYPES.BEZIER ? 'active' : ''}`}
+            className={`customrevolutiongenerator-tool-btn ${tool === TOOL_TYPES.BEZIER ? 'active' : ''}`}
             onClick={() => setTool(TOOL_TYPES.BEZIER)}
             disabled={readOnly}
           >
             🎨 贝塞尔
           </button>
           <button
-            className={`tool-btn ${tool === TOOL_TYPES.FREE ? 'active' : ''}`}
+            className={`customrevolutiongenerator-tool-btn ${tool === TOOL_TYPES.FREE ? 'active' : ''}`}
             onClick={() => setTool(TOOL_TYPES.FREE)}
             disabled={readOnly}
           >
             🖌️ 自由绘制
           </button>
         </div>
-        <div className="action-group">
-          <button className="action-btn delete" onClick={handleDelete} disabled={!selectedPointId || readOnly}>
+        <div className="customrevolutiongenerator-action-group">
+          <button className="customrevolutiongenerator-action-btn delete" onClick={handleDelete} disabled={!selectedPointId || readOnly}>
             删除
           </button>
-          <button className="action-btn clear" onClick={handleClear} disabled={readOnly}>
+          <button className="customrevolutiongenerator-action-btn clear" onClick={handleClear} disabled={readOnly}>
             清空
           </button>
         </div>
       </div>
 
       {/* 画布 */}
-      <div className="editor-canvas-container">
+      <div className="customrevolutiongenerator-editor-canvas-container">
         <canvas
           ref={canvasRef}
           width={dimensions.width}
@@ -832,7 +832,7 @@ const FullscreenEditor = ({
       </div>
 
       {/* 提示 */}
-      <div className="editor-hint" style={intersectionWarning ? { backgroundColor: '#ffe6e6', color: '#c41e3a', fontWeight: 'bold' } : {}}>
+      <div className="customrevolutiongenerator-editor-hint" style={intersectionWarning ? { backgroundColor: '#ffe6e6', color: '#c41e3a', fontWeight: 'bold' } : {}}>
         {intersectionWarning ? (
           <>
             <span>⚠️ 检测到轮廓自交！</span>
@@ -1278,25 +1278,25 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
   const currentTitle = editingCurve === 'profile' ? '轮廓曲线' : '路径曲线';
 
   return (
-    <div className="custom-revolution-scroll-container">
-      <div className="custom-revolution-panel">
-        <div className="panel-section">
+    <div className="customrevolutiongenerator-custom-revolution-scroll-container">
+      <div className="customrevolutiongenerator-custom-revolution-panel">
+        <div className="customrevolutiongenerator-panel-section">
           <h3>异形生成器</h3>
-          <p className="panel-description">
+          <p className="customrevolutiongenerator-panel-description">
             点击"编辑"按钮在大窗口中编辑曲线，小窗口实时预览生成的形状
           </p>
         </div>
 
-        <div className="canvases-row">
+        <div className="customrevolutiongenerator-canvases-row">
           {/* 轮廓曲线 - 小窗口 */}
-          <div className="canvas-wrapper">
+          <div className="customrevolutiongenerator-canvas-wrapper">
             <PreviewCanvas
               title="轮廓曲线"
               controlPoints={profileControlPoints}
               onCurveChange={handleProfileCurveChange}
             />
             <button
-              className="edit-btn"
+              className="customrevolutiongenerator-edit-btn"
               onClick={() => openEditor('profile')}
             >
               ✏️ 编辑
@@ -1304,14 +1304,14 @@ const CustomRevolutionGenerator = ({ currentChess, selectedComponent, handleData
           </div>
 
           {/* 路径曲线 - 小窗口 */}
-          <div className="canvas-wrapper">
+          <div className="customrevolutiongenerator-canvas-wrapper">
             <PreviewCanvas
               title="路径曲线 (可选)"
               controlPoints={pathControlPoints}
               onCurveChange={handlePathCurveChange}
             />
             <button
-              className="edit-btn"
+              className="customrevolutiongenerator-edit-btn"
               onClick={() => openEditor('path')}
             >
               ✏️ 编辑

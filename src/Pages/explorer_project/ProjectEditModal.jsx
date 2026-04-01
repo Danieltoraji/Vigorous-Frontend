@@ -55,49 +55,49 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
   if (!project) return null
 
   return (
-    <div className="modal-overlay">
+    <div className="projecteditmodal-modal-overlay">
       <div className="project-modal-content">
 
 
-        <form className="modal-form" onSubmit={handleSubmit}>
-          <div className="modal-header">
+        <form className="projecteditmodal-modal-form" onSubmit={handleSubmit}>
+          <div className="projecteditmodal-modal-header">
             <h2> </h2>
             <h2>项目信息编辑 </h2>
             <button className="modal-close" onClick={onClose}>
               ×
             </button>
           </div>
-          <div className="form-group">
-            <label htmlFor="name" className="form-label">项目名称</label>
+          <div className="projecteditmodal-form-group">
+            <label htmlFor="name" className="projecteditmodal-form-label">项目名称</label>
             <input
               type="text"
               id="name"
               name="name"
-              className="form-input"
+              className="projecteditmodal-form-input"
               value={formData.name}
               onChange={handleChange}
               required
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="description" className="form-label">项目描述</label>
+          <div className="projecteditmodal-form-group">
+            <label htmlFor="description" className="projecteditmodal-form-label">项目描述</label>
             <textarea
               id="description"
               name="description"
-              className="form-textarea"
+              className="projecteditmodal-form-textarea"
               value={formData.description}
               onChange={handleChange}
               rows="4"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="status" className="form-label">项目状态</label>
+          <div className="projecteditmodal-form-group">
+            <label htmlFor="status" className="projecteditmodal-form-label">项目状态</label>
             <select
               id="status"
               name="status"
-              className="form-input"
+              className="projecteditmodal-form-input"
               value={formData.status}
               onChange={handleChange}
             >
@@ -107,13 +107,13 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
             </select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="tags" className="form-label">项目标签（用英文逗号分隔）</label>
+          <div className="projecteditmodal-form-group">
+            <label htmlFor="tags" className="projecteditmodal-form-label">项目标签（用英文逗号分隔）</label>
             <input
               type="text"
               id="tags"
               name="tags"
-              className="form-input"
+              className="projecteditmodal-form-input"
               value={tagInput}
               onChange={handleTagChange}
               onBlur={handleTagBlur}

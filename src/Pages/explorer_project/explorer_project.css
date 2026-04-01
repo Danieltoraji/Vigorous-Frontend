@@ -6,7 +6,7 @@
   background: fixed url("/static/projectExplorer/bg.png") center center repeat;
 }
 
-.explorer-header {
+.explorer-project-explorer-header {
   background: linear-gradient(135deg, #202020 0%, #393939 100%);
   backdrop-filter: blur(10px);
   padding: 20px 2%;
@@ -21,7 +21,7 @@
   z-index: 1000;
 }
 
-.header-title::before {
+.explorer-project-header-title::before {
   content: "";
   display: inline-block;
   background: url("/static/logo/white.png") center center no-repeat;
@@ -35,7 +35,7 @@
   margin-bottom: 10px;
 }
 
-.explorer-header .header-title {
+.explorer-project-explorer-header .explorer-project-header-title {
   font-size: 24px !important;
   font-weight: bold;
   color: white !important;
@@ -44,7 +44,7 @@
   cursor: pointer;
 }
 
-.explorer-header .user-welcome {
+.explorer-project-explorer-header .explorer-project-user-welcome {
   color: white;
   font-weight: 500;
   font-size: 16px;
@@ -59,7 +59,7 @@
 
 
 
-  .explorer-header p {
+  .explorer-project-explorer-header p {
     font-size: 14px;
   }
 }

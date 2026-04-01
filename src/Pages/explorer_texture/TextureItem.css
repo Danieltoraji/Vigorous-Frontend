@@ -57,7 +57,7 @@
   object-fit: cover;
 }
 
-.no-preview {
+.textureitem-no-preview {
   color: #999;
   font-size: 14px;
 }
@@ -80,12 +80,12 @@
   margin-bottom: 0;
 }
 
-.meta-label {
+.textureitem-meta-label {
   color: #666;
   font-weight: 500;
 }
 
-.meta-value {
+.textureitem-meta-value {
   color: #333;
 }
 
@@ -111,7 +111,7 @@
   border-top: 1px solid #e9ecef;
 }
 
-.texture-item-footer .btn {
+.texture-item-footer .textureitem-btn {
   flex: 1;
   padding: 10px;
   border: none;
@@ -122,20 +122,20 @@
   transition: all 0.2s;
 }
 
-.texture-item-footer .btn-secondary {
+.texture-item-footer .textureitem-btn-secondary {
   background: #6c757d;
   color: white;
 }
 
-.texture-item-footer .btn-secondary:hover {
+.texture-item-footer .textureitem-btn-secondary:hover {
   background: #5a6268;
 }
 
-.texture-item-footer .btn-danger {
+.texture-item-footer .textureitem-btn-danger {
   background: #dc3545;
   color: white;
 }
 
-.texture-item-footer .btn-danger:hover {
+.texture-item-footer .textureitem-btn-danger:hover {
   background: #c82333;
 }
