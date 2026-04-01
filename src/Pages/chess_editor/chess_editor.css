@@ -709,7 +709,6 @@ input:checked+.toggle-label:before {
   background: var(--fluent-border);
   border-radius: 3px;
   outline: none;
-  -webkit-appearance: none;
   transition: var(--fluent-transition);
 }
 
@@ -1311,6 +1310,7 @@ input:checked+.toggle-label:before {
     opacity: 0;
     transform: translateY(-30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1515,12 +1515,12 @@ input:checked+.toggle-label:before {
 .hdr-presets-dropdown {
   position: absolute;
   bottom: 50px;
-  right: 0;
+  left: 0;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
   padding: 15px;
-  min-width: 180px;
+  max-width: 180px;
   box-shadow: var(--fluent-shadow-hover);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

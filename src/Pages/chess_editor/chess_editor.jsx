@@ -72,11 +72,11 @@ function ChessEditor() {
 
   // HDR 预设列表
   const hdrPresets = [
-    { id: 'syria', name: '叙利亚', file: '/chessbg/syria.hdr' },
-    { id: 'sky', name: '皆若空游无所依', file: '/chessbg/sky.hdr' },
-    { id: 'ruralroad', name: '乡间小路', file: '/chessbg/ruralroad.hdr' },
-    { id: 'glasshouse', name: '玻璃房', file: '/chessbg/glasshouse.hdr' },
-    { id: 'cinema', name: '电影院', file: '/chessbg/cinema.hdr' },
+    { id: 'syria', name: '叙利亚', file: '/static/chessbg/syria.hdr' },
+    { id: 'sky', name: '皆若空游无所依', file: '/static/chessbg/sky.hdr' },
+    { id: 'ruralroad', name: '乡间小路', file: '/static/chessbg/ruralroad.hdr' },
+    { id: 'glasshouse', name: '玻璃房', file: '/static/chessbg/glasshouse.hdr' },
+    { id: 'cinema', name: '电影院', file: '/static/chessbg/cinema.hdr' },
   ];
 
   // 当 chessData 或 location.state 变化时更新 currentChess

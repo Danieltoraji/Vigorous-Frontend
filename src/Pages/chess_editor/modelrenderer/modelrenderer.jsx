@@ -89,165 +89,165 @@ const textureLoader = new TextureLoader();
  * @param {boolean} smooth - 是否启用平滑（3x3 均值滤波）
  */
 function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smooth = false }) {
-  const [geometry, setGeometry] = useState(null);
+    const [geometry, setGeometry] = useState(null);
 
-  useEffect(() => {
-    if (!textureFile) {
-      setGeometry(null);
-      return;
-    }
-
-    const loadTextureAndCreateGeometry = async () => {
-      try {
-        const texture = await new Promise((resolve, reject) => {
-          textureLoader.load(
-            textureFile,
-            resolve,
-            undefined,
-            reject
-          );
-        });
-
-        const image = texture.image;
-        if (!image) {
-          console.warn('纹理图像未加载完成');
-          return;
+    useEffect(() => {
+        if (!textureFile) {
+            setGeometry(null);
+            return;
         }
 
-        const width = image.width;
-        const height = image.height;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(image, 0, 0);
-        
-        const imageData = ctx.getImageData(0, 0, width, height);
-        const data = imageData.data;
-        
-        // 存储所有体素点的高度值
-        const heightMap = [];
-        const step = sampleRate;
-        
-        // 先提取原始灰度数据到数组
-        const rawGrayData = [];
-        for (let y = 0; y < height; y += step) {
-          const row = [];
-          for (let x = 0; x < width; x += step) {
-            const idx = (y * width + x) * 4;
-            // 计算灰度值 (0-1)
-            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-            row.push(gray);
-          }
-          rawGrayData.push(row);
-        }
-        
-        // 根据 smooth 参数决定是否应用 3x3 均值滤波
-        const grayDataToUse = smooth ? [] : rawGrayData;
-        
-        if (smooth) {
-          // 应用 3x3 均值滤波消除噪点
-          for (let row = 0; row < rawGrayData.length; row++) {
-            const filteredRow = [];
-            for (let col = 0; col < rawGrayData[row].length; col++) {
-              let sum = 0;
-              let count = 0;
-              
-              // 取周围 3x3 邻域的平均值
-              for (let dy = -1; dy <= 1; dy++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                  const newRow = row + dy;
-                  const newCol = col + dx;
-                  
-                  if (newRow >= 0 && newRow < rawGrayData.length && 
-                      newCol >= 0 && newCol < rawGrayData[row].length) {
-                    sum += rawGrayData[newRow][newCol];
-                    count++;
-                  }
+        const loadTextureAndCreateGeometry = async () => {
+            try {
+                const texture = await new Promise((resolve, reject) => {
+                    textureLoader.load(
+                        textureFile,
+                        resolve,
+                        undefined,
+                        reject
+                    );
+                });
+
+                const image = texture.image;
+                if (!image) {
+                    console.warn('纹理图像未加载完成');
+                    return;
                 }
-              }
-              
-              filteredRow.push(sum / count);
+
+                const width = image.width;
+                const height = image.height;
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+
+                // 存储所有体素点的高度值
+                const heightMap = [];
+                const step = sampleRate;
+
+                // 先提取原始灰度数据到数组
+                const rawGrayData = [];
+                for (let y = 0; y < height; y += step) {
+                    const row = [];
+                    for (let x = 0; x < width; x += step) {
+                        const idx = (y * width + x) * 4;
+                        // 计算灰度值 (0-1)
+                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+                        row.push(gray);
+                    }
+                    rawGrayData.push(row);
+                }
+
+                // 根据 smooth 参数决定是否应用 3x3 均值滤波
+                const grayDataToUse = smooth ? [] : rawGrayData;
+
+                if (smooth) {
+                    // 应用 3x3 均值滤波消除噪点
+                    for (let row = 0; row < rawGrayData.length; row++) {
+                        const filteredRow = [];
+                        for (let col = 0; col < rawGrayData[row].length; col++) {
+                            let sum = 0;
+                            let count = 0;
+
+                            // 取周围 3x3 邻域的平均值
+                            for (let dy = -1; dy <= 1; dy++) {
+                                for (let dx = -1; dx <= 1; dx++) {
+                                    const newRow = row + dy;
+                                    const newCol = col + dx;
+
+                                    if (newRow >= 0 && newRow < rawGrayData.length &&
+                                        newCol >= 0 && newCol < rawGrayData[row].length) {
+                                        sum += rawGrayData[newRow][newCol];
+                                        count++;
+                                    }
+                                }
+                            }
+
+                            filteredRow.push(sum / count);
+                        }
+                        grayDataToUse.push(filteredRow);
+                    }
+                }
+
+                // 使用选定的灰度数据生成高度图
+                for (let row = 0; row < grayDataToUse.length; row++) {
+                    for (let col = 0; col < grayDataToUse[row].length; col++) {
+                        const gray = grayDataToUse[row][col];
+                        // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
+                        const h = (1 - gray) * depth;
+                        heightMap.push({
+                            x: col * step,
+                            y: row * step,
+                            height: h
+                        });
+                    }
+                }
+
+                // 生成网格顶点和索引（只有顶面）
+                const positions = [];
+                const indices = [];
+
+                const gridWidth = Math.floor(width / step);
+                const gridHeight = Math.floor(height / step);
+                const planeSize = size / Math.max(gridWidth, gridHeight);
+
+                // 生成顶点
+                for (let i = 0; i < heightMap.length; i++) {
+                    const point = heightMap[i];
+                    // 直接生成在 XZ 平面，高度沿 Y 轴
+                    const px = -(point.x - width / 2) * planeSize;
+                    const py = point.height;
+                    const pz = -(point.y - height / 2) * planeSize;
+
+                    positions.push(px, py, pz);
+                }
+
+                // 生成三角形索引（连接相邻点）
+                for (let row = 0; row < gridHeight - 1; row++) {
+                    for (let col = 0; col < gridWidth - 1; col++) {
+                        const a = row * gridWidth + col;
+                        const b = row * gridWidth + (col + 1);
+                        const c = (row + 1) * gridWidth + col;
+                        const d = (row + 1) * gridWidth + (col + 1);
+
+                        // 两个三角形组成一个四边形
+                        // 三角形 1: a-b-c
+                        indices.push(a, b, c);
+                        // 三角形 2: b-d-c
+                        indices.push(b, d, c);
+                    }
+                }
+
+                // 创建几何体
+                const geom = new BufferGeometry();
+                geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+                geom.setIndex(indices);
+                geom.computeVertexNormals();
+
+
+                console.log('体素几何体创建成功:', {
+                    vertexCount: positions.length / 3,
+                    triangleCount: indices.length / 3,
+                    gridSize: `${gridWidth}x${gridHeight}`
+                });
+
+                setGeometry(geom);
+            } catch (error) {
+                console.error('体素几何体创建失败:', error);
+                setGeometry(null);
             }
-            grayDataToUse.push(filteredRow);
-          }
-        }
-        
-        // 使用选定的灰度数据生成高度图
-        for (let row = 0; row < grayDataToUse.length; row++) {
-          for (let col = 0; col < grayDataToUse[row].length; col++) {
-            const gray = grayDataToUse[row][col];
-            // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
-            const h = (1 - gray) * depth;
-            heightMap.push({ 
-              x: col * step, 
-              y: row * step, 
-              height: h 
-            });
-          }
-        }
-        
-         // 生成网格顶点和索引（只有顶面）
-        const positions = [];
-        const indices = [];
-        
-        const gridWidth = Math.floor(width / step);
-        const gridHeight = Math.floor(height / step);
-        const planeSize = size / Math.max(gridWidth, gridHeight);
-        
-        // 生成顶点
-        for (let i = 0; i < heightMap.length; i++) {
-          const point = heightMap[i];
-          // 直接生成在 XZ 平面，高度沿 Y 轴
-          const px = -(point.x - width / 2) * planeSize;
-          const py = point.height;
-          const pz = -(point.y - height / 2) * planeSize;
-          
-          positions.push(px, py, pz);
-        }
-        
-        // 生成三角形索引（连接相邻点）
-        for (let row = 0; row < gridHeight - 1; row++) {
-          for (let col = 0; col < gridWidth - 1; col++) {
-            const a = row * gridWidth + col;
-            const b = row * gridWidth + (col + 1);
-            const c = (row + 1) * gridWidth + col;
-            const d = (row + 1) * gridWidth + (col + 1);
-            
-            // 两个三角形组成一个四边形
-            // 三角形 1: a-b-c
-            indices.push(a, b, c);
-            // 三角形 2: b-d-c
-            indices.push(b, d, c);
-          }
-        }
-        
-        // 创建几何体
-        const geom = new BufferGeometry();
-        geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-        geom.setIndex(indices);
-        geom.computeVertexNormals();
-        
-        
-        console.log('体素几何体创建成功:', {
-          vertexCount: positions.length / 3,
-          triangleCount: indices.length / 3,
-          gridSize: `${gridWidth}x${gridHeight}`
-        });
-        
-        setGeometry(geom);
-      } catch (error) {
-        console.error('体素几何体创建失败:', error);
-        setGeometry(null);
-      }
-    };
+        };
 
-    loadTextureAndCreateGeometry();
-  }, [textureFile, size, depth, sampleRate, smooth]);
+        loadTextureAndCreateGeometry();
+    }, [textureFile, size, depth, sampleRate, smooth]);
 
-  if (!geometry) return null;
+    if (!geometry) return null;
 
-  return <primitive object={geometry} />;
+    return <primitive object={geometry} />;
 }
 
 /**
@@ -491,14 +491,14 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh 
-                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
+                            <mesh
+                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
                                 scale={[
                                     pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                     pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                     pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                                 ]}
-                                castShadow 
+                                castShadow
                                 receiveShadow
                             >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
@@ -514,14 +514,14 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh 
-                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
+                            <mesh
+                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
                                 scale={[
                                     pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                     pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                     pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                                 ]}
-                                castShadow 
+                                castShadow
                                 receiveShadow
                             >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
@@ -537,14 +537,14 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh 
-                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]} 
+                            <mesh
+                                position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
                                 scale={[
                                     pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                     pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                     pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                                 ]}
-                                castShadow 
+                                castShadow
                                 receiveShadow
                             >
                                 <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
@@ -584,17 +584,17 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
                     patternelement = (
-                        <mesh 
-                            position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} 
+                        <mesh
+                            position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
                             scale={[
                                 pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                 pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                 pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                             ]}
-                            castShadow 
+                            castShadow
                             receiveShadow
                         >
-                            <VoxelGeometry 
+                            <VoxelGeometry
                                 textureFile={pattern.textureFile}
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
@@ -816,14 +816,14 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh 
-                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                            <mesh
+                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
                                 scale={[
                                     pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                     pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                     pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                                 ]}
-                                castShadow 
+                                castShadow
                                 receiveShadow
                             >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
@@ -839,14 +839,14 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh 
-                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                            <mesh
+                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
                                 scale={[
                                     pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                     pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                     pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                                 ]}
-                                castShadow 
+                                castShadow
                                 receiveShadow
                             >
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
@@ -862,14 +862,14 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh 
-                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                            <mesh
+                                position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
                                 scale={[
                                     pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                     pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                     pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                                 ]}
-                                castShadow 
+                                castShadow
                                 receiveShadow
                             >
                                 <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
@@ -909,17 +909,17 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
                     patternelement = (
-                        <mesh 
-                            position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} 
+                        <mesh
+                            position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
                             scale={[
                                 pattern.scaleX !== undefined ? pattern.scaleX : 1,
                                 pattern.scaleY !== undefined ? pattern.scaleY : -1,
                                 pattern.scaleZ !== undefined ? pattern.scaleZ : 1
                             ]}
-                            castShadow 
+                            castShadow
                             receiveShadow
                         >
-                            <VoxelGeometry 
+                            <VoxelGeometry
                                 textureFile={pattern.textureFile}
                                 size={pattern.size || 10}
                                 depth={pattern.depth || 1}
@@ -1162,7 +1162,7 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
             {/* 页面左下角比例尺标签 */}
             <div style={{
                 position: 'absolute',
-                bottom: '20px',
+                bottom: '100px',
                 left: '20px',
                 backgroundColor: 'rgba(200, 200, 200, 0.6)',
                 backdropFilter: 'blur(10px)',

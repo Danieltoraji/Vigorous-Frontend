@@ -43,11 +43,11 @@ function TemplateEditor() {
 
   // HDR 预设列表
   const hdrPresets = [
-    { id: 'syria', name: '叙利亚', file: '/chessbg/syria.hdr' },
-    { id: 'sky', name: '皆若空游无所依', file: '/chessbg/sky.hdr' },
-    { id: 'ruralroad', name: '乡间小路', file: '/chessbg/ruralroad.hdr' },
-    { id: 'glasshouse', name: '玻璃房', file: '/chessbg/glasshouse.hdr' },
-    { id: 'cinema', name: '电影院', file: '/chessbg/cinema.hdr' },
+    { id: 'syria', name: '叙利亚', file: '/static/chessbg/syria.hdr' },
+    { id: 'sky', name: '皆若空游无所依', file: '/static/chessbg/sky.hdr' },
+    { id: 'ruralroad', name: '乡间小路', file: '/static/chessbg/ruralroad.hdr' },
+    { id: 'glasshouse', name: '玻璃房', file: '/static/chessbg/glasshouse.hdr' },
+    { id: 'cinema', name: '电影院', file: '/static/chessbg/cinema.hdr' },
   ];
 
   // 当templateData或location.state变化时更新currentTemplate
@@ -412,10 +412,10 @@ modelId 含义：
       setCurrentTemplate(updatedTemplate);
 
       // 更新全局状态
-    setTemplatesData(prev => ({
-      ...prev,
-      [currentTemplate.id]: updatedTemplate
-    }));
+      setTemplatesData(prev => ({
+        ...prev,
+        [currentTemplate.id]: updatedTemplate
+      }));
 
       // 清空提示词并关闭生成器
       setAiPrompt('');
