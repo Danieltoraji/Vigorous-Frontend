@@ -1257,6 +1257,39 @@ input:checked+.toggle-label:before {
   }
 }
 
+.current-model-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1890ff;
+  padding: 4px 12px;
+  background: #e6f7ff;
+  border-radius: 4px;
+  border: 1px solid #91d5ff;
+}
+
+.select-decoration-button {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+}
+
+.select-decoration-button:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.select-decoration-button:active {
+  transform: translateY(0);
+}
+
 /* HDR 预设选择器样式 */
 .hdr-selector-container {
   position: absolute;

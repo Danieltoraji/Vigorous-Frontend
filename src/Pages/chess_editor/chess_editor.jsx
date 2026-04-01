@@ -5,6 +5,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './modelrenderer/modelrenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import csrfapi from '../../utils/csrfapi.js';
+import ChooseDecoration from './choose_decoration.jsx';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function ChessEditor() {
@@ -26,7 +27,30 @@ function ChessEditor() {
   // 右侧面板固定宽度
   const [rightWidth, setRightWidth] = useState(400); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
-  const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showDecorationModal, setShowDecorationModal] = useState(false);
+
+  const PRESET_DECORATIONS = [
+    { id: '0', name: '无装饰' },
+    { id: '1', name: '小旗子' },
+    { id: '2', name: '五角星' },
+    { id: '3', name: '圆球' },
+    { id: '4', name: '四棱锥' },
+  ];
+
+  const getDecorationName = (modelId) => {
+    const preset = PRESET_DECORATIONS.find(d => d.id === modelId);
+    if (preset) return preset.name;
+    return modelId || '无装饰';
+  };
+
+  const handleDecorationSelect = (selectedId, selectedType) => {
+    handleDataUpdate('parts.decoration.modelId', selectedId);
+  };
+
+  const getSafeValue = (value, defaultValue) => {
+    return value !== undefined && value !== null ? value : defaultValue;
+  };
 
   // AI 生成相关状态
   const [showAIGenerator, setShowAIGenerator] = useState(false); // AI 生成器显示状态
@@ -1522,18 +1546,18 @@ modelId 含义：
         <div className="editor-section">
           <h4>模型</h4>
           <div className="editor-item">
-            <label>模型类型：</label>
-            <select
-              value={getSafeValue(component.modelId, '0')}
-              onChange={(e) => handleDataUpdate('parts.decoration.modelId', e.target.value)}
+            <label>当前模型：</label>
+            <span className="current-model-name">
+              {getDecorationName(getSafeValue(component.modelId, '0'))}
+            </span>
+          </div>
+          <div className="editor-item">
+            <button
+              className="select-decoration-button"
+              onClick={() => setShowDecorationModal(true)}
             >
-              <option value="0">无装饰</option>
-              <option value="1">小旗子</option>
-              <option value="2">五角星</option>
-              <option value="3">圆球</option>
-              <option value="4">四棱锥</option>
-              <option value="0">未来会支持更多预设和用户导入...</option>
-            </select>
+              选择模型
+            </button>
           </div>
           <div className="editor-item">
             <button className="import-model-button">
@@ -2039,6 +2063,13 @@ modelId 含义：
           </div>
         </div>
       )}
+
+      <ChooseDecoration
+        isOpen={showDecorationModal}
+        onClose={() => setShowDecorationModal(false)}
+        currentModelId={getSafeValue(currentChess?.parts?.decoration?.modelId, '0')}
+        onSelect={handleDecorationSelect}
+      />
     </div>
   );
 }

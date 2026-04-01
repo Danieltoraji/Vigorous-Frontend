@@ -1,0 +1,253 @@
+.decoration-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.decoration-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.decoration-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e8e8e8;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+}
+
+.decoration-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.decoration-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.decoration-modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.decoration-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.decoration-section {
+  margin-bottom: 24px;
+}
+
+.decoration-section:last-child {
+  margin-bottom: 0;
+}
+
+.decoration-section-title {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1890ff;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e6f7ff;
+}
+
+.decoration-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.decoration-card {
+  position: relative;
+  background: #f5f5f5;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.decoration-card:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.decoration-card.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.decoration-card-icon {
+  font-size: 32px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.decoration-card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.decoration-card-name {
+  font-size: 13px;
+  color: #333333;
+  text-align: center;
+  word-break: break-word;
+}
+
+.decoration-card-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  background: #1890ff;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.decoration-loading,
+.decoration-error,
+.decoration-empty {
+  grid-column: 1 / -1;
+  padding: 24px;
+  text-align: center;
+  color: #999999;
+  font-size: 14px;
+}
+
+.decoration-error {
+  color: #ff4d4f;
+}
+
+.decoration-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e8e8e8;
+  background: #fafafa;
+}
+
+.decoration-btn {
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.decoration-btn-cancel {
+  background: #ffffff;
+  color: #666666;
+  border: 1px solid #d9d9d9;
+}
+
+.decoration-btn-cancel:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.decoration-btn-confirm {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: #ffffff;
+}
+
+.decoration-btn-confirm:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+}
+
+@media (max-width: 480px) {
+  .decoration-modal {
+    max-height: 90vh;
+  }
+
+  .decoration-modal-header {
+    padding: 12px 16px;
+  }
+
+  .decoration-modal-content {
+    padding: 16px;
+  }
+
+  .decoration-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+  }
+
+  .decoration-card {
+    padding: 12px 8px;
+  }
+
+  .decoration-card-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .decoration-card-name {
+    font-size: 12px;
+  }
+
+  .decoration-modal-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+
+  .decoration-btn {
+    width: 100%;
+  }
+}

@@ -1,11 +1,52 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
+import { OrbitControls, Text, Environment, Text3D, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
+import { useDecoration } from '../../../hooks/useDecoration.jsx';
 
-// 从 THREE 命名空间获取常用几何体和工具
 const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
+
+const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
+
+function CustomDecorationModel({ url, position, rotation, scale, material }) {
+    const { scene } = useGLTF(url);
+    const clonedScene = scene.clone();
+    
+    clonedScene.traverse((child) => {
+        if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (material) {
+                child.material = new THREE.MeshStandardMaterial({
+                    color: child.material.color || '#FFD700',
+                    metalness: material.metalness || 0.5,
+                    roughness: material.roughness || 0.3,
+                    clearcoat: material.clearcoat || 0,
+                    clearcoatRoughness: material.clearcoatRoughness || 0
+                });
+            }
+        }
+    });
+
+    return (
+        <primitive 
+            object={clonedScene} 
+            position={position}
+            rotation={rotation}
+            scale={scale}
+        />
+    );
+}
+
+function FallbackDecoration({ position, size }) {
+    return (
+        <mesh position={position} castShadow receiveShadow>
+            <boxGeometry args={[size || 2, size || 2, size || 2]} />
+            <meshStandardMaterial color="#888888" metalness={0.3} roughness={0.5} />
+        </mesh>
+    );
+}
 
 /**
  * SceneContent component - contains all scene objects and model rendering logic
@@ -13,8 +54,8 @@ const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
  */
 function SceneContent({ chess, onModelReady, hdrFile }) {
     const modelRootRef = useRef();
+    const { decorationData, loading: decorationLoading } = useDecoration();
 
-    // Notify parent when model is ready
     useEffect(() => {
         if (onModelReady && modelRootRef.current) {
             onModelReady(modelRootRef.current);
@@ -553,7 +594,6 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
             </group>
         );
     };
-    //渲染装饰层组件
     const renderDecoration = (decoration) => {
         if (!decoration) return null;
 
@@ -570,129 +610,242 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
         };
         const mat = material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
 
-        switch (modelId) {
-            case "0":
-                return null;
-            case "1":
-                return (
-                    <group
-                        position={[pos.x, pos.y, pos.z]}
-                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                    >
-                        <mesh position={[0, size2 / 2, 0]} castShadow receiveShadow>
-                            <cylinderGeometry args={[size1 * 0.05, size1 * 0.05, size2, 16]} />
-                            <meshStandardMaterial
-                                color="#8B4513"
-                                metalness={mat.metalness}
-                                roughness={mat.roughness}
-                                clearcoat={mat.clearcoat}
-                                clearcoatRoughness={mat.clearcoatRoughness}
-                            />
-                        </mesh>
+        if (PRESET_DECORATION_IDS.includes(modelId)) {
+            switch (modelId) {
+                case "0":
+                    return null;
+                case "1":
+                    return (
+                        <group
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        >
+                            <mesh position={[0, size2 / 2, 0]} castShadow receiveShadow>
+                                <cylinderGeometry args={[size1 * 0.05, size1 * 0.05, size2, 16]} />
+                                <meshStandardMaterial
+                                    color="#8B4513"
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                            <mesh
+                                position={[size1 * 0.3, size2 - size1 * 0.3, 0]}
+                                rotation={[Math.PI / 2, Math.PI / 2, 0]}
+                                castShadow
+                                receiveShadow
+                            >
+                                <cylinderGeometry args={[size1 * 0.6, size1 * 0.6, size1 * 0.12, 3]} />
+                                <meshStandardMaterial
+                                    color="#FF0000"
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
+                    );
+                case "2": {
+                    const starShape = new Shape();
+                    const outerRadius = size1 / 2;
+                    const innerRadius = outerRadius * 0.4;
+                    const points = 5;
+                    for (let i = 0; i < points * 2; i++) {
+                        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                        const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        if (i === 0) {
+                            starShape.moveTo(x, y);
+                        } else {
+                            starShape.lineTo(x, y);
+                        }
+                    }
+                    starShape.closePath();
+
+                    const extrudeSettings = {
+                        depth: size3,
+                        bevelEnabled: true,
+                        bevelThickness: size3 * 0.1,
+                        bevelSize: size3 * 0.1,
+                        bevelSegments: 2
+                    };
+
+                    const starGeometry = new ExtrudeGeometry(starShape, extrudeSettings);
+                    starGeometry.rotateX(-Math.PI / 2);
+                    starGeometry.translate(0, size3 / 2, 0);
+
+                    return (
                         <mesh
-                            position={[size1 * 0.3, size2 - size1 * 0.3, 0]}
-                            rotation={[Math.PI / 2, Math.PI / 2, 0]}
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
                             castShadow
                             receiveShadow
                         >
-                            <cylinderGeometry args={[size1 * 0.6, size1 * 0.6, size1 * 0.12, 3]} />
+                            <primitive object={starGeometry} />
                             <meshStandardMaterial
-                                color="#FF0000"
+                                color="#FFD700"
                                 metalness={mat.metalness}
                                 roughness={mat.roughness}
                                 clearcoat={mat.clearcoat}
                                 clearcoatRoughness={mat.clearcoatRoughness}
                             />
                         </mesh>
-                    </group>
-                );
-            case "2": {
-                const starShape = new Shape();
-                const outerRadius = size1 / 2;
-                const innerRadius = outerRadius * 0.4;
-                const points = 5;
-                for (let i = 0; i < points * 2; i++) {
-                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                    const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
-                    const x = Math.cos(angle) * radius;
-                    const y = Math.sin(angle) * radius;
-                    if (i === 0) {
-                        starShape.moveTo(x, y);
-                    } else {
-                        starShape.lineTo(x, y);
-                    }
+                    );
                 }
-                starShape.closePath();
+                case "3":
+                    return (
+                        <mesh
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                            castShadow
+                            receiveShadow
+                        >
+                            <sphereGeometry args={[size1 / 2, 32, 32]} />
+                            <meshStandardMaterial
+                                color="#FFD700"
+                                metalness={mat.metalness}
+                                roughness={mat.roughness}
+                                clearcoat={mat.clearcoat}
+                                clearcoatRoughness={mat.clearcoatRoughness}
+                            />
+                        </mesh>
+                    );
+                case "4":
+                    return (
+                        <mesh
+                            position={[pos.x, pos.y + size2 / 2, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                            castShadow
+                            receiveShadow
+                        >
+                            <coneGeometry args={[size1 / 2, size2, 4]} />
+                            <meshStandardMaterial
+                                color="#FFD700"
+                                metalness={mat.metalness}
+                                roughness={mat.roughness}
+                                clearcoat={mat.clearcoat}
+                                clearcoatRoughness={mat.clearcoatRoughness}
+                            />
+                        </mesh>
+                    );
+                default:
+                    return null;
+            }
+        }
 
-                const extrudeSettings = {
-                    depth: size3,
-                    bevelEnabled: true,
-                    bevelThickness: size3 * 0.1,
-                    bevelSize: size3 * 0.1,
-                    bevelSegments: 2
-                };
+        if (!PRESET_DECORATION_IDS.includes(modelId) && modelId !== '0') {
+            const customDecoration = decorationData?.[modelId];
+            
+            if (!customDecoration) {
+                if (decorationLoading) {
+                    return null;
+                }
+                return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
+            }
 
-                const starGeometry = new ExtrudeGeometry(starShape, extrudeSettings);
-                starGeometry.rotateX(-Math.PI / 2);
-                starGeometry.translate(0, size3 / 2, 0);
-
+            if (customDecoration.modelUrl || customDecoration.model_url) {
+                const modelUrl = customDecoration.modelUrl || customDecoration.model_url;
+                const scale = customDecoration.scale || 1;
+                
                 return (
-                    <mesh
-                        position={[pos.x, pos.y, pos.z]}
-                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                        castShadow
-                        receiveShadow
-                    >
-                        <primitive object={starGeometry} />
-                        <meshStandardMaterial
-                            color="#FFD700"
-                            metalness={mat.metalness}
-                            roughness={mat.roughness}
-                            clearcoat={mat.clearcoat}
-                            clearcoatRoughness={mat.clearcoatRoughness}
+                    <Suspense fallback={<FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />}>
+                        <CustomDecorationModel
+                            url={modelUrl}
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                            scale={[scale, scale, scale]}
+                            material={mat}
                         />
-                    </mesh>
+                    </Suspense>
                 );
             }
-            case "3":
-                return (
-                    <mesh
-                        position={[pos.x, pos.y, pos.z]}
-                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                        castShadow
-                        receiveShadow
-                    >
-                        <sphereGeometry args={[size1 / 2, 32, 32]} />
-                        <meshStandardMaterial
-                            color="#FFD700"
-                            metalness={mat.metalness}
-                            roughness={mat.roughness}
-                            clearcoat={mat.clearcoat}
-                            clearcoatRoughness={mat.clearcoatRoughness}
-                        />
-                    </mesh>
-                );
-            case "4":
-                return (
-                    <mesh
-                        position={[pos.x, pos.y + size2 / 2, pos.z]}
-                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                        castShadow
-                        receiveShadow
-                    >
-                        <coneGeometry args={[size1 / 2, size2, 4]} />
-                        <meshStandardMaterial
-                            color="#FFD700"
-                            metalness={mat.metalness}
-                            roughness={mat.roughness}
-                            clearcoat={mat.clearcoat}
-                            clearcoatRoughness={mat.clearcoatRoughness}
-                        />
-                    </mesh>
-                );
-            default:
-                return null;
+
+            if (customDecoration.geometryType) {
+                switch (customDecoration.geometryType) {
+                    case 'sphere':
+                        return (
+                            <mesh
+                                position={[pos.x, pos.y, pos.z]}
+                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                                castShadow
+                                receiveShadow
+                            >
+                                <sphereGeometry args={[size1 / 2, 32, 32]} />
+                                <meshStandardMaterial
+                                    color={customDecoration.color || "#FFD700"}
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                        );
+                    case 'cube':
+                        return (
+                            <mesh
+                                position={[pos.x, pos.y, pos.z]}
+                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                                castShadow
+                                receiveShadow
+                            >
+                                <boxGeometry args={[size1, size2 || size1, size3 || size1]} />
+                                <meshStandardMaterial
+                                    color={customDecoration.color || "#FFD700"}
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                        );
+                    case 'cone':
+                        return (
+                            <mesh
+                                position={[pos.x, pos.y + (size2 || size1) / 2, pos.z]}
+                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                                castShadow
+                                receiveShadow
+                            >
+                                <coneGeometry args={[size1 / 2, size2 || size1, 32]} />
+                                <meshStandardMaterial
+                                    color={customDecoration.color || "#FFD700"}
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                        );
+                    case 'cylinder':
+                        return (
+                            <mesh
+                                position={[pos.x, pos.y, pos.z]}
+                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                                castShadow
+                                receiveShadow
+                            >
+                                <cylinderGeometry args={[size1 / 2, size1 / 2, size2 || size1, 32]} />
+                                <meshStandardMaterial
+                                    color={customDecoration.color || "#FFD700"}
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                        );
+                    default:
+                        return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
+                }
+            }
+
+            return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
         }
+
+        return null;
     };
 
     return (
