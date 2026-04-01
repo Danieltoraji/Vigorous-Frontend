@@ -69,7 +69,7 @@ function ExplorerProject() {
   return (
     <div className="explorer-project">
       <div className="explorer-project-explorer-header">
-        {/* <button onClick={onBack}>
+        {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
         <h1 className='explorer-project-header-title' onClick={onBack}>

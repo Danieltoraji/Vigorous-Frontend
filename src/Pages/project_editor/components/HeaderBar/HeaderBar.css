@@ -17,11 +17,6 @@
   transition: var(--fluent-transition);
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
 
 
 

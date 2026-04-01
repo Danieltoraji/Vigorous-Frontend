@@ -60,7 +60,7 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
           <p>💡 选择一个灰度图纹理，系统将把黑色映射为高度，白色高度为 0</p>
         </div>
       )}
-
+      
       <div className="texturegrid-texture-grid">
         {textures.length === 0 ? (
           <div className="no-textures">
@@ -92,14 +92,14 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
       </div>
 
       <div className="texture-grid-footer">
-        <button
-          className="texturegrid-btn-secondary"
+        <button 
+          className="btn texturegrid-btn-secondary" 
           onClick={onClose}
         >
           取消
         </button>
-        <button
-          className="texturegrid-btn-primary"
+        <button 
+          className="btn texturegrid-btn-primary" 
           onClick={handleConfirm}
           disabled={!selectedId}
         >

@@ -5,26 +5,6 @@
   transition: var(--fluent-transition);
 }
 
-.projectactions-btn {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--fluent-transition);
-}
-
-.projectactions-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.projectactions-btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
-}
-
 .projectactions-btn-secondary {
   background: rgba(255, 255, 255, 0.7);
   color: var(--fluent-text);

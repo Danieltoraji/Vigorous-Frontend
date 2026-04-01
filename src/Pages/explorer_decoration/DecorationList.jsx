@@ -9,7 +9,7 @@ function DecorationList({ decorations, onEditDecoration, onDeleteDecoration, onU
     <div className="decoration-list">
       <div className="decoration-list-header">
         <h2>我的装饰</h2>
-        <button className="decorationlist-btn-primary" onClick={onUploadDecoration}>
+        <button className="btn decorationlist-btn-primary" onClick={onUploadDecoration}>
           上传新装饰
         </button>
       </div>

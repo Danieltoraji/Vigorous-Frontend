@@ -63,7 +63,7 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
           <div className="projecteditmodal-modal-header">
             <h2> </h2>
             <h2>项目信息编辑 </h2>
-            <button className="projecteditmodal-modal-close" onClick={onClose}>
+            <button className="modal-close" onClick={onClose}>
               ×
             </button>
           </div>
@@ -121,10 +121,10 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
           </div>
 
           <div className="project-modal-footer">
-            <button type="button" className="projecteditmodal-btn projecteditmodal-btn-secondary" onClick={onClose}>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
               取消
             </button>
-            <button type="submit" className="projecteditmodal-btn projecteditmodal-btn-primary">
+            <button type="submit" className="btn btn-primary">
               保存更改
             </button>
           </div>

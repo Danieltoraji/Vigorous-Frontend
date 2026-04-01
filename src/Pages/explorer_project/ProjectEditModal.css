@@ -40,7 +40,7 @@
   margin: 0;
 }
 
-.projecteditmodal-modal-close {
+.modal-close {
   background: transparent;
   border: none;
   font-size: 16px;
@@ -57,7 +57,7 @@
   min-height: 32px;
 }
 
-.projecteditmodal-modal-close:hover {
+.modal-close:hover {
   background: rgba(0, 0, 0, 0.05);
   color: var(--fluent-text-secondary);
   box-shadow: var(--fluent-shadow);
@@ -121,36 +121,6 @@
   border-top: 1px solid var(--fluent-border-light);
   margin-top: 10px;
   background: transparent;
-}
-
-.projecteditmodal-btn {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--fluent-transition);
-}
-
-.projecteditmodal-btn-secondary {
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--fluent-text);
-  border: 1px solid var(--fluent-border);
-}
-
-.projecteditmodal-btn-secondary:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.projecteditmodal-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.projecteditmodal-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
 }
 
 /* 动画效果 */
