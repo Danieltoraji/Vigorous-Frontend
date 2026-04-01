@@ -58,17 +58,17 @@
   color: #666;
 }
 
-.decorationitem-file-icon {
+.file-icon {
   font-size: 32px;
 }
 
-.decorationitem-file-name {
+.file-name {
   font-size: 14px;
   font-weight: 500;
   word-break: break-all;
 }
 
-.decorationitem-no-preview {
+.no-preview {
   color: #999;
   font-size: 14px;
 }
@@ -91,12 +91,12 @@
   margin-bottom: 0;
 }
 
-.decorationitem-meta-label {
+.meta-label {
   color: #666;
   font-weight: 500;
 }
 
-.decorationitem-meta-value {
+.meta-value {
   color: #333;
 }
 
@@ -122,7 +122,7 @@
   border-top: 1px solid #e9ecef;
 }
 
-.decoration-item-footer .decorationitem-btn {
+.decoration-item-footer .btn {
   flex: 1;
   padding: 10px;
   border: none;
@@ -133,20 +133,20 @@
   transition: all 0.2s;
 }
 
-.decoration-item-footer .decorationitem-btn-secondary {
+.decoration-item-footer .btn-secondary {
   background: #6c757d;
   color: white;
 }
 
-.decoration-item-footer .decorationitem-btn-secondary:hover {
+.decoration-item-footer .btn-secondary:hover {
   background: #5a6268;
 }
 
-.decoration-item-footer .decorationitem-btn-danger {
+.decoration-item-footer .btn-danger {
   background: #dc3545;
   color: white;
 }
 
-.decoration-item-footer .decorationitem-btn-danger:hover {
+.decoration-item-footer .btn-danger:hover {
   background: #c82333;
 }

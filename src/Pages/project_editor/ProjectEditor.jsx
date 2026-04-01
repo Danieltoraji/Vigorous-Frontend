@@ -44,7 +44,7 @@ const ProjectEditor = () => {
   if (isLoading) {
     return (
       <div className="project-editor-loading">
-        <div className="projecteditor-loading-spinner"></div>
+        <div className="loading-spinner"></div>
         <p>加载中...</p>
       </div>
     );

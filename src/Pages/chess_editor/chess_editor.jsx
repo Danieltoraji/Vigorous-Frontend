@@ -576,14 +576,14 @@ modelId 含义：
     };
 
     return (
-      <div className="chess-editor-data-editor">
+      <div className="data-editor">
         <h3>底座参数</h3>
 
         {/* Shape 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>形状</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>类型：</label>
             <select
               value={getSafeValue(shape.type, 'cylinder')}
@@ -598,7 +598,7 @@ modelId 含义：
 
           {/* 多边形边数控制 */}
           {shape.type === 'polygon' && (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>边数：</label>
               <input
                 type="range"
@@ -613,14 +613,14 @@ modelId 含义：
                 max="32"
                 value={getSafeValue(shape.sides, 6)}
                 onChange={(e) => handleDataUpdate('parts.base.shape.sides', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
           )}
 
           {/* 异形类型控制 */}
           {shape.type === 'special' && (
-            <div className="chess-editor-custom-revolution-wrapper">
+            <div className="custom-revolution-wrapper">
               <CustomRevolutionGenerator
                 currentChess={currentChess}
                 selectedComponent={selectedComponent}
@@ -632,7 +632,7 @@ modelId 含义：
           {/* 圆柱/多边形/矩形的尺寸控制 */}
           {shape.type !== 'special' && (
             <>
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>尺寸 1：</label>
                 <input
                   type="range"
@@ -647,11 +647,11 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size1, 15)}
                   onChange={(e) => handleDataUpdate('parts.base.shape.size1', parseInt(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                 />
               </div>
 
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>尺寸 2：</label>
                 <input
                   type="range"
@@ -666,14 +666,14 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size2, 15)}
                   onChange={(e) => handleDataUpdate('parts.base.shape.size2', parseInt(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                 />
               </div>
             </>
           )}
 
           {shape.type === 'special' ? null : (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>高度：</label>
               <input
                 type="range"
@@ -690,7 +690,7 @@ modelId 含义：
                 step="0.1"
                 value={getSafeValue(shape.height, 1)}
                 onChange={(e) => handleDataUpdate('parts.base.shape.height', parseFloat(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
           )}
@@ -698,10 +698,10 @@ modelId 含义：
         </div>
 
         {/* Pattern 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>浮雕与纹理</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>形状：</label>
             <select
               value={getSafeValue(pattern.shape, 'text')}
@@ -715,7 +715,7 @@ modelId 含义：
           </div>
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <div className="texture-mode-buttons">
                 <button
                   className="texture-mode-button"
@@ -743,7 +743,7 @@ modelId 含义：
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>文本内容：</label>
               <input
                 type="text"
@@ -755,7 +755,7 @@ modelId 含义：
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
             <>
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>几何形状：</label>
                 <select
                   value={getSafeValue(pattern.geometryType, 'square')}
@@ -769,7 +769,7 @@ modelId 含义：
               </div>
 
               {getSafeValue(pattern.geometryType, 'Cube') === 'Polygon' && (
-                <div className="chess-editor-editor-item">
+                <div className="editor-item">
                   <label>边数：</label>
                   <input
                     type="range"
@@ -784,7 +784,7 @@ modelId 含义：
                     max="12"
                     value={getSafeValue(pattern.sides, 6)}
                     onChange={(e) => handleDataUpdate('parts.base.pattern.sides', parseInt(e.target.value))}
-                    className="chess-editor-number-input"
+                    className="number-input"
                   />
                 </div>
               )}
@@ -792,7 +792,7 @@ modelId 含义：
           )}
 
           {/* 尺寸拉伸功能栏 */}
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <h5>尺寸拉伸</h5>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
@@ -804,7 +804,7 @@ modelId 含义：
                   step="0.1"
                   value={getSafeValue(pattern.scaleX, 1)}
                   onChange={(e) => handleDataUpdate('parts.base.pattern.scaleX', parseFloat(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -859,7 +859,7 @@ modelId 含义：
                   step="0.1"
                   value={Math.abs(getSafeValue(pattern.scaleY, -1))}
                   onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -914,7 +914,7 @@ modelId 含义：
                   step="0.1"
                   value={getSafeValue(pattern.scaleZ, 1)}
                   onChange={(e) => handleDataUpdate('parts.base.pattern.scaleZ', parseFloat(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -964,9 +964,9 @@ modelId 含义：
           </div>
 
           {/* 浮雕位置 */}
-          <div className="chess-editor-editor-subsection">
+          <div className="editor-subsection">
             <h5>位置</h5>
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>X：</label>
               <input
                 type="range"
@@ -981,10 +981,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.x, 0)}
                 onChange={(e) => handleDataUpdate('parts.base.pattern.position.x', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>Y：</label>
               <input
                 type="range"
@@ -999,10 +999,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.y, 0)}
                 onChange={(e) => handleDataUpdate('parts.base.pattern.position.y', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>Z：</label>
               <input
                 type="range"
@@ -1017,25 +1017,25 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.z, 0)}
                 onChange={(e) => handleDataUpdate('parts.base.pattern.position.z', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
           </div>
         </div>
 
         {/* Edge 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>边缘处理</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <button
-              className={`chess-editor-edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
+              className={`edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.base.edge.type', edge.type === 'smooth' ? 'none' : 'smooth')}
             >
               {edge.type === 'smooth' ? '✓ 平滑已启用' : '启用平滑'}
             </button>
             <button
-              className={`chess-editor-edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
+              className={`edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.base.edge.type', edge.type === 'round' ? 'none' : 'round')}
               style={{ marginLeft: '10px' }}
             >
@@ -1045,7 +1045,7 @@ modelId 含义：
 
           {(edge.type === 'smooth' || edge.type === 'round') && (
             <>
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>深度：</label>
                 <input
                   type="range"
@@ -1062,12 +1062,12 @@ modelId 含义：
                   step="0.04"
                   value={(getSafeValue(edge.depth, 0) * 4).toFixed(2)}
                   onChange={(e) => handleDataUpdate('parts.base.edge.depth', parseFloat(e.target.value) / 4)}
-                  className="chess-editor-number-input"
+                  className="number-input"
                 />
               </div>
 
               {edge.type === 'smooth' && (
-                <div className="chess-editor-editor-item">
+                <div className="editor-item">
                   <label>分段数：</label>
                   <input
                     type="range"
@@ -1084,7 +1084,7 @@ modelId 含义：
                     step="1"
                     value={getSafeValue(edge.segments, 4)}
                     onChange={(e) => handleDataUpdate('parts.base.edge.segments', parseInt(e.target.value))}
-                    className="chess-editor-number-input"
+                    className="number-input"
                   />
                 </div>
               )}
@@ -1093,9 +1093,9 @@ modelId 含义：
         </div>
 
         {/* Material 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>材质</h4>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>金属度：</label>
             <input
               type="range"
@@ -1112,10 +1112,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.base?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.base.material.metalness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>粗糙度：</label>
             <input
               type="range"
@@ -1132,10 +1132,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.base?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.base.material.roughness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>清漆层：</label>
             <input
               type="range"
@@ -1152,10 +1152,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.base?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoat', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>清漆粗糙度：</label>
             <input
               type="range"
@@ -1172,7 +1172,7 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.base?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoatRoughness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
@@ -1195,14 +1195,14 @@ modelId 含义：
     };
 
     return (
-      <div className="chess-editor-data-editor">
+      <div className="data-editor">
         <h3>柱体参数</h3>
 
         {/* Shape 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>形状</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>类型：</label>
             <select
               value={getSafeValue(shape.type, 'cylinder')}
@@ -1217,7 +1217,7 @@ modelId 含义：
 
           {/* 多边形边数控制 */}
           {shape.type === 'polygon' && (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>边数：</label>
               <input
                 type="range"
@@ -1232,14 +1232,14 @@ modelId 含义：
                 max="32"
                 value={getSafeValue(shape.sides, 6)}
                 onChange={(e) => handleDataUpdate('parts.column.shape.sides', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
           )}
 
           {/* 异形类型控制 */}
           {shape.type === 'special' && (
-            <div className="chess-editor-custom-revolution-wrapper">
+            <div className="custom-revolution-wrapper">
               <CustomRevolutionGenerator
                 currentChess={currentChess}
                 selectedComponent={selectedComponent}
@@ -1251,7 +1251,7 @@ modelId 含义：
           {/* 圆柱/多边形/矩形的尺寸控制 */}
           {shape.type !== 'special' && (
             <>
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>尺寸 1：</label>
                 <input
                   type="range"
@@ -1266,11 +1266,11 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size1, 10)}
                   onChange={(e) => handleDataUpdate('parts.column.shape.size1', parseInt(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                 />
               </div>
 
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>尺寸 2：</label>
                 <input
                   type="range"
@@ -1285,14 +1285,14 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size2, 10)}
                   onChange={(e) => handleDataUpdate('parts.column.shape.size2', parseInt(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                 />
               </div>
             </>
           )}
 
           {shape.type === 'special' ? null : (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>高度：</label>
               <input
                 type="range"
@@ -1309,17 +1309,17 @@ modelId 含义：
                 step="0.5"
                 value={getSafeValue(shape.height, 20)}
                 onChange={(e) => handleDataUpdate('parts.column.shape.height', parseFloat(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
           )}
         </div>
 
         {/* Position 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>位置</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>X：</label>
             <input
               type="range"
@@ -1334,11 +1334,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(position.x, 0)}
               onChange={(e) => handleDataUpdate('parts.column.position.x', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>Y：</label>
             <input
               type="range"
@@ -1353,11 +1353,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(position.y, 1)}
               onChange={(e) => handleDataUpdate('parts.column.position.y', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>Z：</label>
             <input
               type="range"
@@ -1372,16 +1372,16 @@ modelId 含义：
               max="30"
               value={getSafeValue(position.z, 0)}
               onChange={(e) => handleDataUpdate('parts.column.position.z', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
 
         {/* Side Treatment 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>侧面处理</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>类型：</label>
             <select
               value={getSafeValue(component.sideTreatment, 'none')}
@@ -1394,10 +1394,10 @@ modelId 含义：
         </div>
 
         {/* Pattern 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>浮雕与纹理</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>形状：</label>
             <select
               value={getSafeValue(pattern.shape, 'text')}
@@ -1411,7 +1411,7 @@ modelId 含义：
           </div>
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <div className="texture-mode-buttons">
                 <button
                   className="texture-mode-button"
@@ -1439,7 +1439,7 @@ modelId 含义：
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>文本内容：</label>
               <input
                 type="text"
@@ -1451,7 +1451,7 @@ modelId 含义：
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
             <>
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>几何形状：</label>
                 <select
                   value={getSafeValue(pattern.geometryType, 'square')}
@@ -1465,7 +1465,7 @@ modelId 含义：
               </div>
 
               {getSafeValue(pattern.geometryType, 'Cube') === 'Polygon' && (
-                <div className="chess-editor-editor-item">
+                <div className="editor-item">
                   <label>边数：</label>
                   <input
                     type="range"
@@ -1480,7 +1480,7 @@ modelId 含义：
                     max="12"
                     value={getSafeValue(pattern.sides, 6)}
                     onChange={(e) => handleDataUpdate('parts.column.pattern.sides', parseInt(e.target.value))}
-                    className="chess-editor-number-input"
+                    className="number-input"
                   />
                 </div>
               )}
@@ -1488,7 +1488,7 @@ modelId 含义：
           )}
 
           {/* 尺寸拉伸功能栏 */}
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <h5>尺寸拉伸</h5>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
@@ -1500,7 +1500,7 @@ modelId 含义：
                   step="0.1"
                   value={getSafeValue(pattern.scaleX, 1)}
                   onChange={(e) => handleDataUpdate('parts.column.pattern.scaleX', parseFloat(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -1555,7 +1555,7 @@ modelId 含义：
                   step="0.1"
                   value={Math.abs(getSafeValue(pattern.scaleY, -1))}
                   onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -1610,7 +1610,7 @@ modelId 含义：
                   step="0.1"
                   value={getSafeValue(pattern.scaleZ, 1)}
                   onChange={(e) => handleDataUpdate('parts.column.pattern.scaleZ', parseFloat(e.target.value))}
-                  className="chess-editor-number-input"
+                  className="number-input"
                   style={{ width: '50px' }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -1660,9 +1660,9 @@ modelId 含义：
           </div>
 
           {/* 浮雕位置 */}
-          <div className="chess-editor-editor-subsection">
+          <div className="editor-subsection">
             <h5>位置</h5>
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>X：</label>
               <input
                 type="range"
@@ -1677,10 +1677,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.x, 0)}
                 onChange={(e) => handleDataUpdate('parts.column.pattern.position.x', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>Y：</label>
               <input
                 type="range"
@@ -1695,10 +1695,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.y, 0)}
                 onChange={(e) => handleDataUpdate('parts.column.pattern.position.y', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
-            <div className="chess-editor-editor-item">
+            <div className="editor-item">
               <label>Z：</label>
               <input
                 type="range"
@@ -1713,25 +1713,25 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.z, 0)}
                 onChange={(e) => handleDataUpdate('parts.column.pattern.position.z', parseInt(e.target.value))}
-                className="chess-editor-number-input"
+                className="number-input"
               />
             </div>
           </div>
         </div>
 
         {/* Edge 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>边缘处理</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <button
-              className={`chess-editor-edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
+              className={`edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.column.edge.type', edge.type === 'smooth' ? 'none' : 'smooth')}
             >
               {edge.type === 'smooth' ? '✓ 平滑已启用' : '启用平滑'}
             </button>
             <button
-              className={`chess-editor-edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
+              className={`edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.column.edge.type', edge.type === 'round' ? 'none' : 'round')}
               style={{ marginLeft: '10px' }}
             >
@@ -1741,7 +1741,7 @@ modelId 含义：
 
           {(edge.type === 'smooth' || edge.type === 'round') && (
             <>
-              <div className="chess-editor-editor-item">
+              <div className="editor-item">
                 <label>深度：</label>
                 <input
                   type="range"
@@ -1758,12 +1758,12 @@ modelId 含义：
                   step="0.04"
                   value={(getSafeValue(edge.depth, 0.2) * 4).toFixed(2)}
                   onChange={(e) => handleDataUpdate('parts.column.edge.depth', parseFloat(e.target.value) / 4)}
-                  className="chess-editor-number-input"
+                  className="number-input"
                 />
               </div>
 
               {edge.type === 'smooth' && (
-                <div className="chess-editor-editor-item">
+                <div className="editor-item">
                   <label>分段数：</label>
                   <input
                     type="range"
@@ -1780,7 +1780,7 @@ modelId 含义：
                     step="1"
                     value={getSafeValue(edge.segments, 4)}
                     onChange={(e) => handleDataUpdate('parts.column.edge.segments', parseInt(e.target.value))}
-                    className="chess-editor-number-input"
+                    className="number-input"
                   />
                 </div>
               )}
@@ -1789,9 +1789,9 @@ modelId 含义：
         </div>
 
         {/* Material 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>材质</h4>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>金属度：</label>
             <input
               type="range"
@@ -1808,10 +1808,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.column?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.column.material.metalness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>粗糙度：</label>
             <input
               type="range"
@@ -1828,10 +1828,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.column?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.column.material.roughness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>清漆层：</label>
             <input
               type="range"
@@ -1848,10 +1848,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.column?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoat', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>清漆粗糙度：</label>
             <input
               type="range"
@@ -1868,7 +1868,7 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.column?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoatRoughness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
@@ -1890,13 +1890,13 @@ modelId 含义：
     };
 
     return (
-      <div className="chess-editor-data-editor">
+      <div className="data-editor">
         <h3>装饰参数</h3>
 
         {/* 模型导入按钮 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>模型</h4>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>模型类型：</label>
             <select
               value={getSafeValue(component.modelId, '0')}
@@ -1910,14 +1910,14 @@ modelId 含义：
               <option value="0">未来会支持更多预设和用户导入...</option>
             </select>
           </div>
-          <div className="chess-editor-editor-item">
-            <button className="chess-editor-import-model-button">
+          <div className="editor-item">
+            <button className="import-model-button">
               导入模型
             </button>
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <button
-              className="btn chess-editor-btn-primary"
+              className="btn btn-primary"
               onClick={() => setShowAIGenerator(!showAIGenerator)}
               style={{ width: '100%', marginTop: '8px' }}
             >
@@ -1927,7 +1927,7 @@ modelId 含义：
 
           {/* AI 生成器面板 */}
           {showAIGenerator && (
-            <div className="chess-editor-ai-generator-panel" style={{
+            <div className="ai-generator-panel" style={{
               marginTop: '16px',
               padding: '16px',
               background: 'linear-gradient(135deg, #667eea1a, #764ba21a)',
@@ -1976,7 +1976,7 @@ modelId 含义：
               )}
 
               <button
-                className="btn chess-editor-btn-primary"
+                className="btn btn-primary"
                 onClick={handleAIGenerate}
                 disabled={isGenerating || !aiPrompt.trim()}
                 style={{
@@ -1992,10 +1992,10 @@ modelId 含义：
         </div>
 
         {/* Size 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>尺寸</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>尺寸 1：</label>
             <input
               type="range"
@@ -2010,11 +2010,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(size.size1, 5)}
               onChange={(e) => handleDataUpdate('parts.decoration.size.size1', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>尺寸 2：</label>
             <input
               type="range"
@@ -2029,11 +2029,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(size.size2, 5)}
               onChange={(e) => handleDataUpdate('parts.decoration.size.size2', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>尺寸 3：</label>
             <input
               type="range"
@@ -2048,16 +2048,16 @@ modelId 含义：
               max="20"
               value={getSafeValue(size.size3, 5)}
               onChange={(e) => handleDataUpdate('parts.decoration.size.size3', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
 
         {/* Position 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>位置</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>X：</label>
             <input
               type="range"
@@ -2072,11 +2072,11 @@ modelId 含义：
               max="50"
               value={getSafeValue(position.x, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.position.x', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>Y：</label>
             <input
               type="range"
@@ -2091,11 +2091,11 @@ modelId 含义：
               max="50"
               value={getSafeValue(position.y, 21)}
               onChange={(e) => handleDataUpdate('parts.decoration.position.y', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>Z：</label>
             <input
               type="range"
@@ -2110,16 +2110,16 @@ modelId 含义：
               max="50"
               value={getSafeValue(position.z, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.position.z', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
 
         {/* Rotation 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>旋转</h4>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>X 轴：</label>
             <input
               type="range"
@@ -2134,11 +2134,11 @@ modelId 含义：
               max="360"
               value={getSafeValue(rotation.x, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.rotation.x', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>Y 轴：</label>
             <input
               type="range"
@@ -2153,11 +2153,11 @@ modelId 含义：
               max="360"
               value={getSafeValue(rotation.y, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.rotation.y', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
 
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>Z 轴：</label>
             <input
               type="range"
@@ -2172,15 +2172,15 @@ modelId 含义：
               max="360"
               value={getSafeValue(rotation.z, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.rotation.z', parseInt(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
 
         {/* Material 部分 */}
-        <div className="chess-editor-editor-section">
+        <div className="editor-section">
           <h4>材质</h4>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>金属度：</label>
             <input
               type="range"
@@ -2197,10 +2197,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.decoration?.material?.metalness, 0.5)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.metalness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>粗糙度：</label>
             <input
               type="range"
@@ -2217,10 +2217,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.decoration?.material?.roughness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.roughness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>清漆层：</label>
             <input
               type="range"
@@ -2237,10 +2237,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoat', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
-          <div className="chess-editor-editor-item">
+          <div className="editor-item">
             <label>清漆粗糙度：</label>
             <input
               type="range"
@@ -2257,7 +2257,7 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoatRoughness', parseFloat(e.target.value))}
-              className="chess-editor-number-input"
+              className="number-input"
             />
           </div>
         </div>
@@ -2268,7 +2268,7 @@ modelId 含义：
   // 如果 currentChess 还没有准备好，显示加载状态
   if (!currentChess) {
     return (
-      <div className="chess-editor-chess-editor" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <div className="chess-editor" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
         <div style={{ textAlign: 'center' }}>
           <h2>加载中...</h2>
           <p>正在准备棋子数据</p>
@@ -2278,47 +2278,47 @@ modelId 含义：
   }
 
   return (
-    <div className="chess-editor-chess-editor">
+    <div className="chess-editor">
       {/* 顶部标题栏 */}
       <header className="chess-editor-header">
-        <div className="chess-editor-header-left">
-          <h1 className="chess-editor-chess-name" onClick={handleBack}>❮  {currentChess?.name || '棋子编辑器'}</h1>
-          <span className="chess-editor-last-saved">上次保存：{lastSaved}</span>
+        <div className="header-left">
+          <h1 className="chess-name" onClick={handleBack}>❮  {currentChess?.name || '棋子编辑器'}</h1>
+          <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
-        <div className="chess-editor-header-right">
-          <button className="chess-editor-save-button" onClick={handleSave}>保存</button>
-          <button className="chess-editor-export-button" onClick={handleExport}>导出</button>
+        <div className="header-right">
+          <button className="save-button" onClick={handleSave}>保存</button>
+          <button className="export-button" onClick={handleExport}>导出</button>
         </div>
       </header>
 
-      <div className="chess-editor-editor-content" ref={editorContentRef}>
+      <div className="editor-content" ref={editorContentRef}>
         {/* 左侧组件选择 - 三个半透明小方块 */}
-        <div className="chess-editor-component-squares">
+        <div className="component-squares">
           <div
-            className={`chess-editor-square ${selectedComponent === 'base' ? 'active' : ''}`}
+            className={`square ${selectedComponent === 'base' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('base')}
             title="底座"
           >
-            <span className="chess-editor-square-label">底座</span>
+            <span className="square-label">底座</span>
           </div>
           <div
-            className={`chess-editor-square ${selectedComponent === 'column' ? 'active' : ''}`}
+            className={`square ${selectedComponent === 'column' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('column')}
             title="柱体"
           >
-            <span className="chess-editor-square-label">柱体</span>
+            <span className="square-label">柱体</span>
           </div>
           <div
-            className={`chess-editor-square ${selectedComponent === 'decoration' ? 'active' : ''}`}
+            className={`square ${selectedComponent === 'decoration' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('decoration')}
             title="装饰"
           >
-            <span className="chess-editor-square-label">装饰</span>
+            <span className="square-label">装饰</span>
           </div>
         </div>
 
         {/* 中间预览区域 */}
-        <main className="chess-editor-preview-area">
+        <main className="preview-area">
           <ModelRenderer
             chess={currentChess}
             onModelReady={handleModelReady}
@@ -2327,9 +2327,9 @@ modelId 含义：
           />
 
           {/* HDR 预设选择器 */}
-          <div className="chess-editor-hdr-selector-container">
+          <div className="hdr-selector-container">
             <button
-              className="chess-editor-hdr-selector-toggle"
+              className="hdr-selector-toggle"
               onClick={() => setShowHdrSelector(!showHdrSelector)}
               title="选择环境贴图"
             >
@@ -2337,13 +2337,13 @@ modelId 含义：
             </button>
 
             {showHdrSelector && (
-              <div className="chess-editor-hdr-presets-dropdown">
+              <div className="hdr-presets-dropdown">
                 <h4>环境贴图预设</h4>
-                <div className="chess-editor-hdr-presets-list">
+                <div className="hdr-presets-list">
                   {hdrPresets.map(preset => (
                     <button
                       key={preset.id}
-                      className={`chess-editor-hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
+                      className={`hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedHdrPreset(preset.id);
                         setShowHdrSelector(false);
@@ -2364,7 +2364,7 @@ modelId 含义：
 
       {/* 右侧面板切换按钮 */}
       <button
-        className={`chess-editor-toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
+        className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
       >
@@ -2372,7 +2372,7 @@ modelId 含义：
       </button>
 
       {/* 右侧数据调节面板 */}
-      <aside className={`chess-editor-data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{ width: `${isRightPanelCollapsed ? 0 : rightWidth}px` }}>
+      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{ width: `${isRightPanelCollapsed ? 0 : rightWidth}px` }}>
         {selectedComponent === 'base' && renderBasePanel()}
         {selectedComponent === 'column' && renderColumnPanel()}
         {selectedComponent === 'decoration' && renderDecorationPanel()}
@@ -2380,31 +2380,31 @@ modelId 含义：
 
       {/* 导出窗口 */}
       {showExportModal && (
-        <div className="chess-editor-modal-overlay">
-          <div className="chess-editor-export-modal">
-            <div className="chess-editor-modal-header">
+        <div className="modal-overlay">
+          <div className="export-modal">
+            <div className="modal-header">
               <h2>导出模型</h2>
-              <button className="chess-editor-close-button" onClick={() => setShowExportModal(false)}>
+              <button className="close-button" onClick={() => setShowExportModal(false)}>
                 ×
               </button>
             </div>
-            <div className="chess-editor-modal-content">
+            <div className="modal-content">
               <p>请选择导出方式：</p>
-              <div className="chess-editor-export-buttons">
+              <div className="export-buttons">
                 <button
-                  className="chess-editor-export-option-button"
+                  className="export-option-button"
                   onClick={() => handleExportAction('json')}
                 >
                   JSON 数据
                 </button>
                 <button
-                  className="chess-editor-export-option-button"
+                  className="export-option-button"
                   onClick={() => handleExportAction('stl')}
                 >
                   STL（适合 3D 打印）
                 </button>
                 <button
-                  className="chess-editor-export-option-button"
+                  className="export-option-button"
                   onClick={() => handleExportAction('obj')}
                 >
                   OBJ（适合 3D 建模软件）
@@ -2417,15 +2417,15 @@ modelId 含义：
 
       {/* 纹理选择器弹窗 */}
       {showTextureSelector && (
-        <div className="chess-editor-modal-overlay" onClick={() => setShowTextureSelector(false)}>
+        <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
           <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="chess-editor-modal-header">
+            <div className="modal-header">
               <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
-              <button className="chess-editor-close-button" onClick={() => setShowTextureSelector(false)}>
+              <button className="close-button" onClick={() => setShowTextureSelector(false)}>
                 ×
               </button>
             </div>
-            <div className="chess-editor-modal-content texture-selector-content">
+            <div className="modal-content texture-selector-content">
               <TextureGrid
                 onSelectTexture={handleTextureSelect}
                 onClose={() => setShowTextureSelector(false)}

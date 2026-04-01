@@ -60,7 +60,7 @@
 }
 
 
-.headerbar-back-button {
+.back-button {
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--fluent-border);
   color: var(--fluent-primary);
@@ -76,13 +76,13 @@
   font-weight: 500;
 }
 
-.headerbar-back-button:hover:not(:disabled) {
+.back-button:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   border-color: var(--fluent-primary);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.headerbar-project-name {
+.project-name {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
@@ -90,7 +90,7 @@
   transition: var(--fluent-transition);
 }
 
-.headerbar-header-right {
+.header-right {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -103,7 +103,7 @@
   transition: var(--fluent-transition);
 }
 
-.headerbar-save-button {
+.save-button {
   background-color: var(--fluent-primary);
   color: white;
   border: none;
@@ -119,7 +119,7 @@
   gap: 8px;
 }
 
-.headerbar-save-button:hover:not(:disabled) {
+.save-button:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
@@ -130,7 +130,7 @@
     padding: 12px 16px;
   }
 
-  .headerbar-project-name {
+  .project-name {
     font-size: 14px;
   }
 
@@ -138,12 +138,12 @@
     display: none;
   }
 
-  .headerbar-back-button {
+  .back-button {
     font-size: 14px;
     padding: 6px 12px;
   }
 
-  .headerbar-save-button {
+  .save-button {
     padding: 6px 12px;
     font-size: 14px;
   }

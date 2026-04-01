@@ -58,7 +58,7 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
         </div>
 
         <form className="project-details-form">
-          <div className="projectdetails-form-group">
+          <div className="form-group">
             <label htmlFor="project-name">项目名称</label>
             <input
               type="text"
@@ -69,7 +69,7 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
             />
           </div>
 
-          <div className="projectdetails-form-group">
+          <div className="form-group">
             <label htmlFor="project-description">项目描述</label>
             <textarea
               id="project-description"
@@ -80,7 +80,7 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
             />
           </div>
 
-          <div className="projectdetails-form-group">
+          <div className="form-group">
             <label htmlFor="project-status">项目状态</label>
             <select
               id="project-status"
@@ -93,12 +93,12 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
             </select>
           </div>
 
-          <div className="projectdetails-form-group">
+          <div className="form-group">
             <label>项目标签</label>
-            <div className="projectdetails-tag-input-container">
+            <div className="tag-input-container">
               <div className="tags">
                 {localProject.project_tags.map((tag, index) => (
-                  <span key={index} className="projectdetails-tag">
+                  <span key={index} className="tag">
                     {tag}
                     <button
                       type="button"

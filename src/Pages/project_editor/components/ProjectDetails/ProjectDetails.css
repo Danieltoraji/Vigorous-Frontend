@@ -80,23 +80,23 @@
   transition: var(--fluent-transition);
 }
 
-.projectdetails-form-group {
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 0px;
   transition: var(--fluent-transition);
 }
 
-.projectdetails-form-group label {
+.form-group label {
   font-size: 14px;
   font-weight: 500;
   color: var(--fluent-text-secondary);
   transition: var(--fluent-transition);
 }
 
-.projectdetails-form-group input,
-.projectdetails-form-group textarea,
-.projectdetails-form-group select {
+.form-group input,
+.form-group textarea,
+.form-group select {
   padding: 8px 12px;
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
@@ -106,26 +106,26 @@
   color: var(--fluent-text);
 }
 
-.projectdetails-form-group input:hover,
-.projectdetails-form-group textarea:hover,
-.projectdetails-form-group select:hover {
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.projectdetails-form-group input:focus,
-.projectdetails-form-group textarea:focus,
-.projectdetails-form-group select:focus {
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.projectdetails-form-group textarea {
+.form-group textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-.projectdetails-tag-input-container {
+.tag-input-container {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -139,7 +139,7 @@
   transition: var(--fluent-transition);
 }
 
-.projectdetails-tag {
+.tag {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -151,7 +151,7 @@
   transition: var(--fluent-transition);
 }
 
-.projectdetails-tag:hover {
+.tag:hover {
   background: rgba(0, 120, 212, 0.2);
 }
 
@@ -255,9 +255,9 @@
     font-size: 14px;
   }
 
-  .projectdetails-form-group input,
-  .projectdetails-form-group textarea,
-  .projectdetails-form-group select {
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
     padding: 6px 12px;
     font-size: 14px;
   }

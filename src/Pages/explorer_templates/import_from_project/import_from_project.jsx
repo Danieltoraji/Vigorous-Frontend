@@ -97,7 +97,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
         <div className="import-modal-header">
           {selectedProject ? (
             <>
-              <button className="import-form-project-btn btn-secondary back-btn" onClick={handleBackToProjects}>
+              <button className="btn btn-secondary back-btn" onClick={handleBackToProjects}>
                 ← 返回项目列表
               </button>
               <h2>选择棋子 - {selectedProject.name}</h2>
@@ -105,7 +105,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
           ) : (
             <h2>选择项目</h2>
           )}
-          <button className="import-form-project-close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
         <div className="import-modal-body">
@@ -134,12 +134,12 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
                       <div className="piece-card-body">
                         <div className="piece-meta">
                           <div className="piece-meta-item">
-                            <span className="import-form-project-meta-label">ID：</span>
-                            <span className="import-form-project-meta-value">{piece.id}</span>
+                            <span className="meta-label">ID：</span>
+                            <span className="meta-value">{piece.id}</span>
                           </div>
                           <div className="piece-meta-item">
-                            <span className="import-form-project-meta-label">创建时间：</span>
-                            <span className="import-form-project-meta-value">{formatDateTime(piece.created_at)}</span>
+                            <span className="meta-label">创建时间：</span>
+                            <span className="meta-value">{formatDateTime(piece.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -159,26 +159,26 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
                   onClick={() => handleProjectClick(project)}
                 >
                   <div className="project-card-header">
-                    <h3 className="import-form-project-project-name">{project.name || '未命名项目'}</h3>
+                    <h3 className="project-name">{project.name || '未命名项目'}</h3>
                   </div>
                   <div className="project-card-body">
-                    <p className="import-form-project-project-description">
+                    <p className="project-description">
                       {project.description || '暂无描述'}
                     </p>
-                    <div className="import-form-project-project-meta">
-                      <div className="import-form-project-project-meta-item">
-                        <span className="import-form-project-meta-label">ID：</span>
-                        <span className="import-form-project-meta-value">{project.id}</span>
+                    <div className="project-meta">
+                      <div className="project-meta-item">
+                        <span className="meta-label">ID：</span>
+                        <span className="meta-value">{project.id}</span>
                       </div>
-                      <div className="import-form-project-project-meta-item">
-                        <span className="import-form-project-meta-label">创建时间：</span>
-                        <span className="import-form-project-meta-value">{formatDateTime(project.created_at)}</span>
+                      <div className="project-meta-item">
+                        <span className="meta-label">创建时间：</span>
+                        <span className="meta-value">{formatDateTime(project.created_at)}</span>
                       </div>
                     </div>
                     {project.project_tags && project.project_tags.length > 0 && (
-                      <div className="import-form-project-project-tags">
+                      <div className="project-tags">
                         {project.project_tags.map((tag, index) => (
-                          <span key={index} className="import-form-project-project-tag">{tag}</span>
+                          <span key={index} className="project-tag">{tag}</span>
                         ))}
                       </div>
                     )}
@@ -192,19 +192,19 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
           )}
         </div>
 
-        <div className="import-form-project-import-modal-footer">
+        <div className="import-modal-footer">
           {selectedProject && (
             <div className="selected-count">
               已选择 {selectedPieces.length} 个棋子
             </div>
           )}
-          <div className="import-form-project-modal-actions">
-            <button className="import-form-project-btn btn-outline" onClick={onClose}>
+          <div className="modal-actions">
+            <button className="btn btn-outline" onClick={onClose}>
               取消
             </button>
             {selectedProject && (
               <button 
-                className="import-form-project-btn btn-primary" 
+                className="btn btn-primary" 
                 onClick={handleConfirm}
                 disabled={selectedPieces.length === 0}
               >

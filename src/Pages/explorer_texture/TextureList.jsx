@@ -9,12 +9,12 @@ function TextureList({ textures, onEditTexture, onDeleteTexture, onUploadTexture
     <div className="texture-list">
       <div className="texture-list-header">
         <h2>我的纹理</h2>
-        <button className="btn texturelist-btn-primary" onClick={onUploadTexture}>
+        <button className="btn btn-primary" onClick={onUploadTexture}>
           上传新纹理
         </button>
       </div>
 
-      <div className="texturelist-texture-grid">
+      <div className="texture-grid">
         {textures?.map(texture => (
           <TextureItem
             key={texture.id}

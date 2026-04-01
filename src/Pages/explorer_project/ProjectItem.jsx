@@ -35,36 +35,36 @@ function ProjectItem({ project, onEditProject, onDeleteProject }) {
   return (
     <div className="project-item">
       <div className="project-item-header">
-        <h3 className="projectitem-project-name">{project.name}</h3>
+        <h3 className="project-name">{project.name}</h3>
         <span className="project-status">{project.status}</span>
       </div>
 
       <div className="project-item-body">
-        <p className="projectitem-project-description">{project.description || "暂无描述"}</p>
+        <p className="project-description">{project.description || "暂无描述"}</p>
 
-        <div className="projectitem-project-meta">
-          <div className="projectitem-project-meta-item">
-            <span className="projectitem-meta-label">项目ID：</span>
-            <span className="projectitem-meta-value">{project.id}</span>
+        <div className="project-meta">
+          <div className="project-meta-item">
+            <span className="meta-label">项目ID：</span>
+            <span className="meta-value">{project.id}</span>
           </div>
-          <div className="projectitem-project-meta-item">
-            <span className="projectitem-meta-label">创建时间：</span>
-            <span className="projectitem-meta-value">{formatDate(project.created_at)}</span>
+          <div className="project-meta-item">
+            <span className="meta-label">创建时间：</span>
+            <span className="meta-value">{formatDate(project.created_at)}</span>
           </div>
-          <div className="projectitem-project-meta-item">
-            <span className="projectitem-meta-label">修改时间：</span>
-            <span className="projectitem-meta-value">{formatDate(project.edited_at)}</span>
+          <div className="project-meta-item">
+            <span className="meta-label">修改时间：</span>
+            <span className="meta-value">{formatDate(project.edited_at)}</span>
           </div>
         </div>
 
-        <div className="projectitem-project-tags">
+        <div className="project-tags">
           {
             Array.isArray(project.project_tags) ? (
               project.project_tags.map((tag, index) => (
-                <span key={index} className="projectitem-project-tag">{tag}</span>
+                <span key={index} className="project-tag">{tag}</span>
               ))
             ) : (
-              <span className="projectitem-project-tag">无标签</span>
+              <span className="project-tag">无标签</span>
             )
 
           }

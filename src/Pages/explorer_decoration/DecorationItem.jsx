@@ -43,26 +43,26 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
         <div className="decoration-preview">
           {decoration.file ? (
             <div className="file-info">
-              <span className="decorationitem-file-icon">📦</span>
-              <span className="decorationitem-file-name">{decoration.file.split('/').pop()}</span>
+              <span className="file-icon">📦</span>
+              <span className="file-name">{decoration.file.split('/').pop()}</span>
             </div>
           ) : (
-            <div className="decorationitem-no-preview">无文件</div>
+            <div className="no-preview">无文件</div>
           )}
         </div>
 
         <div className="decoration-meta">
           <div className="decoration-meta-item">
-            <span className="decorationitem-meta-label">装饰 ID：</span>
-            <span className="decorationitem-meta-value">{decoration.id}</span>
+            <span className="meta-label">装饰 ID：</span>
+            <span className="meta-value">{decoration.id}</span>
           </div>
           <div className="decoration-meta-item">
-            <span className="decorationitem-meta-label">创建时间：</span>
-            <span className="decorationitem-meta-value">{formatDate(decoration.created_at)}</span>
+            <span className="meta-label">创建时间：</span>
+            <span className="meta-value">{formatDate(decoration.created_at)}</span>
           </div>
           <div className="decoration-meta-item">
-            <span className="decorationitem-meta-label">修改时间：</span>
-            <span className="decorationitem-meta-value">{formatDate(decoration.edited_at)}</span>
+            <span className="meta-label">修改时间：</span>
+            <span className="meta-value">{formatDate(decoration.edited_at)}</span>
           </div>
         </div>
 
@@ -80,10 +80,10 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
       </div>
 
       <div className="decoration-item-footer">
-        <button className="decorationitem-btn decorationitem-btn-secondary" onClick={() => onEditDecoration(decoration)}>
+        <button className="btn btn-secondary" onClick={() => onEditDecoration(decoration)}>
           编辑
         </button>
-        <button className="decorationitem-btn decorationitem-btn-danger" onClick={() => onDeleteDecoration(decoration.id)}>
+        <button className="btn btn-danger" onClick={() => onDeleteDecoration(decoration.id)}>
           删除
         </button>
       </div>

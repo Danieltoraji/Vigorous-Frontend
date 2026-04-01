@@ -1,4 +1,4 @@
-.modals-modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,7 +12,7 @@
   animation: fadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.modals-chess-modal-content {
+.chess-modal-content {
   background: none;
   width: 90%;
   max-width: 500px;
@@ -23,7 +23,7 @@
   transition: var(--fluent-transition);
 }
 
-.modals-chess-modal-header {
+.chess-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -33,7 +33,7 @@
   transition: var(--fluent-transition);
 }
 
-.modals-modal-header h3 {
+.modal-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
@@ -41,7 +41,7 @@
   transition: var(--fluent-transition);
 }
 
-.modals-modal-close {
+.modal-close {
   background: transparent;
   border: none;
   font-size: 16px;
@@ -58,13 +58,13 @@
   min-height: 32px;
 }
 
-.modals-modal-close:hover {
+.modal-close:hover {
   background: rgba(0, 0, 0, 0.05);
   color: var(--fluent-text-secondary);
   box-shadow: var(--fluent-shadow);
 }
 
-.modals-chess-modal-form {
+.chess-modal-form {
   background: url("/static/projectEditor/sticker.png") center / cover no-repeat !important;
   background-size: 100% 100% !important;
   padding-top: 100px !important;
@@ -73,38 +73,38 @@
   padding-left: 15% !important;
 }
 
-.modals-modal-body {
+.modal-body {
   padding: 20px;
   transition: var(--fluent-transition);
 }
 
-.modals-modal-body p {
+.modal-body p {
   margin: 0 0 12px 0;
   color: var(--fluent-text-secondary);
   transition: var(--fluent-transition);
 }
 
-.modals-delete-warning {
+.delete-warning {
   color: #D13438 !important;
   font-weight: 500;
   transition: var(--fluent-transition);
 }
 
-.modals-form-group {
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
   transition: var(--fluent-transition);
 }
 
-.modals-form-group label {
+.form-group label {
   font-size: 14px;
   font-weight: 500;
   color: var(--fluent-text-secondary);
   transition: var(--fluent-transition);
 }
 
-.modals-form-group input {
+.form-group input {
   padding: 8px 12px;
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
@@ -114,31 +114,31 @@
   color: var(--fluent-text);
 }
 
-.modals-form-group input:hover {
+.form-group input:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.modals-form-group input:focus {
+.form-group input:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.modals-tag-input-container {
+.tag-input-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
   transition: var(--fluent-transition);
 }
 
-.modals-tags {
+.tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   transition: var(--fluent-transition);
 }
 
-.modals-tag {
+.tag {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -150,11 +150,11 @@
   transition: var(--fluent-transition);
 }
 
-.modals-tag:hover {
+.tag:hover {
   background: rgba(0, 120, 212, 0.2);
 }
 
-.modals-tag-remove {
+.tag-remove {
   background: transparent;
   border: none;
   color: var(--fluent-primary);
@@ -170,21 +170,21 @@
   transition: var(--fluent-transition);
 }
 
-.modals-tag-remove:hover {
+.tag-remove:hover {
   background: rgba(0, 120, 212, 0.2);
 }
 
-.modals-tag-input-wrapper {
+.tag-input-wrapper {
   display: flex;
   gap: 8px;
   transition: var(--fluent-transition);
 }
 
-.modals-tag-input-wrapper input {
+.tag-input-wrapper input {
   flex: 1;
 }
 
-.modals-add-tag-button {
+.add-tag-button {
   background-color: var(--fluent-primary);
   color: white;
   border: none;
@@ -200,12 +200,12 @@
   font-weight: 500;
 }
 
-.modals-add-tag-button:hover:not(:disabled) {
+.add-tag-button:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.modals-modal-actions {
+.modal-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -215,7 +215,7 @@
   transition: var(--fluent-transition);
 }
 
-.modals-cancel-button {
+.cancel-button {
   padding: 8px 16px;
   border: 1px solid var(--fluent-border);
   background: white;
@@ -231,13 +231,13 @@
   font-weight: 500;
 }
 
-.modals-cancel-button:hover:not(:disabled) {
+.cancel-button:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.16);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.modals-save-button {
+.save-button {
   padding: 8px 16px;
   border: none;
   background-color: #107C10;
@@ -253,12 +253,12 @@
   font-weight: 500;
 }
 
-.modals-save-button:hover:not(:disabled) {
+.save-button:hover:not(:disabled) {
   background-color: #0D6E0D;
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.modals-delete-button {
+.delete-button {
   padding: 8px 16px;
   border: none;
   background-color: #D13438;
@@ -274,7 +274,7 @@
   font-weight: 500;
 }
 
-.modals-delete-button:hover:not(:disabled) {
+.delete-button:hover:not(:disabled) {
   background-color: #B3272B;
   box-shadow: var(--fluent-shadow-hover);
 }
@@ -303,7 +303,7 @@
 }
 
 /* 导入模态框样式 */
-.modals-file-upload-area {
+.file-upload-area {
   border: 2px dashed var(--fluent-border);
   border-radius: var(--fluent-radius);
   padding: 24px;
@@ -313,17 +313,17 @@
   cursor: pointer;
 }
 
-.modals-file-upload-area:hover {
+.file-upload-area:hover {
   border-color: var(--fluent-primary);
   background-color: rgba(0, 120, 212, 0.05);
 }
 
-.modals-file-upload-area.modals-drag-over {
+.file-upload-area.drag-over {
   border-color: var(--fluent-primary);
   background-color: rgba(0, 120, 212, 0.1);
 }
 
-.modals-file-upload-area h4 {
+.file-upload-area h4 {
   margin: 0 0 16px 0;
   color: var(--fluent-text);
   font-size: 14px;
@@ -331,18 +331,18 @@
   transition: var(--fluent-transition);
 }
 
-.modals-file-input {
+.file-input {
   display: none;
 }
 
-.modals-upload-hint {
+.upload-hint {
   margin: 8px 0 16px 0;
   color: var(--fluent-text-secondary);
   font-size: 14px;
   transition: var(--fluent-transition);
 }
 
-.modals-selected-file {
+.selected-file {
   margin: 8px 0 16px 0;
   color: var(--fluent-text);
   font-size: 14px;
@@ -350,7 +350,7 @@
   transition: var(--fluent-transition);
 }
 
-.modals-confirm-button {
+.confirm-button {
   padding: 8px 16px;
   border: none;
   background-color: var(--fluent-primary);
@@ -366,38 +366,38 @@
   font-weight: 500;
 }
 
-.modals-confirm-button:hover:not(:disabled) {
+.confirm-button:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.modals-confirm-button:disabled {
+.confirm-button:disabled {
   background-color: var(--fluent-border);
   cursor: not-allowed;
   color: var(--fluent-text-tertiary);
 }
 
-.modals-import-divider {
+.import-divider {
   display: flex;
   align-items: center;
   margin: 20px 0;
 }
 
-.modals-import-divider::before,
-.modals-import-divider::after {
+.import-divider::before,
+.import-divider::after {
   content: '';
   flex: 1;
   height: 1px;
   background-color: var(--fluent-border-light);
 }
 
-.modals-import-divider span {
+.import-divider span {
   padding: 0 16px;
   color: var(--fluent-text-tertiary);
   font-size: 14px;
 }
 
-.modals-template-import-section {
+.template-import-section {
   display: flex;
   justify-content: center;
   padding-top: 16px;
@@ -405,7 +405,7 @@
   transition: var(--fluent-transition);
 }
 
-.modals-template-import-button {
+.template-import-button {
   padding: 8px 16px;
   border: 1px solid var(--fluent-border);
   background: white;
@@ -421,18 +421,18 @@
   font-weight: 500;
 }
 
-.modals-template-import-button:hover:not(:disabled) {
+.template-import-button:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.16);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.modals-template-selector-modal {
+.template-selector-modal {
   max-width: 800px;
   max-height: 90vh;
 }
 
-.modals-template-selector-header {
+.template-selector-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -443,24 +443,24 @@
   gap: 12px;
 }
 
-.modals-selected-count {
+.selected-count {
   font-size: 14px;
   color: var(--fluent-text-secondary);
   font-weight: 500;
 }
 
-.modals-template-selector-controls {
+.template-selector-controls {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.modals-view-controls {
+.view-controls {
   display: flex;
   gap: 8px;
 }
 
-.modals-view-button {
+.view-button {
   padding: 6px 12px;
   border: 1px solid var(--fluent-border);
   background: white;
@@ -471,18 +471,18 @@
   transition: var(--fluent-transition);
 }
 
-.modals-view-button:hover {
+.view-button:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.modals-view-button.modals-active {
+.view-button.active {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
 }
 
-.modals-select-all-button {
+.select-all-button {
   padding: 6px 12px;
   border: 1px solid var(--fluent-border);
   background: white;
@@ -493,63 +493,63 @@
   transition: var(--fluent-transition);
 }
 
-.modals-select-all-button:hover {
+.select-all-button:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.16);
 }
 
 /* 模板列表样式 */
-.modals-template-list {
+.template-list {
   max-height: 400px;
   overflow-y: auto;
   transition: var(--fluent-transition);
 }
 
-.modals-template-list.modals-card-view {
+.template-list.card-view {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
 
-.modals-template-list.modals-list-view {
+.template-list.list-view {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.modals-template-item {
+.template-item {
   cursor: pointer;
   transition: var(--fluent-transition);
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
 }
 
-.modals-template-item:hover {
+.template-item:hover {
   border-color: rgba(0, 0, 0, 0.12);
   box-shadow: var(--fluent-shadow);
 }
 
-.modals-template-item.modals-selected {
+.template-item.selected {
   background: rgba(0, 120, 212, 0.08);
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.modals-template-item.modals-card-item {
+.template-item.card-item {
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.modals-template-item.modals-list-item {
+.template-item.list-item {
   padding: 12px 16px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
 }
 
-.modals-template-checkbox {
+.template-checkbox {
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -557,40 +557,40 @@
   flex-shrink: 0;
 }
 
-.modals-template-checkbox input[type="checkbox"] {
+.template-checkbox input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
   accent-color: var(--fluent-primary);
 }
 
-.modals-template-card-content {
+.template-card-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.modals-template-card-title {
+.template-card-title {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.modals-template-card-details {
+.template-card-details {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.modals-template-card-detail {
+.template-card-detail {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.modals-detail-label {
+.detail-label {
   font-size: 12px;
   color: var(--fluent-text-tertiary);
   font-weight: 500;
@@ -598,20 +598,20 @@
   letter-spacing: 0.5px;
 }
 
-.modals-detail-value {
+.detail-value {
   font-size: 14px;
   color: var(--fluent-text-secondary);
   word-break: break-word;
 }
 
-.modals-template-tags {
+.template-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 4px;
 }
 
-.modals-template-tag {
+.template-tag {
   background: rgba(0, 120, 212, 0.1);
   color: var(--fluent-primary);
   padding: 4px 8px;
@@ -619,7 +619,7 @@
   font-size: 12px;
 }
 
-.modals-template-list-content {
+.template-list-content {
   flex: 1;
   display: flex;
   justify-content: space-between;
@@ -627,26 +627,26 @@
   gap: 16px;
 }
 
-.modals-template-list-main {
+.template-list-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.modals-template-list-name {
+.template-list-name {
   font-size: 15px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.modals-template-list-description {
+.template-list-description {
   font-size: 13px;
   color: var(--fluent-text-secondary);
   line-height: 1.4;
 }
 
-.modals-template-list-details {
+.template-list-details {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -654,32 +654,32 @@
   flex-shrink: 0;
 }
 
-.modals-template-list-id {
+.template-list-id {
   font-size: 12px;
   color: var(--fluent-text-tertiary);
   font-family: monospace;
 }
 
-.modals-template-list-date {
+.template-list-date {
   font-size: 12px;
   color: var(--fluent-text-tertiary);
 }
 
-.modals-template-list-tags {
+.template-list-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   justify-content: flex-end;
 }
 
-.modals-empty-templates {
+.empty-templates {
   text-align: center;
   padding: 60px 20px;
   color: var(--fluent-text-tertiary);
   font-size: 14px;
 }
 
-.modals-loading-indicator {
+.loading-indicator {
   text-align: center;
   padding: 60px 20px;
   color: var(--fluent-text-secondary);
@@ -688,82 +688,82 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .modals-modal-content {
+  .modal-content {
     width: 95%;
     max-height: 90vh;
   }
 
-  .modals-modal-header {
+  .modal-header {
     padding: 12px 16px;
   }
 
-  .modals-modal-header h3 {
+  .modal-header h3 {
     font-size: 14px;
   }
 
-  .modals-chess-modal-form,
-  .modals-modal-body {
+  .modal-form,
+  .modal-body {
     padding: 16px;
   }
 
-  .modals-modal-actions {
+  .modal-actions {
     padding: 12px 16px;
   }
 
-  .modals-form-group input {
+  .form-group input {
     padding: 6px 12px;
     font-size: 14px;
   }
 
-  .modals-add-tag-button,
-  .modals-cancel-button,
-  .modals-save-button,
-  .modals-delete-button,
-  .modals-confirm-button,
-  .modals-template-import-button {
+  .add-tag-button,
+  .cancel-button,
+  .save-button,
+  .delete-button,
+  .confirm-button,
+  .template-import-button {
     padding: 6px 12px;
     font-size: 14px;
   }
 
-  .modals-file-upload-area {
+  .file-upload-area {
     padding: 16px;
   }
 
-  .modals-file-upload-area h4 {
+  .file-upload-area h4 {
     font-size: 14px;
   }
 
-  .modals-template-selector-modal {
+  .template-selector-modal {
     max-width: 95%;
   }
 
-  .modals-template-selector-header {
+  .template-selector-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
 
-  .modals-template-selector-controls {
+  .template-selector-controls {
     width: 100%;
     justify-content: space-between;
   }
 
-  .modals-template-list.modals-card-view {
+  .template-list.card-view {
     grid-template-columns: 1fr;
   }
 
-  .modals-template-list-content {
+  .template-list-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
 
-  .modals-template-list-details {
+  .template-list-details {
     align-items: flex-start;
     width: 100%;
   }
 
-  .modals-template-list-tags {
+  .template-list-tags {
     justify-content: flex-start;
     width: 100%;
   }

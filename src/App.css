@@ -64,7 +64,7 @@
   width: 100%;
 }
 
-.app-editor-header {
+.editor-header {
   padding: 16px 24px;
   background: var(--fluent-acrylic);
   backdrop-filter: blur(30px);
@@ -122,11 +122,11 @@
 }
 
 /* 表单样式 */
-.app-form-group {
+.form-group {
   margin-bottom: 20px;
 }
 
-.app-form-label {
+.form-label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
@@ -134,8 +134,8 @@
   font-size: 14px;
 }
 
-.app-form-input,
-.app-form-textarea {
+.form-input,
+.form-textarea {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--fluent-border);
@@ -147,19 +147,19 @@
   color: var(--fluent-text);
 }
 
-.app-form-input:hover,
-.app-form-textarea:hover {
+.form-input:hover,
+.form-textarea:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.app-form-input:focus,
-.app-form-textarea:focus {
+.form-input:focus,
+.form-textarea:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.app-form-textarea {
+.form-textarea {
   min-height: 100px;
   resize: vertical;
 }
@@ -172,7 +172,7 @@
   gap: 12px;
 }
 
-.app-btn {
+.btn {
   padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -187,27 +187,27 @@
   min-height: 36px;
 }
 
-.app-btn:disabled {
+.btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.app-btn-primary {
+.btn-primary {
   background-color: var(--fluent-primary);
   color: white;
 }
 
-.app-btn-primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.app-btn-danger {
+.btn-danger {
   background-color: #D13438;
   color: white;
 }
 
-.app-btn-danger:hover:not(:disabled) {
+.btn-danger:hover:not(:disabled) {
   background-color: #B3272B;
   box-shadow: var(--fluent-shadow-hover);
 }
@@ -296,11 +296,11 @@
     padding: 16px;
   }
 
-  .app-form-group {
+  .form-group {
     margin-bottom: 16px;
   }
 
-  .app-btn {
+  .btn {
     padding: 8px 12px;
     font-size: 14px;
   }

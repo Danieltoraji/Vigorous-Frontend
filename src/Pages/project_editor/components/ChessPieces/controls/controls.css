@@ -1,4 +1,4 @@
-.controls-view-controls {
+.view-controls {
   display: flex;
   gap: 4px;
   background: var(--fluent-acrylic);
@@ -9,7 +9,7 @@
   transition: var(--fluent-transition);
 }
 
-.controls-view-button {
+.view-button {
   padding: 6px 12px;
   border: none;
   background: transparent;
@@ -24,13 +24,13 @@
   gap: 8px;
 }
 
-.controls-view-button.active {
+.view-button.active {
   background-color: var(--fluent-primary);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 120, 212, 0.3);
 }
 
-.controls-view-button:hover:not(.active):not(:disabled) {
+.view-button:hover:not(.active):not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   color: var(--fluent-text);
 }
@@ -172,7 +172,7 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .controls-view-button {
+  .view-button {
     padding: 4px 8px;
     font-size: 13px;
   }

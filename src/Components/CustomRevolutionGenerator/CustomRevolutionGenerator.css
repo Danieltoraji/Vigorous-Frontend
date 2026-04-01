@@ -1,14 +1,14 @@
 /* 异形生成器样式 */
 
 /* 滚动容器 */
-.customrevolutiongenerator-custom-revolution-scroll-container {
+.custom-revolution-scroll-container {
     max-height: none;
     overflow-y: visible;
     overflow-x: hidden;
 }
 
 /* 面板 */
-.customrevolutiongenerator-custom-revolution-panel {
+.custom-revolution-panel {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     padding: 12px;
@@ -21,20 +21,20 @@
 }
 
 /* 区块标题 */
-.customrevolutiongenerator-panel-section h3 {
+.panel-section h3 {
     margin: 0 0 6px 0;
     color: #333;
     font-size: 15px;
 }
 
-.customrevolutiongenerator-panel-description {
+.panel-description {
     margin: 0 0 12px 0;
     color: #666;
     font-size: 12px;
 }
 
 /* 画布行 */
-.customrevolutiongenerator-canvases-row {
+.canvases-row {
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -43,7 +43,7 @@
 }
 
 /* 画布包装器 */
-.customrevolutiongenerator-canvas-wrapper {
+.canvas-wrapper {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -51,7 +51,7 @@
 }
 
 /* 预览画布容器 */
-.customrevolutiongenerator-preview-canvas-container {
+.preview-canvas-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
     padding: 12px;
@@ -59,21 +59,21 @@
 
 }
 
-.customrevolutiongenerator-preview-canvas-container .customrevolutiongenerator-canvas-header {
+.preview-canvas-container .canvas-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.customrevolutiongenerator-preview-canvas-container .customrevolutiongenerator-canvas-header h4 {
+.preview-canvas-container .canvas-header h4 {
     margin: 0;
     color: #333;
     font-size: 14px;
     font-weight: 600;
 }
 
-.customrevolutiongenerator-preview-canvas-container .customrevolutiongenerator-points-count {
+.preview-canvas-container .points-count {
     font-size: 12px;
     color: #666;
     background: rgba(78, 205, 196, 0.1);
@@ -86,7 +86,7 @@
 }
 
 /* 编辑按钮 */
-.customrevolutiongenerator-edit-btn {
+.edit-btn {
     background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
     color: white;
     border: none;
@@ -101,17 +101,17 @@
     min-width: 120px;
 }
 
-.customrevolutiongenerator-edit-btn:hover {
+.edit-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
 }
 
-.customrevolutiongenerator-edit-btn:active {
+.edit-btn:active {
     transform: translateY(0);
 }
 
 /* 全屏编辑器 */
-.customrevolutiongenerator-fullscreen-editor {
+.fullscreen-editor {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -119,7 +119,7 @@
 }
 
 /* 编辑器工具栏 */
-.customrevolutiongenerator-editor-toolbar {
+.editor-toolbar {
     height: 60px;
     display: flex;
     justify-content: space-between;
@@ -130,13 +130,13 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.customrevolutiongenerator-tool-group {
+.tool-group {
     height: 44px;
     display: flex;
     gap: 10px;
 }
 
-.customrevolutiongenerator-tool-btn {
+.tool-btn {
     padding: 10px 18px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -148,30 +148,30 @@
     transition: all 0.2s ease;
 }
 
-.customrevolutiongenerator-tool-btn:hover:not(:disabled) {
+.tool-btn:hover:not(:disabled) {
     border-color: #4ecdc4;
     color: #4ecdc4;
 }
 
-.customrevolutiongenerator-tool-btn.active {
+.tool-btn.active {
     background: #4ecdc4;
     border-color: #4ecdc4;
     color: white;
     box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
 }
 
-.customrevolutiongenerator-tool-btn:disabled {
+.tool-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.customrevolutiongenerator-action-group {
+.action-group {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-.customrevolutiongenerator-action-btn {
+.action-btn {
     padding: 0px 16px;
     flex: none;
     height: 36px;
@@ -184,32 +184,32 @@
     transition: all 0.2s ease;
 }
 
-.customrevolutiongenerator-action-btn.delete {
+.action-btn.delete {
     background: #ff6b6b;
     color: white;
 }
 
-.customrevolutiongenerator-action-btn.delete:hover:not(:disabled) {
+.action-btn.delete:hover:not(:disabled) {
     background: #ff5252;
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
-.customrevolutiongenerator-action-btn.clear {
+.action-btn.clear {
     background: #f0f0f0;
     color: #666;
 }
 
-.customrevolutiongenerator-action-btn.clear:hover:not(:disabled) {
+.action-btn.clear:hover:not(:disabled) {
     background: #e0e0e0;
 }
 
-.customrevolutiongenerator-action-btn:disabled {
+.action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
 /* 画布容器 */
-.customrevolutiongenerator-editor-canvas-container {
+.editor-canvas-container {
     flex: 1;
     position: relative;
     overflow-y: auto;
@@ -223,7 +223,7 @@
     justify-content: center;
 }
 
-.customrevolutiongenerator-editor-canvas-container canvas {
+.editor-canvas-container canvas {
     display: block;
     width: 100%;
     height: 100%;
@@ -231,7 +231,7 @@
 }
 
 /* 编辑器提示 */
-.customrevolutiongenerator-editor-hint {
+.editor-hint {
     padding: 12px 20px;
     background: #e8f5e9;
     color: #2e7d32;

@@ -1,5 +1,5 @@
 /* 主容器 */
-.template-editor-chess-editor,
+.chess-editor,
 .template-editor {
   display: flex;
   flex-direction: column;
@@ -10,7 +10,7 @@
 }
 
 /* 顶部标题栏 */
-.template-editor-editor-header {
+.editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -26,13 +26,13 @@
   transition: var(--fluent-transition);
 }
 
-.template-editor-header-left {
+.header-left {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.template-editor-back-button {
+.back-button {
   padding: 6px 12px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--fluent-border);
@@ -47,30 +47,30 @@
   gap: 8px;
 }
 
-.template-editor-back-button:hover {
+.back-button:hover {
   background: rgba(0, 0, 0, 0.05);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.template-editor-chess-name,
-.template-editor-template-name {
+.chess-name,
+.template-name {
   font-size: 16px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.template-editor-last-saved {
+.last-saved {
   font-size: 12px;
   color: var(--fluent-text-tertiary);
 }
 
-.template-editor-header-right {
+.header-right {
   display: flex;
   gap: 10px;
 }
 
 /* 通用按钮样式 */
-.template-editor-btn {
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -84,30 +84,30 @@
   min-height: 32px;
 }
 
-.template-editor-btn-primary {
+.btn-primary {
   background-color: var(--fluent-primary);
   color: white;
 }
 
-.template-editor-btn-primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
 }
 
 /* 表单分组 */
-.template-editor-form-group {
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.template-editor-form-group label {
+.form-group label {
   font-size: 13px;
   font-weight: 500;
   color: var(--fluent-text);
 }
 
-.template-editor-save-button,
-.template-editor-export-button {
+.save-button,
+.export-button {
   padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -121,28 +121,28 @@
   font-weight: 500;
 }
 
-.template-editor-save-button {
+.save-button {
   background-color: #5c3100;
   color: white;
 }
 
-.template-editor-save-button:hover:not(:disabled) {
+.save-button:hover:not(:disabled) {
   background-color: #510205;
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.template-editor-export-button {
+.export-button {
   background-color: var(--fluent-primary);
   color: white;
 }
 
-.template-editor-export-button:hover:not(:disabled) {
+.export-button:hover:not(:disabled) {
   background-color: var(--fluent-primary-hover);
   box-shadow: var(--fluent-shadow-hover);
 }
 
 /* 内容区域 */
-.template-editor-editor-content {
+.editor-content {
   display: flex;
   flex: 1;
   overflow: hidden;
@@ -154,7 +154,7 @@
 }
 
 /* 左侧组件选择面板 */
-.template-editor-part-selector {
+.part-selector {
   position: absolute;
   left: 0;
   top: 0;
@@ -173,7 +173,7 @@
   overflow-y: auto;
 }
 
-.template-editor-part-selector.collapsed {
+.part-selector.collapsed {
   padding: 0;
   overflow: hidden;
   border-right: none !important;
@@ -186,7 +186,7 @@
 }
 
 /* 确保左侧面板收起时，切换按钮仍然可见 */
-.template-editor-toggle-left-panel {
+.toggle-left-panel {
   position: absolute;
   left: 200px;
   top: 50%;
@@ -209,34 +209,34 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.template-editor-toggle-left-panel:hover {
+.toggle-left-panel:hover {
   background: rgba(167, 167, 167, 0.5);
   width: 28px;
 }
 
-.template-editor-toggle-left-panel.collapsed {
+.toggle-left-panel.collapsed {
   left: 0;
   border-radius: 0 8px 8px 0;
 }
 
-.template-editor-toggle-left-panel.expanded {
+.toggle-left-panel.expanded {
   left: 200px;
 }
 
-.template-editor-part-selector h3 {
+.part-selector h3 {
   margin: 0 0 15px 0;
   color: var(--fluent-text);
   font-size: 16px;
   font-weight: 600;
 }
 
-.template-editor-part-buttons {
+.part-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.template-editor-part-button {
+.part-button {
   padding: 10px 15px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--fluent-border);
@@ -248,19 +248,19 @@
   text-align: left;
 }
 
-.template-editor-part-button:hover {
+.part-button:hover {
   background: rgba(0, 0, 0, 0.05);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.template-editor-part-button.active {
+.part-button.active {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
 }
 
 /* 左侧面板切换按钮 */
-.template-editor-toggle-left-panel {
+.toggle-left-panel {
   position: absolute;
   left: 200px;
   top: 50%;
@@ -283,21 +283,21 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.template-editor-toggle-left-panel:hover {
+.toggle-left-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.template-editor-toggle-left-panel.collapsed {
+.toggle-left-panel.collapsed {
   left: 0;
 }
 
-.template-editor-toggle-left-panel.expanded {
+.toggle-left-panel.expanded {
   left: 200px;
 }
 
 /* 中间预览区域 */
-.template-editor-preview-area {
+.preview-area {
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -309,8 +309,8 @@
   height: 100%;
 }
 
-/* 让 Canvas 元素扩展到整个 template-editor-preview-area 区域 */
-.template-editor-preview-area canvas {
+/* 让 Canvas 元素扩展到整个 preview-area 区域 */
+.preview-area canvas {
   position: absolute;
   top: 0;
   left: 0;
@@ -325,7 +325,7 @@
 }
 
 /* 左侧组件选择 - 三个半透明小方块 */
-.template-editor-component-squares {
+.component-squares {
   position: absolute;
   left: 20px;
   top: 50%;
@@ -336,7 +336,7 @@
   z-index: 10;
 }
 
-.template-editor-square {
+.square {
   width: 50px;
   height: 50px;
   background: rgba(30, 30, 30, 0.3);
@@ -349,20 +349,20 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-square:hover {
+.square:hover {
   background: rgba(50, 50, 50, 0.5);
   border-color: #000000;
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.template-editor-square.active {
+.square.active {
   background: rgba(0, 0, 0, 0.8);
   border-color: #4653ccfc;
   box-shadow: 0 0 15px rgba(40, 40, 74, 0.976);
 }
 
-.template-editor-square-label {
+.square-label {
   display: block;
   color: white;
   font-size: 16px;
@@ -373,11 +373,11 @@
   pointer-events: none;
 }
 
-/* 原来的 template-editor-part-selector 样式保留，但不再使用 */
-/* .template-editor-part-selector { ... } */
+/* 原来的 part-selector 样式保留，但不再使用 */
+/* .part-selector { ... } */
 
 /* 右侧数据调节面板 - 覆盖在 Canvas 上方 */
-.template-editor-data-panel {
+.data-panel {
   position: absolute;
   right: 0;
   top: 0;
@@ -394,7 +394,7 @@
   min-height: 0;
 }
 
-.template-editor-data-panel.collapsed {
+.data-panel.collapsed {
   padding: 0;
   overflow: hidden;
   border-left: none !important;
@@ -406,7 +406,7 @@
 }
 
 /* 右侧面板切换按钮 */
-.template-editor-toggle-right-panel {
+.toggle-right-panel {
   position: absolute;
   right: 0;
   top: 50%;
@@ -429,45 +429,45 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.template-editor-toggle-right-panel:hover {
+.toggle-right-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.template-editor-toggle-right-panel.collapsed {
+.toggle-right-panel.collapsed {
   right: 0;
 }
 
-.template-editor-toggle-right-panel.expanded {
+.toggle-right-panel.expanded {
   right: 400px;
 }
 
-.template-editor-data-panel::-webkit-scrollbar {
+.data-panel::-webkit-scrollbar {
   width: 8px;
 }
 
-.template-editor-data-panel::-webkit-scrollbar-track {
+.data-panel::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 
-.template-editor-data-panel::-webkit-scrollbar-thumb {
+.data-panel::-webkit-scrollbar-thumb {
   background: rgba(133, 133, 133, 0.329);
   border-radius: 4px;
 }
 
-.template-editor-data-panel::-webkit-scrollbar-thumb:hover {
+.data-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.716);
 }
 
 /* 确保数据编辑器内容可以正常流动 */
-.template-editor-data-editor {
+.data-editor {
   flex: 1;
   min-width: 0;
 }
 
 /* 异形生成器容器样式优化 */
-.template-editor-custom-revolution-wrapper {
+.custom-revolution-wrapper {
   margin-top: 15px;
   padding: 10px;
   background: rgba(78, 205, 196, 0.05);
@@ -480,33 +480,33 @@
 }
 
 /* 异形生成器可滚动容器 */
-.template-editor-custom-revolution-scroll-container {
+.custom-revolution-scroll-container {
   max-height: none;
   overflow-y: visible;
   overflow-x: hidden;
   padding-right: 5px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar {
+.custom-revolution-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar-track {
+.custom-revolution-scroll-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(78, 205, 196, 0.5);
   border-radius: 3px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(78, 205, 196, 0.8);
 }
 
 /* 右侧拖拽手柄样式 */
-.template-editor-resize-handle {
+.resize-handle {
   width: 6px;
   cursor: col-resize;
   transition: var(--fluent-transition);
@@ -515,17 +515,17 @@
   background-color: transparent;
 }
 
-.template-editor-resize-handle:hover {
+.resize-handle:hover {
   background-color: rgba(0, 92, 212, 0.76);
 }
 
-.template-editor-resize-handle.dragging {
+.resize-handle.dragging {
   background-color: rgba(16, 0, 243, 0.997);
   width: 8px;
 }
 
 /* 拖拽手柄视觉指示器 */
-.template-editor-resize-handle::before {
+.resize-handle::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -538,24 +538,24 @@
   transition: var(--fluent-transition);
 }
 
-.template-editor-resize-handle:hover::before {
+.resize-handle:hover::before {
   opacity: 1;
 }
 
-.template-editor-resize-handle.dragging::before {
+.resize-handle.dragging::before {
   background-color: var(--fluent-primary);
   opacity: 1;
 }
 
 
-.template-editor-data-editor h3 {
+.data-editor h3 {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 20px;
   color: var(--fluent-text);
 }
 
-.template-editor-editor-section {
+.editor-section {
   margin-bottom: 20px;
   padding: 15px;
   background: rgba(255, 255, 255, 0.5);
@@ -563,34 +563,34 @@
   border: 1px solid var(--fluent-border);
 }
 
-.template-editor-editor-section h4 {
+.editor-section h4 {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 15px;
   color: var(--fluent-text);
 }
 
-.template-editor-editor-subsection {
+.editor-subsection {
   margin-top: 15px;
   padding-left: 15px;
   border-left: 2px solid var(--fluent-border-light);
 }
 
-.template-editor-editor-subsection h5 {
+.editor-subsection h5 {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 10px;
   color: var(--fluent-text-secondary);
 }
 
-.template-editor-editor-item {
+.editor-item {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
 }
 
-.template-editor-editor-item label {
+.editor-item label {
   font-size: 13px;
   color: var(--fluent-text-secondary);
   width: 60px;
@@ -599,20 +599,20 @@
 }
 
 /* 开关样式 */
-.template-editor-toggle-switch {
+.toggle-switch {
   position: relative;
   display: inline-block;
   width: 50px;
   height: 24px;
 }
 
-.template-editor-toggle-switch input {
+.toggle-switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.template-editor-toggle-label {
+.toggle-label {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -624,7 +624,7 @@
   border-radius: 24px;
 }
 
-.template-editor-toggle-label:before {
+.toggle-label:before {
   position: absolute;
   content: "";
   height: 18px;
@@ -637,23 +637,23 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-input:checked+.template-editor-toggle-label {
+input:checked+.toggle-label {
   background-color: var(--fluent-primary);
 }
 
-input:checked+.template-editor-toggle-label:before {
+input:checked+.toggle-label:before {
   transform: translateX(26px);
 }
 
 /* 过渡动画效果 */
-.template-editor-editor-section {
+.editor-section {
   opacity: 1;
   max-height: 500px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.template-editor-editor-section.hidden {
+.editor-section.hidden {
   opacity: 0;
   max-height: 0;
   margin-bottom: 0;
@@ -661,7 +661,7 @@ input:checked+.template-editor-toggle-label:before {
   border-bottom: none;
 }
 
-.template-editor-editor-section.template-editor-visible {
+.editor-section.visible {
   opacity: 1;
   max-height: 500px;
   margin-bottom: 25px;
@@ -669,8 +669,8 @@ input:checked+.template-editor-toggle-label:before {
   border-bottom: 1px solid var(--fluent-border-light);
 }
 
-.template-editor-editor-item input[type="text"],
-.template-editor-editor-item select {
+.editor-item input[type="text"],
+.editor-item select {
   flex: 1;
   padding: 6px 12px;
   border: 1px solid var(--fluent-border);
@@ -681,19 +681,19 @@ input:checked+.template-editor-toggle-label:before {
   color: var(--fluent-text);
 }
 
-.template-editor-editor-item input[type="text"]:hover,
-.template-editor-editor-item select:hover {
+.editor-item input[type="text"]:hover,
+.editor-item select:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.template-editor-editor-item input[type="text"]:focus,
-.template-editor-editor-item select:focus {
+.editor-item input[type="text"]:focus,
+.editor-item select:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.template-editor-editor-item input[type="range"] {
+.editor-item input[type="range"] {
   flex: 1;
   height: 6px;
   background: var(--fluent-border);
@@ -703,7 +703,7 @@ input:checked+.template-editor-toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.template-editor-editor-item input[type="range"]::-webkit-slider-thumb {
+.editor-item input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 16px;
@@ -715,12 +715,12 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 2px 4px rgba(21, 6, 189, 0.1);
 }
 
-.template-editor-editor-item input[type="range"]::-webkit-slider-thumb:hover {
+.editor-item input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 42, 212, 0.3);
   transform: scale(1.1);
 }
 
-.template-editor-editor-item input[type="range"]::-moz-range-thumb {
+.editor-item input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: #2e0cf0;
@@ -731,13 +731,13 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-editor-item input[type="range"]::-moz-range-thumb:hover {
+.editor-item input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
   transform: scale(1.1);
 }
 
 /* 边缘处理按钮样式 */
-.template-editor-edge-toggle-button {
+.edge-toggle-button {
   padding: 8px 16px;
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
@@ -750,28 +750,28 @@ input:checked+.template-editor-toggle-label:before {
   font-weight: 500;
 }
 
-.template-editor-edge-toggle-button:hover {
+.edge-toggle-button:hover {
   background: rgba(55, 0, 255, 0.5);
   border-color: var(--fluent-primary);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.template-editor-edge-toggle-button.active {
+.edge-toggle-button.active {
   background: #4648b2;
   color: white;
   border-color: #4648b2;
 }
 
-.template-editor-edge-toggle-button.active:hover {
+.edge-toggle-button.active:hover {
   background: #0a118591;
 }
 
-.template-editor-number-input {
+.number-input {
   width: 60px !important;
   text-align: center;
 }
 
-.template-editor-color-picker {
+.color-picker {
   width: 40px;
   height: 30px;
   border: 1px solid var(--fluent-border);
@@ -781,25 +781,25 @@ input:checked+.template-editor-toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.template-editor-color-picker:hover {
+.color-picker:hover {
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.template-editor-color-input {
+.color-input {
   width: 80px !important;
   text-transform: uppercase;
 }
 
 /* 禁用输入框样式 */
-.template-editor-disabled-input {
+.disabled-input {
   background-color: #f5f5f5;
   color: #999;
   cursor: not-allowed;
 }
 
 /* 模型导入按钮样式 */
-.template-editor-import-model-button {
+.import-model-button {
   background: linear-gradient(45deg, #4CAF50, #45a049);
   color: white;
   border: none;
@@ -811,56 +811,56 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-import-model-button:hover {
+.import-model-button:hover {
   background: linear-gradient(45deg, #45a049, #3d8b40);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.template-editor-import-model-button:active {
+.import-model-button:active {
   transform: translateY(0);
 }
 
 /* 当形状容器包含异形生成器时，应用特殊高度 */
-.template-editor-editor-section:has(.template-editor-custom-revolution-wrapper) {
+.editor-section:has(.custom-revolution-wrapper) {
   min-height: 650px;
   max-height: 800px;
   overflow: visible;
 }
 
-.template-editor-editor-section:has(.template-editor-custom-revolution-wrapper).template-editor-visible {
+.editor-section:has(.custom-revolution-wrapper).visible {
   min-height: 650px;
   max-height: 800px;
 }
 
 /* 异形生成器可滚动容器 */
-.template-editor-custom-revolution-scroll-container {
+.custom-revolution-scroll-container {
   max-height: none;
   overflow-y: visible;
   overflow-x: hidden;
   padding-right: 5px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar {
+.custom-revolution-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar-track {
+.custom-revolution-scroll-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb {
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(78, 205, 196, 0.5);
   border-radius: 3px;
 }
 
-.template-editor-custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
+.custom-revolution-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(78, 205, 196, 0.8);
 }
 
 /* 自定义旋转体生成器样式 */
-.template-editor-custom-revolution-panel {
+.custom-revolution-panel {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   padding: 12px;
@@ -871,19 +871,19 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 响应式设计 */
-.template-editor-panel-section h3 {
+.panel-section h3 {
   margin: 0 0 6px 0;
   color: var(--fluent-text);
   font-size: 15px;
 }
 
-.template-editor-panel-description {
+.panel-description {
   margin: 0 0 12px 0;
   color: var(--fluent-text-secondary);
   font-size: 12px;
 }
 
-.template-editor-canvases-row {
+.canvases-row {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -891,7 +891,7 @@ input:checked+.template-editor-toggle-label:before {
   width: 100%;
 }
 
-.template-editor-simple-canvas-container {
+.simple-canvas-container {
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
@@ -902,27 +902,27 @@ input:checked+.template-editor-toggle-label:before {
   display: block;
 }
 
-.template-editor-canvas-header {
+.canvas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.template-editor-canvas-header h4 {
+.canvas-header h4 {
   margin: 0;
   color: var(--fluent-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.template-editor-header-buttons {
+.header-buttons {
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-.template-editor-mode-btn {
+.mode-btn {
   background: #ffffffb3;
   color: var(--fluent-text);
   border: 1px solid var(--fluent-border);
@@ -935,25 +935,25 @@ input:checked+.template-editor-toggle-label:before {
   white-space: nowrap;
 }
 
-.template-editor-mode-btn:hover {
+.mode-btn:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: #0078d4;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-mode-btn.active {
+.mode-btn.active {
   background: var(--fluent-primary);
   color: #fff;
   border-color: var(--fluent-primary);
   box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
 }
 
-.template-editor-mode-btn.free-mode.active {
+.mode-btn.free-mode.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-color: #667eea;
 }
 
-.template-editor-bezier-hint {
+.bezier-hint {
   background: rgba(0, 120, 212, 0.1);
   border-left: 3px solid var(--fluent-primary);
   padding: 6px 10px;
@@ -976,7 +976,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-clear-btn {
+.clear-btn {
   background: #ff6b6b;
   color: white;
   border: none;
@@ -987,17 +987,17 @@ input:checked+.template-editor-toggle-label:before {
   font-weight: 500;
 }
 
-.template-editor-clear-btn:hover {
+.clear-btn:hover {
   background: #ff5252;
 }
 
-.template-editor-equation-input-small {
+.equation-input-small {
   display: flex;
   gap: 6px;
   margin-bottom: 8px;
 }
 
-.template-editor-equation-input-small input {
+.equation-input-small input {
   flex: 1;
   padding: 6px 10px;
   border: 1px solid var(--fluent-border);
@@ -1008,11 +1008,11 @@ input:checked+.template-editor-toggle-label:before {
   min-width: 0;
 }
 
-.template-editor-equation-input-small input::placeholder {
+.equation-input-small input::placeholder {
   color: rgba(0, 0, 0, 0.4);
 }
 
-.template-editor-equation-input-small button {
+.equation-input-small button {
   background: var(--fluent-primary);
   color: white;
   border: none;
@@ -1024,11 +1024,11 @@ input:checked+.template-editor-toggle-label:before {
   font-weight: 500;
 }
 
-.template-editor-equation-input-small button:hover {
+.equation-input-small button:hover {
   opacity: 0.9;
 }
 
-.template-editor-simple-canvas {
+.simple-canvas {
   border: 1px solid var(--fluent-border);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.3);
@@ -1040,25 +1040,25 @@ input:checked+.template-editor-toggle-label:before {
   touch-action: none;
 }
 
-.template-editor-points-count {
+.points-count {
   text-align: center;
   font-size: 11px;
   color: var(--fluent-text-secondary);
   margin-top: 4px;
 }
 
-.template-editor-preview-section {
+.preview-section {
   margin-top: 12px;
 }
 
-.template-editor-preview-section h4 {
+.preview-section h4 {
   margin: 0 0 8px 0;
   color: var(--fluent-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.template-editor-preview-canvas-wrapper {
+.preview-canvas-wrapper {
   height: 220px;
   border-radius: 6px;
   overflow: hidden;
@@ -1067,7 +1067,7 @@ input:checked+.template-editor-toggle-label:before {
   width: 100%;
 }
 
-.template-editor-instructions-small {
+.instructions-small {
   margin-top: 12px;
   padding: 8px;
   background: rgba(0, 0, 0, 0.1);
@@ -1075,59 +1075,59 @@ input:checked+.template-editor-toggle-label:before {
   font-size: 11px;
 }
 
-.template-editor-instructions-small p {
+.instructions-small p {
   margin: 0 0 6px 0;
   color: var(--fluent-text);
   font-size: 11px;
 }
 
-.template-editor-instructions-small ul {
+.instructions-small ul {
   margin: 0;
   padding-left: 14px;
 }
 
-.template-editor-instructions-small li {
+.instructions-small li {
   margin-bottom: 3px;
   color: var(--fluent-text-secondary);
   font-size: 11px;
 }
 
 @media (max-width: 992px) {
-  .template-editor-canvases-row {
+  .canvases-row {
     flex-direction: column;
   }
 
-  .template-editor-editor-content {
+  .editor-content {
     flex-direction: column;
   }
 
-  .template-editor-part-selector {
+  .part-selector {
     width: 100% !important;
     height: 120px;
     border-right: none;
     border-bottom: 1px solid var(--fluent-border);
   }
 
-  .template-editor-resize-handle {
+  .resize-handle {
     display: none;
   }
 
-  .template-editor-part-buttons {
+  .part-buttons {
     flex-direction: row;
     justify-content: space-around;
   }
 
-  .template-editor-part-button {
+  .part-button {
     flex: 1;
     text-align: center;
   }
 
-  .template-editor-preview-area {
+  .preview-area {
     flex: 1;
     min-height: 400px;
   }
 
-  .template-editor-data-panel {
+  .data-panel {
     width: 100% !important;
     height: auto;
     min-height: 300px;
@@ -1137,16 +1137,16 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 优化右侧面板中的异形生成器显示 */
-.template-editor-data-panel .template-editor-canvases-row {
+.data-panel .canvases-row {
   gap: 12px;
 }
 
-.template-editor-data-panel .template-editor-simple-canvas-container {
+.data-panel .simple-canvas-container {
   max-width: 100%;
 }
 
 /* 导出窗口样式 */
-.template-editor-modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1172,7 +1172,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-export-modal {
+.export-modal {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1196,7 +1196,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-modal-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1205,14 +1205,14 @@ input:checked+.template-editor-toggle-label:before {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.template-editor-modal-header h2 {
+.modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.template-editor-close-button {
+.close-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -1227,32 +1227,32 @@ input:checked+.template-editor-toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.template-editor-close-button:hover {
+.close-button:hover {
   background: rgba(0, 0, 0, 0.1);
   color: var(--fluent-text);
 }
 
-.template-editor-modal-content {
+.modal-content {
   padding: 30px 20px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.template-editor-modal-content p {
+.modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
   text-align: center;
 }
 
-.template-editor-export-buttons {
+.export-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
 }
 
-.template-editor-export-option-button {
+.export-option-button {
   padding: 12px 20px;
   border: 1px solid var(--fluent-border);
   border-radius: 8px;
@@ -1267,7 +1267,7 @@ input:checked+.template-editor-toggle-label:before {
   box-sizing: border-box;
 }
 
-.template-editor-export-option-button:hover {
+.export-option-button:hover {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
@@ -1275,36 +1275,36 @@ input:checked+.template-editor-toggle-label:before {
   transform: translateY(-1px);
 }
 
-.template-editor-export-option-button:active {
+.export-option-button:active {
   transform: translateY(0);
 }
 
 /* 响应式设计 */
 @media (max-width: 480px) {
-  .template-editor-export-modal {
+  .export-modal {
     width: 95%;
     max-width: none;
   }
 
-  .template-editor-modal-content {
+  .modal-content {
     padding: 20px 15px;
   }
 
-  .template-editor-export-option-button {
+  .export-option-button {
     padding: 10px 16px;
     font-size: 13px;
   }
 }
 
 /* HDR 预设选择器样式 */
-.template-editor-hdr-selector-container {
+.hdr-selector-container {
   position: absolute;
   bottom: 20px;
   right: 20px;
   z-index: 100;
 }
 
-.template-editor-hdr-selector-toggle {
+.hdr-selector-toggle {
   padding: 10px 16px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--fluent-border);
@@ -1319,14 +1319,14 @@ input:checked+.template-editor-toggle-label:before {
   font-weight: 500;
 }
 
-.template-editor-hdr-selector-toggle:hover {
+.hdr-selector-toggle:hover {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.template-editor-hdr-presets-dropdown {
+.hdr-presets-dropdown {
   position: absolute;
   bottom: 50px;
   right: 0;
@@ -1352,7 +1352,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-hdr-presets-dropdown h4 {
+.hdr-presets-dropdown h4 {
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
@@ -1361,13 +1361,13 @@ input:checked+.template-editor-toggle-label:before {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-hdr-presets-list {
+.hdr-presets-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.template-editor-hdr-preset-item {
+.hdr-preset-item {
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -1379,12 +1379,12 @@ input:checked+.template-editor-toggle-label:before {
   color: var(--fluent-text);
 }
 
-.template-editor-hdr-preset-item:hover {
+.hdr-preset-item:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: var(--fluent-primary);
 }
 
-.template-editor-hdr-preset-item.active {
+.hdr-preset-item.active {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
@@ -1392,7 +1392,7 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* AI 生成器样式 */
-.template-editor-ai-generator-panel {
+.ai-generator-panel {
   animation: aiPanelFadeIn 0.3s ease-out;
 }
 
@@ -1407,13 +1407,13 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-ai-generator-panel textarea:focus {
+.ai-generator-panel textarea:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.template-editor-ai-generator-panel .template-editor-btn-primary {
+.ai-generator-panel .btn-primary {
   background: linear-gradient(135deg, #667eea, #764ba2) !important;
   color: white;
   border: none;
@@ -1425,17 +1425,17 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.template-editor-ai-generator-panel .template-editor-btn-primary:hover:not(:disabled) {
+.ai-generator-panel .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, #5568d3, #6a4190) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.template-editor-ai-generator-panel .template-editor-btn-primary:active:not(:disabled) {
+.ai-generator-panel .btn-primary:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.template-editor-ai-generator-panel .template-editor-btn-primary:disabled {
+.ai-generator-panel .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -1444,28 +1444,28 @@ input:checked+.template-editor-toggle-label:before {
 /* ==================== 异形生成器新增样式 ==================== */
 
 /* 小窗口预览容器 */
-.template-editor-preview-canvas-container {
+.preview-canvas-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   padding: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-preview-canvas-container .template-editor-canvas-header {
+.preview-canvas-container .canvas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.template-editor-preview-canvas-container .template-editor-canvas-header h4 {
+.preview-canvas-container .canvas-header h4 {
   margin: 0;
   color: #333;
   font-size: 14px;
   font-weight: 600;
 }
 
-.template-editor-preview-canvas-container .template-editor-points-count {
+.preview-canvas-container .points-count {
   font-size: 12px;
   color: #666;
   background: rgba(78, 205, 196, 0.1);
@@ -1474,7 +1474,7 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 画布包装器 */
-.template-editor-canvas-wrapper {
+.canvas-wrapper {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1482,7 +1482,7 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 编辑按钮 */
-.template-editor-edit-btn {
+.edit-btn {
   background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
   color: white;
   border: none;
@@ -1497,17 +1497,17 @@ input:checked+.template-editor-toggle-label:before {
   min-width: 120px;
 }
 
-.template-editor-edit-btn:hover {
+.edit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
 }
 
-.template-editor-edit-btn:active {
+.edit-btn:active {
   transform: translateY(0);
 }
 
 /* 全屏编辑器 */
-.template-editor-fullscreen-editor {
+.fullscreen-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1515,7 +1515,7 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 编辑器工具栏 */
-.template-editor-editor-toolbar {
+.editor-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1525,12 +1525,12 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.template-editor-tool-group {
+.tool-group {
   display: flex;
   gap: 10px;
 }
 
-.template-editor-tool-btn {
+.tool-btn {
   padding: 10px 18px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
@@ -1542,29 +1542,29 @@ input:checked+.template-editor-toggle-label:before {
   transition: all 0.2s ease;
 }
 
-.template-editor-tool-btn:hover:not(:disabled) {
+.tool-btn:hover:not(:disabled) {
   border-color: #4ecdc4;
   color: #4ecdc4;
 }
 
-.template-editor-tool-btn.active {
+.tool-btn.active {
   background: #4ecdc4;
   border-color: #4ecdc4;
   color: white;
   box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
 }
 
-.template-editor-tool-btn:disabled {
+.tool-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.template-editor-action-group {
+.action-group {
   display: flex;
   gap: 10px;
 }
 
-.template-editor-action-btn {
+.action-btn {
   padding: 10px 18px;
   border: none;
   border-radius: 8px;
@@ -1574,32 +1574,32 @@ input:checked+.template-editor-toggle-label:before {
   transition: all 0.2s ease;
 }
 
-.template-editor-action-btn.delete {
+.action-btn.delete {
   background: #ff6b6b;
   color: white;
 }
 
-.template-editor-action-btn.delete:hover:not(:disabled) {
+.action-btn.delete:hover:not(:disabled) {
   background: #ff5252;
   box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
-.template-editor-action-btn.clear {
+.action-btn.clear {
   background: #f0f0f0;
   color: #666;
 }
 
-.template-editor-action-btn.clear:hover:not(:disabled) {
+.action-btn.clear:hover:not(:disabled) {
   background: #e0e0e0;
 }
 
-.template-editor-action-btn:disabled {
+.action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* 画布容器 */
-.template-editor-editor-canvas-container {
+.editor-canvas-container {
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -1609,7 +1609,7 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.template-editor-editor-canvas-container canvas {
+.editor-canvas-container canvas {
   display: block;
   width: 100%;
   height: 100%;
@@ -1617,7 +1617,7 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 编辑器提示 */
-.template-editor-editor-hint {
+.editor-hint {
   padding: 12px 20px;
   background: #e8f5e9;
   color: #2e7d32;
@@ -1627,7 +1627,7 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 模态窗口样式 */
-.template-editor-modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1643,7 +1643,7 @@ input:checked+.template-editor-toggle-label:before {
   animation: fadeIn 0.2s ease;
 }
 
-.template-editor-modal-overlay .template-editor-modal-content {
+.modal-overlay .modal-content {
   background: white;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -1678,7 +1678,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-modal-overlay .template-editor-modal-header {
+.modal-overlay .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1687,13 +1687,13 @@ input:checked+.template-editor-toggle-label:before {
   color: white;
 }
 
-.template-editor-modal-overlay .template-editor-modal-header h3 {
+.modal-overlay .modal-header h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
 }
 
-.template-editor-modal-overlay .template-editor-close-btn {
+.modal-overlay .close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   width: 36px;
@@ -1708,12 +1708,12 @@ input:checked+.template-editor-toggle-label:before {
   transition: all 0.2s ease;
 }
 
-.template-editor-modal-overlay .template-editor-close-btn:hover {
+.modal-overlay .close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: rotate(90deg);
 }
 
-.template-editor-modal-overlay .template-editor-modal-footer {
+.modal-overlay .modal-footer {
   padding: 15px 25px;
   background: #f8f9fa;
   border-top: 1px solid #e0e0e0;
@@ -1721,7 +1721,7 @@ input:checked+.template-editor-toggle-label:before {
   justify-content: flex-end;
 }
 
-.template-editor-modal-overlay .template-editor-done-btn {
+.modal-overlay .done-btn {
   background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
   color: white;
   border: none;
@@ -1734,19 +1734,19 @@ input:checked+.template-editor-toggle-label:before {
   box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
 }
 
-.template-editor-modal-overlay .template-editor-done-btn:hover {
+.modal-overlay .done-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(78, 205, 196, 0.4);
 }
 
 /* 方程输入框样式优化 */
-.template-editor-equation-input-small {
+.equation-input-small {
   display: flex;
   gap: 5px;
   margin-bottom: 10px;
 }
 
-.template-editor-equation-input-small input {
+.equation-input-small input {
   flex: 1;
   padding: 6px 8px;
   border: 1px solid var(--fluent-border);
@@ -1756,11 +1756,11 @@ input:checked+.template-editor-toggle-label:before {
   font-size: 12px;
 }
 
-.template-editor-equation-input-small input::placeholder {
+.equation-input-small input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
-.template-editor-equation-input-small button {
+.equation-input-small button {
   background: var(--fluent-primary);
   color: white;
   border: none;
@@ -1772,27 +1772,27 @@ input:checked+.template-editor-toggle-label:before {
   min-width: 60px;
 }
 
-.template-editor-equation-input-small button:hover {
+.equation-input-small button:hover {
   background: var(--fluent-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.template-editor-equation-input-small button:active {
+.equation-input-small button:active {
   transform: translateY(0);
 }
 
 /* 响应式设计 */
 @media (max-width: 992px) {
-  .template-editor-canvases-row {
+  .canvases-row {
     flex-direction: column;
   }
 
-  .template-editor-editor-content {
+  .editor-content {
     flex-direction: column;
   }
 
-  .template-editor-component-squares {
+  .component-squares {
     position: relative;
     left: 0;
     top: 0;
@@ -1805,16 +1805,16 @@ input:checked+.template-editor-toggle-label:before {
     backdrop-filter: blur(10px);
   }
 
-  .template-editor-resize-handle {
+  .resize-handle {
     display: none;
   }
 
-  .template-editor-preview-area {
+  .preview-area {
     flex: 1;
     min-height: 400px;
   }
 
-  .template-editor-data-panel {
+  .data-panel {
     width: 100% !important;
     height: auto;
     min-height: 300px;
@@ -1824,16 +1824,16 @@ input:checked+.template-editor-toggle-label:before {
 }
 
 /* 优化右侧面板中的异形生成器显示 */
-.template-editor-data-panel .template-editor-canvases-row {
+.data-panel .canvases-row {
   gap: 12px;
 }
 
-.template-editor-data-panel .template-editor-simple-canvas-container {
+.data-panel .simple-canvas-container {
   max-width: 100%;
 }
 
 /* 导出窗口样式 */
-.template-editor-modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1859,7 +1859,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-export-modal {
+.export-modal {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1883,7 +1883,7 @@ input:checked+.template-editor-toggle-label:before {
   }
 }
 
-.template-editor-modal-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1892,14 +1892,14 @@ input:checked+.template-editor-toggle-label:before {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.template-editor-modal-header h2 {
+.modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--fluent-text);
 }
 
-.template-editor-close-button {
+.close-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -1914,32 +1914,32 @@ input:checked+.template-editor-toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.template-editor-close-button:hover {
+.close-button:hover {
   background: rgba(0, 0, 0, 0.1);
   color: var(--fluent-text);
 }
 
-.template-editor-modal-content {
+.modal-content {
   padding: 30px 20px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.template-editor-modal-content p {
+.modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
   text-align: center;
 }
 
-.template-editor-export-buttons {
+.export-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
 }
 
-.template-editor-export-option-button {
+.export-option-button {
   padding: 12px 20px;
   border: 1px solid var(--fluent-border);
   border-radius: 8px;
@@ -1954,7 +1954,7 @@ input:checked+.template-editor-toggle-label:before {
   box-sizing: border-box;
 }
 
-.template-editor-export-option-button:hover {
+.export-option-button:hover {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);
@@ -1962,22 +1962,22 @@ input:checked+.template-editor-toggle-label:before {
   transform: translateY(-1px);
 }
 
-.template-editor-export-option-button:active {
+.export-option-button:active {
   transform: translateY(0);
 }
 
 /* 响应式设计 */
 @media (max-width: 480px) {
-  .template-editor-export-modal {
+  .export-modal {
     width: 95%;
     max-width: none;
   }
 
-  .template-editor-modal-content {
+  .modal-content {
     padding: 20px 15px;
   }
 
-  .template-editor-export-option-button {
+  .export-option-button {
     padding: 10px 16px;
     font-size: 13px;
   }

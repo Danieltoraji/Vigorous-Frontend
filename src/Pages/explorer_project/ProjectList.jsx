@@ -9,7 +9,7 @@ function ProjectList({ projects, onEditProject, onDeleteProject, onCreateProject
     <div className="project-list">
       <div className="project-list-header">
 
-        <button className="projectlist-btn btn-create" onClick={onCreateProject}>
+        <button className="btn btn-create" onClick={onCreateProject}>
 
         </button>
       </div>

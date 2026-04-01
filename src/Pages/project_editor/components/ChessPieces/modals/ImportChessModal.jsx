@@ -6,7 +6,7 @@ import './modals.css';
 const ImportChessModal = ({ onCancel, projectId }) => {
   const { templatesData, loading: templatesLoading } = useTemplates();
   const { createChessFromJson } = useChess();
-
+  
   const [isParsing, setIsParsing] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -14,7 +14,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
   const [selectedTemplates, setSelectedTemplates] = useState([]);
   const [isCreatingFromTemplates, setIsCreatingFromTemplates] = useState(false);
   const [viewMode, setViewMode] = useState('card'); // 'card' 或 'list'
-
+  
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -54,17 +54,17 @@ const ImportChessModal = ({ onCancel, projectId }) => {
       alert('请选择 JSON 文件');
       return;
     }
-
+    
     setIsParsing(true);
     const reader = new FileReader();
-
+    
     reader.onload = async (e) => {
       try {
         const jsonContent = e.target.result;
         const chessJson = JSON.parse(jsonContent);
-
+        
         await createChessFromJson(projectId, chessJson);
-
+        
         setIsParsing(false);
         alert('导入成功，棋子已创建');
         onCancel();
@@ -74,12 +74,12 @@ const ImportChessModal = ({ onCancel, projectId }) => {
         alert('解析失败：' + error.message);
       }
     };
-
+    
     reader.onerror = () => {
       setIsParsing(false);
       alert('文件读取失败');
     };
-
+    
     reader.readAsText(selectedFile);
   };
 
@@ -129,7 +129,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
     }
 
     setIsCreatingFromTemplates(false);
-
+    
     if (failCount === 0) {
       alert(`成功导入 ${successCount} 个棋子`);
       setShowTemplateSelector(false);
@@ -147,94 +147,94 @@ const ImportChessModal = ({ onCancel, projectId }) => {
 
   if (showTemplateSelector) {
     return (
-      <div className="modals-modal-overlay">
-        <div className="modals-modal-content modals-template-selector-modal">
-          <div className="modals-modal-header">
+      <div className="modal-overlay">
+        <div className="modal-content template-selector-modal">
+          <div className="modal-header">
             <h3>从模板导入</h3>
-            <button className="modals-modal-close" onClick={handleBackToMain}>
+            <button className="modal-close" onClick={handleBackToMain}>
               ×
             </button>
           </div>
-          <div className="modals-modal-body">
+          <div className="modal-body">
             {templatesLoading ? (
-              <div className="modals-loading-indicator">加载模板中...</div>
+              <div className="loading-indicator">加载模板中...</div>
             ) : (
               <>
-                <div className="modals-template-selector-header">
-                  <span className="modals-selected-count">
+                <div className="template-selector-header">
+                  <span className="selected-count">
                     已选择 {selectedTemplates.length} 个模板
                   </span>
-                  <div className="modals-template-selector-controls">
-                    <div className="modals-view-controls">
+                  <div className="template-selector-controls">
+                    <div className="view-controls">
                       <button
-                        className={`modals-view-button ${viewMode === 'card' ? 'modals-active' : ''}`}
+                        className={`view-button ${viewMode === 'card' ? 'active' : ''}`}
                         onClick={() => setViewMode('card')}
                       >
                         卡片
                       </button>
                       <button
-                        className={`modals-view-button ${viewMode === 'list' ? 'modals-active' : ''}`}
+                        className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
                         onClick={() => setViewMode('list')}
                       >
                         列表
                       </button>
                     </div>
-                    <button
-                      className="modals-select-all-button"
+                    <button 
+                      className="select-all-button"
                       onClick={handleSelectAllTemplates}
                     >
-                      {selectedTemplates.length === Object.keys(templatesData).length
-                        ? '取消全选'
+                      {selectedTemplates.length === Object.keys(templatesData).length 
+                        ? '取消全选' 
                         : '全选'}
                     </button>
                   </div>
                 </div>
-                <div className={`modals-template-list ${viewMode === 'card' ? 'modals-card-view' : 'modals-list-view'}`}>
+                <div className={`template-list ${viewMode === 'card' ? 'card-view' : 'list-view'}`}>
                   {Object.entries(templatesData).map(([id, template]) => (
                     <div
                       key={id}
-                      className={`modals-template-item ${selectedTemplates.includes(id) ? 'modals-selected' : ''} ${viewMode === 'card' ? 'modals-card-item' : 'modals-list-item'}`}
+                      className={`template-item ${selectedTemplates.includes(id) ? 'selected' : ''} ${viewMode === 'card' ? 'card-item' : 'list-item'}`}
                       onClick={() => handleTemplateToggle(id)}
                     >
-                      <div className="modals-template-checkbox">
+                      <div className="template-checkbox">
                         <input
                           type="checkbox"
                           checked={selectedTemplates.includes(id)}
-                          onChange={() => { }}
+                          onChange={() => {}}
                         />
                       </div>
                       {viewMode === 'card' ? (
-                        <div className="modals-template-card-content">
-                          <h4 className="modals-template-card-title">{template.name || `模板 ${id}`}</h4>
-                          <div className="modals-template-card-details">
-                            <div className="modals-template-card-detail">
-                              <span className="modals-detail-label">ID:</span>
-                              <span className="modals-detail-value">{id}</span>
+                        <div className="template-card-content">
+                          <h4 className="template-card-title">{template.name || `模板 ${id}`}</h4>
+                          <div className="template-card-details">
+                            <div className="template-card-detail">
+                              <span className="detail-label">ID:</span>
+                              <span className="detail-value">{id}</span>
                             </div>
                             {template.description && (
-                              <div className="modals-template-card-detail">
-                                <span className="modals-detail-label">描述:</span>
-                                <span className="modals-detail-value">{template.description}</span>
+                              <div className="template-card-detail">
+                                <span className="detail-label">描述:</span>
+                                <span className="detail-value">{template.description}</span>
                               </div>
                             )}
                             {template.created_at && (
-                              <div className="modals-template-card-detail">
-                                <span className="modals-detail-label">创建时间:</span>
-                                <span className="modals-detail-value">{new Date(template.created_at).toLocaleString()}</span>
+                              <div className="template-card-detail">
+                                <span className="detail-label">创建时间:</span>
+                                <span className="detail-value">{new Date(template.created_at).toLocaleString()}</span>
                               </div>
                             )}
                             {template.updated_at && (
-                              <div className="modals-template-card-detail">
-                                <span className="modals-detail-label">修改时间:</span>
-                                <span className="modals-detail-value">{new Date(template.updated_at).toLocaleString()}</span>
+                              <div className="template-card-detail">
+                                <span className="detail-label">修改时间:</span>
+                                <span className="detail-value">{new Date(template.updated_at).toLocaleString()}</span>
                               </div>
                             )}
                             {template.tags && template.tags.length > 0 && (
-                              <div className="modals-template-card-detail">
-                                <span className="modals-detail-label">标签:</span>
-                                <div className="modals-template-tags">
+                              <div className="template-card-detail">
+                                <span className="detail-label">标签:</span>
+                                <div className="template-tags">
                                   {template.tags.map((tag, index) => (
-                                    <span key={index} className="modals-template-tag">{tag}</span>
+                                    <span key={index} className="template-tag">{tag}</span>
                                   ))}
                                 </div>
                               </div>
@@ -242,25 +242,25 @@ const ImportChessModal = ({ onCancel, projectId }) => {
                           </div>
                         </div>
                       ) : (
-                        <div className="modals-template-list-content">
-                          <div className="modals-template-list-main">
-                            <span className="modals-template-list-name">{template.name || `模板 ${id}`}</span>
+                        <div className="template-list-content">
+                          <div className="template-list-main">
+                            <span className="template-list-name">{template.name || `模板 ${id}`}</span>
                             {template.description && (
-                              <span className="modals-template-list-description">{template.description}</span>
+                              <span className="template-list-description">{template.description}</span>
                             )}
                           </div>
-                          <div className="modals-template-list-details">
-                            <span className="modals-template-list-id">ID: {id}</span>
+                          <div className="template-list-details">
+                            <span className="template-list-id">ID: {id}</span>
                             {template.created_at && (
-                              <span className="modals-template-list-date">创建: {new Date(template.created_at).toLocaleDateString()}</span>
+                              <span className="template-list-date">创建: {new Date(template.created_at).toLocaleDateString()}</span>
                             )}
                             {template.updated_at && (
-                              <span className="modals-template-list-date">修改: {new Date(template.updated_at).toLocaleDateString()}</span>
+                              <span className="template-list-date">修改: {new Date(template.updated_at).toLocaleDateString()}</span>
                             )}
                             {template.tags && template.tags.length > 0 && (
-                              <div className="modals-template-list-tags">
+                              <div className="template-list-tags">
                                 {template.tags.map((tag, index) => (
-                                  <span key={index} className="modals-template-tag">{tag}</span>
+                                  <span key={index} className="template-tag">{tag}</span>
                                 ))}
                               </div>
                             )}
@@ -270,18 +270,18 @@ const ImportChessModal = ({ onCancel, projectId }) => {
                     </div>
                   ))}
                   {Object.keys(templatesData).length === 0 && (
-                    <div className="modals-empty-templates">暂无可用模板</div>
+                    <div className="empty-templates">暂无可用模板</div>
                   )}
                 </div>
               </>
             )}
           </div>
-          <div className="modals-modal-actions">
-            <button className="modals-cancel-button" onClick={handleBackToMain}>
+          <div className="modal-actions">
+            <button className="cancel-button" onClick={handleBackToMain}>
               返回
             </button>
             <button
-              className="modals-confirm-button"
+              className="confirm-button"
               onClick={handleConfirmTemplateImport}
               disabled={isCreatingFromTemplates || selectedTemplates.length === 0}
             >
@@ -294,17 +294,17 @@ const ImportChessModal = ({ onCancel, projectId }) => {
   }
 
   return (
-    <div className="modals-modal-overlay">
-      <div className="modals-modal-content">
-        <div className="modals-modal-header">
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
           <h3>导入棋子</h3>
-          <button className="modals-modal-close" onClick={onCancel}>
+          <button className="modal-close" onClick={onCancel}>
             ×
           </button>
         </div>
-        <div className="modals-modal-body">
-          <div
-            className={`modals-file-upload-area ${isDragOver ? 'modals-drag-over' : ''}`}
+        <div className="modal-body">
+          <div 
+            className={`file-upload-area ${isDragOver ? 'drag-over' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -316,33 +316,33 @@ const ImportChessModal = ({ onCancel, projectId }) => {
               type="file"
               accept=".json,application/json"
               onChange={handleFileChange}
-              className="modals-file-input"
+              className="file-input"
             />
-            <p className="modals-upload-hint">点击或拖拽 JSON 文件到此处上传</p>
+            <p className="upload-hint">点击或拖拽 JSON 文件到此处上传</p>
             {selectedFile && (
-              <p className="modals-selected-file">已选择: {selectedFile.name}</p>
+              <p className="selected-file">已选择: {selectedFile.name}</p>
             )}
           </div>
-          <div className="modals-modal-actions">
-            <button className="modals-cancel-button" onClick={onCancel}>
+          <div className="modal-actions">
+            <button className="cancel-button" onClick={onCancel}>
               取消
             </button>
-            <button
-              className="modals-confirm-button"
+            <button 
+              className="confirm-button"
               onClick={handleConfirmJsonImport}
               disabled={isParsing || !selectedFile}
             >
               {isParsing ? '导入中...' : '确认导入'}
             </button>
           </div>
-
-          <div className="modals-import-divider">
+          
+          <div className="import-divider">
             <span>或者</span>
           </div>
-
-          <div className="modals-template-import-section">
-            <button
-              className="modals-template-import-button"
+          
+          <div className="template-import-section">
+            <button 
+              className="template-import-button"
               onClick={handleOpenTemplateSelector}
             >
               从模板导入

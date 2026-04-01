@@ -39,7 +39,7 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
   if (loading) {
     return (
       <div className="texture-grid-loading">
-        <div className="texturegrid-loading-spinner"></div>
+        <div className="loading-spinner"></div>
         <p>加载纹理中...</p>
       </div>
     )
@@ -61,7 +61,7 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
         </div>
       )}
       
-      <div className="texturegrid-texture-grid">
+      <div className="texture-grid">
         {textures.length === 0 ? (
           <div className="no-textures">
             <p>暂无纹理，请先到浮雕纹理资源管理器上传</p>
@@ -77,7 +77,7 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
                 {texture.file ? (
                   <img src={texture.file} alt={texture.name} />
                 ) : (
-                  <div className="texturegrid-no-preview">无预览</div>
+                  <div className="no-preview">无预览</div>
                 )}
               </div>
               <div className="texture-grid-info">
@@ -93,13 +93,13 @@ function TextureGrid({ onSelectTexture, onClose, mode = 'selector' }) {
 
       <div className="texture-grid-footer">
         <button 
-          className="btn texturegrid-btn-secondary" 
+          className="btn btn-secondary" 
           onClick={onClose}
         >
           取消
         </button>
         <button 
-          className="btn texturegrid-btn-primary" 
+          className="btn btn-primary" 
           onClick={handleConfirm}
           disabled={!selectedId}
         >

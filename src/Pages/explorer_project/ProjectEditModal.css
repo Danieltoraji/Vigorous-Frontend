@@ -1,4 +1,4 @@
-.projecteditmodal-modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -24,7 +24,7 @@
   transition: var(--fluent-transition);
 }
 
-.projecteditmodal-modal-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -33,7 +33,7 @@
   background: transparent !important;
 }
 
-.projecteditmodal-modal-header h2 {
+.modal-header h2 {
   font-size: 24px !important;
   font-weight: 700 !important;
   color: black;
@@ -63,7 +63,7 @@
   box-shadow: var(--fluent-shadow);
 }
 
-.projecteditmodal-modal-form {
+.modal-form {
   background: url("/static/projectExplorer/sticker.png") center / cover no-repeat !important;
   background-size: 100% 100% !important;
   padding-top: 100px !important;
@@ -72,11 +72,11 @@
   padding-left: 15% !important;
 }
 
-.projecteditmodal-form-group {
+.form-group {
   margin-bottom: 20px;
 }
 
-.projecteditmodal-form-label {
+.form-label {
   display: block;
   font-size: 14px;
   font-weight: 500;
@@ -84,8 +84,8 @@
   margin-bottom: 8px;
 }
 
-.projecteditmodal-form-input,
-.projecteditmodal-form-textarea {
+.form-input,
+.form-textarea {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--fluent-border);
@@ -96,19 +96,19 @@
   color: var(--fluent-text);
 }
 
-.projecteditmodal-form-input:hover,
-.projecteditmodal-form-textarea:hover {
+.form-input:hover,
+.form-textarea:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.projecteditmodal-form-input:focus,
-.projecteditmodal-form-textarea:focus {
+.form-input:focus,
+.form-textarea:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.projecteditmodal-form-textarea {
+.form-textarea {
   resize: vertical;
   min-height: 100px;
 }
@@ -153,22 +153,22 @@
     max-height: 85vh;
   }
 
-  .projecteditmodal-modal-header,
-  .projecteditmodal-modal-form,
+  .modal-header,
+  .modal-form,
   .project-modal-footer {
     padding: 16px;
   }
 
-  .projecteditmodal-modal-header h2 {
+  .modal-header h2 {
     font-size: 14px;
   }
 
-  .projecteditmodal-form-group {
+  .form-group {
     margin-bottom: 16px;
   }
 
-  .projecteditmodal-form-input,
-  .projecteditmodal-form-textarea {
+  .form-input,
+  .form-textarea {
     padding: 8px 12px;
     font-size: 14px;
   }

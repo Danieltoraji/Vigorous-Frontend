@@ -20,7 +20,7 @@
   font-size: 24px;
 }
 
-.decoration-list-header .decorationlist-btn-primary {
+.decoration-list-header .btn-primary {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
   border: none;
@@ -32,7 +32,7 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.decoration-list-header .decorationlist-btn-primary:hover {
+.decoration-list-header .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(240, 147, 251, 0.4);
 }

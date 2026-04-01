@@ -61,9 +61,9 @@ function Home() {
 
       {/* 头部 */}
       <header className="home-header">
-        <h1 className='home-header-title' onClick={onBack}>
+        <h1 className='header-title' onClick={onBack}>
           ❮  功能菜单</h1>
-        <p className='home-user-welcome'>欢迎您！{userData.username}</p>
+        <p className='user-welcome'>欢迎您！{userData.username}</p>
       </header>
       <div className='home-container'>
         <Link

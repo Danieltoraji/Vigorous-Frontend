@@ -44,22 +44,22 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
           {texture.file ? (
             <img src={texture.file} alt={texture.name} />
           ) : (
-            <div className="textureitem-no-preview">无预览</div>
+            <div className="no-preview">无预览</div>
           )}
         </div>
 
         <div className="texture-meta">
           <div className="texture-meta-item">
-            <span className="textureitem-meta-label">纹理 ID：</span>
-            <span className="textureitem-meta-value">{texture.id}</span>
+            <span className="meta-label">纹理 ID：</span>
+            <span className="meta-value">{texture.id}</span>
           </div>
           <div className="texture-meta-item">
-            <span className="textureitem-meta-label">创建时间：</span>
-            <span className="textureitem-meta-value">{formatDate(texture.created_at)}</span>
+            <span className="meta-label">创建时间：</span>
+            <span className="meta-value">{formatDate(texture.created_at)}</span>
           </div>
           <div className="texture-meta-item">
-            <span className="textureitem-meta-label">修改时间：</span>
-            <span className="textureitem-meta-value">{formatDate(texture.edited_at)}</span>
+            <span className="meta-label">修改时间：</span>
+            <span className="meta-value">{formatDate(texture.edited_at)}</span>
           </div>
         </div>
 
@@ -77,10 +77,10 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
       </div>
 
       <div className="texture-item-footer">
-        <button className="textureitem-btn textureitem-btn-secondary" onClick={() => onEditTexture(texture)}>
+        <button className="btn btn-secondary" onClick={() => onEditTexture(texture)}>
           编辑
         </button>
-        <button className="textureitem-btn textureitem-btn-danger" onClick={() => onDeleteTexture(texture.id)}>
+        <button className="btn btn-danger" onClick={() => onDeleteTexture(texture.id)}>
           删除
         </button>
       </div>

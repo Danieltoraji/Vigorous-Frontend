@@ -8,7 +8,7 @@
   background-size: cover;
 }
 
-.explorer-decoration-explorer-header {
+.explorer-header {
   background: linear-gradient(135deg, #202020 0%, #393939 100%);
   backdrop-filter: blur(10px);
   padding: 20px 2%;
@@ -23,7 +23,7 @@
   z-index: 1000;
 }
 
-.explorer-decoration-header-title::before {
+.header-title::before {
   content: "";
   display: inline-block;
   background: url("/static/logo/white.png") center center no-repeat;
@@ -37,7 +37,7 @@
   margin-bottom: 10px;
 }
 
-.explorer-decoration-explorer-header .explorer-decoration-header-title {
+.explorer-header .header-title {
   font-size: 24px !important;
   font-weight: bold;
   color: white !important;
@@ -46,14 +46,14 @@
   cursor: pointer;
 }
 
-.explorer-decoration-explorer-header .explorer-decoration-user-welcome {
+.explorer-header .user-welcome {
   color: white;
   font-weight: 500;
   font-size: 16px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.explorer-decoration-footer {
+.footer {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -68,7 +68,7 @@
   backdrop-filter: blur(5px);
 }
 
-.explorer-decoration .explorer-decoration-back-button {
+.explorer-decoration .back-button {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
@@ -79,17 +79,17 @@
   transition: background 0.3s;
 }
 
-.explorer-decoration .explorer-decoration-back-button:hover {
+.explorer-decoration .back-button:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.explorer-decoration .explorer-decoration-explorer-header h1 {
+.explorer-decoration .explorer-header h1 {
   flex: 1;
   margin: 0;
   font-size: 28px;
 }
 
-.explorer-decoration .explorer-decoration-explorer-header p {
+.explorer-decoration .explorer-header p {
   margin: 0;
   opacity: 0.9;
 }

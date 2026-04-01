@@ -21,11 +21,11 @@ const HeaderBar = ({ project, onSave, onBack }) => {
           ❮  {project?.name || '项目编辑器'}</h1>
       </div>
 
-      <div className="headerbar-header-right">
+      <div className="header-right">
         <span className="save-time">
           最后保存: {formatDate(project?.edited_at)}
         </span>
-        <button className="headerbar-save-button" onClick={onSave}>
+        <button className="save-button" onClick={onSave}>
           保存
         </button>
       </div>

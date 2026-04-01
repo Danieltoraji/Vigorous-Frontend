@@ -38,16 +38,16 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
   };
 
   return (
-    <div className="modals-modal-overlay">
-      <div className="modals-chess-modal-content">
-        <form onSubmit={handleSubmit} className="modals-chess-modal-form">
-          <div className="modals-chess-modal-header">
+    <div className="modal-overlay">
+      <div className="chess-modal-content">
+        <form onSubmit={handleSubmit} className="chess-modal-form">
+          <div className="chess-modal-header">
             <h3>编辑棋子</h3>
-            <button className="modals-modal-close" onClick={onCancel}>
+            <button className="modal-close" onClick={onCancel}>
               ×
             </button>
           </div>
-          <div className="modals-form-group">
+          <div className="form-group">
             <label htmlFor="chess-name">棋子名称</label>
             <input
               type="text"
@@ -59,7 +59,7 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
             />
           </div>
 
-          <div className="modals-form-group">
+          <div className="form-group">
             <label htmlFor="chess-type">棋子类型</label>
             <input
               type="text"
@@ -71,16 +71,16 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
             />
           </div>
 
-          <div className="modals-form-group">
+          <div className="form-group">
             <label>棋子标签</label>
-            <div className="modals-tag-input-container">
-              <div className="modals-tags">
+            <div className="tag-input-container">
+              <div className="tags">
                 {localPiece.piece_tags.map((tag, index) => (
-                  <span key={index} className="modals-tag">
+                  <span key={index} className="tag">
                     {tag}
                     <button
                       type="button"
-                      className="modals-tag-remove"
+                      className="tag-remove"
                       onClick={() => handleRemoveTag(tag)}
                     >
                       ×
@@ -88,7 +88,7 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
                   </span>
                 ))}
               </div>
-              <div className="modals-tag-input-wrapper">
+              <div className="tag-input-wrapper">
                 <input
                   type="text"
                   value={newTag}
@@ -98,7 +98,7 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
                 />
                 <button
                   type="button"
-                  className="modals-add-tag-button"
+                  className="add-tag-button"
                   onClick={handleAddTag}
                 >
                   添加
@@ -107,11 +107,11 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
             </div>
           </div>
 
-          <div className="modals-modal-actions">
-            <button type="button" className="modals-cancel-button" onClick={onCancel}>
+          <div className="modal-actions">
+            <button type="button" className="cancel-button" onClick={onCancel}>
               取消
             </button>
-            <button type="submit" className="modals-save-button">
+            <button type="submit" className="save-button">
               保存
             </button>
           </div>
