@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import './chess_editor.css';
-import { useChess } from '../../hooks/useChess.jsx';
+import './template_editor.css';
+import { useTemplates } from '../../hooks/useTemplates.jsx';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import ModelRenderer from './modelrenderer/modelrenderer.jsx';
+import ModelRenderer from './templaterenderer/templaterenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import csrfapi from '../../utils/csrfapi.js';
-import TextureGrid from './TextureGrid.jsx';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
-function ChessEditor() {
-  const { chessData, updateChess, setChessData, getChessById } = useChess();
+function TemplateEditor() {
+  const { templatesData, updateTemplate, setTemplatesData, fetchTemplate } = useTemplates();
   const navigate = useNavigate();
   const location = useLocation();
   const { id: pieceId } = useParams();
-  const [currentChess, setCurrentChess] = useState(null);
+  const [currentTemplate, setCurrentTemplate] = useState(null);
 
 
   // Reference to the model root group for export
@@ -25,7 +24,7 @@ function ChessEditor() {
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
 
   // 右侧面板固定宽度
-  const [rightWidth, setRightWidth] = useState(450); // 右侧面板宽度
+  const [rightWidth, setRightWidth] = useState(400); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
 
@@ -42,34 +41,6 @@ function ChessEditor() {
   const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
   const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
 
-  // 自定义纹理相关状态
-  const [showCustomTextureModal, setShowCustomTextureModal] = useState(false); // 自定义纹理弹窗显示状态
-  const [showTextureSelector, setShowTextureSelector] = useState(false); // 纹理选择器显示状态
-  const [selectedTexture, setSelectedTexture] = useState(null); // 选中的纹理
-  const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
-  const [smoothTexture, setSmoothTexture] = useState(false); // 是否启用平滑纹理
-
-  // 处理纹理选择
-  const handleTextureSelect = (texture) => {
-    setSelectedTexture(texture);
-    if (!currentChess || !selectedComponent) return;
-
-    // 根据当前选中的组件更新对应的 pattern 数据
-    const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
-
-    // 同时更新 textureFile、shape 和 smooth 字段
-    const patternData = {
-      textureFile: texture.file,
-      shape: 'custom',
-      size: 10,
-      depth: 1,
-      position: { x: 0, y: 0, z: 0 },
-      smooth: smoothTexture // 保存当前的平滑设置
-    };
-
-    handleDataUpdate(componentPath, patternData);
-  };
-
   // HDR 预设列表
   const hdrPresets = [
     { id: 'syria', name: '叙利亚', file: '/chessbg/syria.hdr' },
@@ -79,24 +50,15 @@ function ChessEditor() {
     { id: 'cinema', name: '电影院', file: '/chessbg/cinema.hdr' },
   ];
 
-  // 当 chessData 或 location.state 变化时更新 currentChess
+  // 当templateData或location.state变化时更新currentTemplate
 
   const fetchData = async () => {
     try {
-      console.log('正在获取棋子：', pieceId);
-      const fetchedData = await getChessById(pieceId);
+      console.log('正在获取模板：', pieceId);
+      const fetchedData = await fetchTemplate(pieceId);
       if (fetchedData) {
         console.log('获取成功：', fetchedData);
-        setCurrentChess(fetchedData);
-
-        // 从保存的数据中恢复 smoothTexture 设置
-        const basePattern = fetchedData.parts?.base?.pattern;
-        const columnPattern = fetchedData.parts?.column?.pattern;
-        if (basePattern?.smooth !== undefined) {
-          setSmoothTexture(basePattern.smooth);
-        } else if (columnPattern?.smooth !== undefined) {
-          setSmoothTexture(columnPattern.smooth);
-        }
+        setCurrentTemplate(fetchedData);
       }
     } catch (error) {
       console.error('获取失败:', error);
@@ -117,14 +79,14 @@ function ChessEditor() {
 
   // 处理数据更新 - 使用 useCallback 避免重复创建
   const handleDataUpdate = useCallback((path, value) => {
-    if (!currentChess) return;
+    if (!currentTemplate) return;
 
     // 深度克隆当前数据
-    const updatedChess = JSON.parse(JSON.stringify(currentChess));
+    const updatedTemplate = JSON.parse(JSON.stringify(currentTemplate));
     console.log('正在更新棋子数据：', path, value);
     // 根据路径更新数据
     const keys = path.split('.');
-    let target = updatedChess;
+    let target = updatedTemplate;
 
     for (let i = 0; i < keys.length - 1; i++) {
       // 确保中间对象存在
@@ -137,50 +99,29 @@ function ChessEditor() {
     target[keys[keys.length - 1]] = value;
 
     // 更新本地状态
-    setCurrentChess(updatedChess);
+    setCurrentTemplate(updatedTemplate);
 
     // 更新全局状态
-    setChessData(prev => ({
+    setTemplatesData(prev => ({
       ...prev,
-      [currentChess.id]: updatedChess
+      [currentTemplate.id]: updatedTemplate
     }));
-  }, [currentChess, setChessData]);
-
-  // 切换平滑纹理时，同时更新到数据中
-  const toggleSmoothTexture = useCallback(() => {
-    const newValue = !smoothTexture;
-    setSmoothTexture(newValue);
-
-    // 如果当前有选中的纹理，同步更新到数据中
-    if (currentChess && selectedComponent) {
-      const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
-      const currentPattern = selectedComponent === 'base'
-        ? currentChess.parts?.base?.pattern
-        : currentChess.parts?.column?.pattern;
-
-      if (currentPattern && currentPattern.shape === 'custom') {
-        handleDataUpdate(componentPath, {
-          ...currentPattern,
-          smooth: newValue
-        });
-      }
-    }
-  }, [smoothTexture, currentChess, selectedComponent, handleDataUpdate]);
+  }, [currentTemplate, setTemplatesData]);
 
   // 处理保存 - 使用 useCallback
   const handleSave = useCallback(async () => {
-    if (!currentChess) return;
+    if (!currentTemplate) return;
 
     try {
-      // 调用 updateChess 方法向后端保存数据
-      await updateChess(currentChess.id, currentChess);
+      // 调用 updateTemplate 方法向后端保存数据
+      await updateTemplate(currentTemplate.id, currentTemplate);
 
       // 更新保存时间
       setLastSaved(new Date().toLocaleString());
     } catch (error) {
       alert('保存失败：' + (error.message || '未知错误'));
     }
-  }, [currentChess, updateChess]);
+  }, [currentTemplate, updateTemplate]);
 
   // AI 生成模型 - 根据提示词生成 JSON 格式的模型数据
   const handleAIGenerate = useCallback(async () => {
@@ -459,22 +400,22 @@ modelId 含义：
       }
 
       // 合并到当前棋子数据
-      const updatedChess = {
-        ...currentChess,
+      const updatedTemplate = {
+        ...currentTemplate,
         parts: {
-          ...currentChess.parts,
+          ...currentTemplate.parts,
           ...generatedData.parts
         }
       };
 
       // 更新本地状态
-      setCurrentChess(updatedChess);
+      setCurrentTemplate(updatedTemplate);
 
       // 更新全局状态
-      setChessData(prev => ({
-        ...prev,
-        [currentChess.id]: updatedChess
-      }));
+    setTemplatesData(prev => ({
+      ...prev,
+      [currentTemplate.id]: updatedTemplate
+    }));
 
       // 清空提示词并关闭生成器
       setAiPrompt('');
@@ -489,7 +430,7 @@ modelId 含义：
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, currentChess, setChessData]);
+  }, [aiPrompt, currentTemplate, setTemplatesData]);
 
   // 处理右侧面板收起/展开
   const handleToggleRightPanel = useCallback(() => {
@@ -499,7 +440,7 @@ modelId 含义：
 
   // 处理导出：点击导出按键，弹出导出窗口
   const handleExport = () => {
-    if (!currentChess) {
+    if (!currentTemplate) {
       alert('当前没有可导出的模型');
       return;
     }
@@ -517,9 +458,9 @@ modelId 含义：
       let filename;
 
       // 调用导出函数，直接传递参数
-      console.log('正在做导出准备,json', currentChess, 'stl/obj', modelRootRef.current);
-      blob = await exportScene(currentChess, modelRootRef.current, format);
-      filename = generateExportFilename(currentChess.name, format);
+      console.log('正在做导出准备,json', currentTemplate, 'stl/obj', modelRootRef.current);
+      blob = await exportScene(currentTemplate, modelRootRef.current, format);
+      filename = generateExportFilename(currentTemplate.name, format);
       downloadBlob(blob, filename);
 
       alert(`导出成功！文件已下载：${filename}`);
@@ -533,11 +474,11 @@ modelId 含义：
 
   // 处理返回
   const handleBack = () => {
-    const projectId = currentChess.project;
-    navigate(`/project-editor/${projectId}`);
+    const projectId = currentTemplate.project;
+    navigate(`/explorer-templates/`);
   };
 
-  // Handle model ready callback - receives the Three.js Group containing the chess model
+  // Handle model ready callback - receives the Three.js Group containing the template model
   const handleModelReady = useCallback((modelRoot) => {
     modelRootRef.current = modelRoot;
     console.log('Model ready for export:', modelRoot);
@@ -562,11 +503,11 @@ modelId 含义：
 
   }, [handleMouseMove, handleMouseUp]);
 
-  // 渲染底座组件参数面板 - 使用普通函数以确保状态能正确更新
-  const renderBasePanel = () => {
-    if (!currentChess || !currentChess.parts?.base) return null;
+  // 渲染底座组件参数面板 - 使用 useMemo 缓存
+  const renderBasePanel = useMemo(() => () => {
+    if (!currentTemplate || !currentTemplate.parts?.base) return null;
 
-    const component = currentChess.parts.base;
+    const component = currentTemplate.parts.base;
     const shape = component.shape || {};
     const pattern = component.pattern || {};
     const edge = component.edge || {};
@@ -622,7 +563,7 @@ modelId 含义：
           {shape.type === 'special' && (
             <div className="custom-revolution-wrapper">
               <CustomRevolutionGenerator
-                currentChess={currentChess}
+                currentTemplate={currentTemplate}
                 selectedComponent={selectedComponent}
                 handleDataUpdate={handleDataUpdate}
               />
@@ -699,7 +640,7 @@ modelId 含义：
 
         {/* Pattern 部分 */}
         <div className="editor-section">
-          <h4>浮雕与纹理</h4>
+          <h4>图案</h4>
 
           <div className="editor-item">
             <label>形状：</label>
@@ -710,37 +651,9 @@ modelId 含义：
               <option value="none">无</option>
               <option value="text">文字</option>
               <option value="geometry">几何图形</option>
-              <option value="custom">自定义纹理</option>
+              <option value="strange">奇异图形</option>
             </select>
           </div>
-
-          {getSafeValue(pattern.shape, 'text') === 'custom' && (
-            <div className="editor-item">
-              <div className="texture-mode-buttons">
-                <button
-                  className="texture-mode-button"
-                  onClick={() => {
-                    setTextureMode('selector');
-                    setShowTextureSelector(true);
-                  }}
-                >
-                  📂 从浮雕纹理管理器中选择
-                </button>
-                <button
-                  className={`texture-mode-button ${smoothTexture ? 'active' : ''}`}
-                  onClick={toggleSmoothTexture}
-                >
-                  {smoothTexture ? '✨ 平滑已启用' : '✨ 平滑纹理'}
-                </button>
-              </div>
-              {selectedTexture && (
-                <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600' }}>已选纹理：{selectedTexture.name}</p>
-                  <img src={selectedTexture.file} alt="预览" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', display: 'block' }} />
-                </div>
-              )}
-            </div>
-          )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
             <div className="editor-item">
@@ -791,179 +704,49 @@ modelId 含义：
             </>
           )}
 
-          {/* 尺寸拉伸功能栏 */}
           <div className="editor-item">
-            <h5>尺寸拉伸</h5>
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>X:</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={getSafeValue(pattern.scaleX, 1)}
-                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleX', parseFloat(e.target.value))}
-                  className="number-input"
-                  style={{ width: '50px' }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Y:</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={Math.abs(getSafeValue(pattern.scaleY, -1))}
-                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
-                  className="number-input"
-                  style={{ width: '50px' }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Z:</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={getSafeValue(pattern.scaleZ, 1)}
-                  onChange={(e) => handleDataUpdate('parts.base.pattern.scaleZ', parseFloat(e.target.value))}
-                  className="number-input"
-                  style={{ width: '50px' }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-            </div>
+            <label>尺寸：</label>
+            <input
+              type="range"
+              min="0"
+              max="16"
+              step="0.1"
+              value={getSafeValue(pattern.size, 10)}
+              onChange={(e) => handleDataUpdate('parts.base.pattern.size', parseFloat(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="16"
+              step="0.1"
+              value={getSafeValue(pattern.size, 10)}
+              onChange={(e) => handleDataUpdate('parts.base.pattern.size', parseFloat(e.target.value))}
+              className="number-input"
+            />
           </div>
 
-          {/* 浮雕位置 */}
+          <div className="editor-item">
+            <label>深度：</label>
+            <input
+              type="range"
+              min="0"
+              max="5"
+              step="0.1"
+              value={getSafeValue(pattern.depth, 1)}
+              onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              value={getSafeValue(pattern.depth, 1)}
+              onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
+              className="number-input"
+            />
+          </div>
+
+          {/* 图案位置 */}
           <div className="editor-subsection">
             <h5>位置</h5>
             <div className="editor-item">
@@ -985,7 +768,7 @@ modelId 含义：
               />
             </div>
             <div className="editor-item">
-              <label>Y：</label>
+              <label>Y修正：</label>
               <input
                 type="range"
                 min="-20"
@@ -1102,7 +885,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.metalness, 0.3)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.base.material.metalness', parseFloat(e.target.value))}
             />
             <input
@@ -1110,7 +893,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.metalness, 0.3)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.base.material.metalness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1122,7 +905,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.roughness, 0.4)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.base.material.roughness', parseFloat(e.target.value))}
             />
             <input
@@ -1130,7 +913,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.roughness, 0.4)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.base.material.roughness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1142,7 +925,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.clearcoat, 0)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoat', parseFloat(e.target.value))}
             />
             <input
@@ -1150,7 +933,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.clearcoat, 0)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoat', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1162,7 +945,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.clearcoatRoughness, 0)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoatRoughness', parseFloat(e.target.value))}
             />
             <input
@@ -1170,7 +953,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.base?.material?.clearcoatRoughness, 0)}
+              value={getSafeValue(currentTemplate.parts?.base?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoatRoughness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1178,13 +961,13 @@ modelId 含义：
         </div>
       </div>
     );
-  };
+  }, [currentTemplate, handleDataUpdate, selectedComponent]);
 
   // 渲染柱体组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderColumnPanel = () => {
-    if (!currentChess || !currentChess.parts?.column) return null;
+    if (!currentTemplate || !currentTemplate.parts?.column) return null;
 
-    const component = currentChess.parts.column;
+    const component = currentTemplate.parts.column;
     const shape = component.shape || {};
     const pattern = component.pattern || {};
     const edge = component.edge || {};
@@ -1241,7 +1024,7 @@ modelId 含义：
           {shape.type === 'special' && (
             <div className="custom-revolution-wrapper">
               <CustomRevolutionGenerator
-                currentChess={currentChess}
+                currentTemplate={currentTemplate}
                 selectedComponent={selectedComponent}
                 handleDataUpdate={handleDataUpdate}
               />
@@ -1339,7 +1122,7 @@ modelId 含义：
           </div>
 
           <div className="editor-item">
-            <label>Y：</label>
+            <label>Y修正：</label>
             <input
               type="range"
               min="-30"
@@ -1395,7 +1178,7 @@ modelId 含义：
 
         {/* Pattern 部分 */}
         <div className="editor-section">
-          <h4>浮雕与纹理</h4>
+          <h4>图案</h4>
 
           <div className="editor-item">
             <label>形状：</label>
@@ -1406,37 +1189,9 @@ modelId 含义：
               <option value="none">无</option>
               <option value="text">文字</option>
               <option value="geometry">几何图形</option>
-              <option value="custom">自定义纹理</option>
+              <option value="strange">奇异图形</option>
             </select>
           </div>
-
-          {getSafeValue(pattern.shape, 'text') === 'custom' && (
-            <div className="editor-item">
-              <div className="texture-mode-buttons">
-                <button
-                  className="texture-mode-button"
-                  onClick={() => {
-                    setTextureMode('selector');
-                    setShowTextureSelector(true);
-                  }}
-                >
-                  📂 从浮雕纹理管理器中选择
-                </button>
-                <button
-                  className={`texture-mode-button ${smoothTexture ? 'active' : ''}`}
-                  onClick={toggleSmoothTexture}
-                >
-                  {smoothTexture ? '✨ 平滑已启用' : '✨ 平滑纹理'}
-                </button>
-              </div>
-              {selectedTexture && (
-                <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.05)', borderRadius: '6px' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600' }}>已选纹理：{selectedTexture.name}</p>
-                  <img src={selectedTexture.file} alt="预览" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '4px', display: 'block' }} />
-                </div>
-              )}
-            </div>
-          )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
             <div className="editor-item">
@@ -1487,179 +1242,49 @@ modelId 含义：
             </>
           )}
 
-          {/* 尺寸拉伸功能栏 */}
           <div className="editor-item">
-            <h5>尺寸拉伸</h5>
-            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>X:</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={getSafeValue(pattern.scaleX, 1)}
-                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleX', parseFloat(e.target.value))}
-                  className="number-input"
-                  style={{ width: '50px' }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Y:</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={Math.abs(getSafeValue(pattern.scaleY, -1))}
-                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
-                  className="number-input"
-                  style={{ width: '50px' }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', width: '15px' }}>Z:</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                  value={getSafeValue(pattern.scaleZ, 1)}
-                  onChange={(e) => handleDataUpdate('parts.column.pattern.scaleZ', parseFloat(e.target.value))}
-                  className="number-input"
-                  style={{ width: '50px' }}
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.1))}
-                    style={{
-                      width: '20px',
-                      height: '14px',
-                      padding: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                      lineHeight: '1',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                      background: '#f5f5f5'
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-            </div>
+            <label>尺寸：</label>
+            <input
+              type="range"
+              min="0"
+              max="16"
+              step="0.1"
+              value={getSafeValue(pattern.size, 10)}
+              onChange={(e) => handleDataUpdate('parts.column.pattern.size', parseFloat(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="16"
+              step="0.1"
+              value={getSafeValue(pattern.size, 10)}
+              onChange={(e) => handleDataUpdate('parts.column.pattern.size', parseFloat(e.target.value))}
+              className="number-input"
+            />
           </div>
 
-          {/* 浮雕位置 */}
+          <div className="editor-item">
+            <label>深度：</label>
+            <input
+              type="range"
+              min="0"
+              max="5"
+              step="0.1"
+              value={getSafeValue(pattern.depth, 1)}
+              onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              value={getSafeValue(pattern.depth, 1)}
+              onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
+              className="number-input"
+            />
+          </div>
+
+          {/* 图案位置 */}
           <div className="editor-subsection">
             <h5>位置</h5>
             <div className="editor-item">
@@ -1681,7 +1306,7 @@ modelId 含义：
               />
             </div>
             <div className="editor-item">
-              <label>Y：</label>
+              <label>Y修正：</label>
               <input
                 type="range"
                 min="-20"
@@ -1798,7 +1423,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.metalness, 0.3)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.column.material.metalness', parseFloat(e.target.value))}
             />
             <input
@@ -1806,7 +1431,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.metalness, 0.3)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.column.material.metalness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1818,7 +1443,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.roughness, 0.4)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.column.material.roughness', parseFloat(e.target.value))}
             />
             <input
@@ -1826,7 +1451,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.roughness, 0.4)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.column.material.roughness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1838,7 +1463,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.clearcoat, 0)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoat', parseFloat(e.target.value))}
             />
             <input
@@ -1846,7 +1471,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.clearcoat, 0)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoat', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1858,7 +1483,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.clearcoatRoughness, 0)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoatRoughness', parseFloat(e.target.value))}
             />
             <input
@@ -1866,7 +1491,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.column?.material?.clearcoatRoughness, 0)}
+              value={getSafeValue(currentTemplate.parts?.column?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoatRoughness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -1878,9 +1503,9 @@ modelId 含义：
 
   // 渲染装饰组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderDecorationPanel = () => {
-    if (!currentChess || !currentChess.parts?.decoration) return null;
+    if (!currentTemplate || !currentTemplate.parts?.decoration) return null;
 
-    const component = currentChess.parts.decoration;
+    const component = currentTemplate.parts.decoration;
     const size = component.size || {};
     const position = component.position || {};
     const rotation = component.rotation || {};
@@ -2187,7 +1812,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.metalness, 0.5)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.metalness, 0.5)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.metalness', parseFloat(e.target.value))}
             />
             <input
@@ -2195,7 +1820,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.metalness, 0.5)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.metalness, 0.5)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.metalness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -2207,7 +1832,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.roughness, 0.3)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.roughness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.roughness', parseFloat(e.target.value))}
             />
             <input
@@ -2215,7 +1840,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.roughness, 0.3)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.roughness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.roughness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -2227,7 +1852,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoat, 0)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoat', parseFloat(e.target.value))}
             />
             <input
@@ -2235,7 +1860,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoat, 0)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoat', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -2247,7 +1872,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoatRoughness, 0)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoatRoughness', parseFloat(e.target.value))}
             />
             <input
@@ -2255,7 +1880,7 @@ modelId 含义：
               min="0"
               max="1"
               step="0.05"
-              value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoatRoughness, 0)}
+              value={getSafeValue(currentTemplate.parts?.decoration?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoatRoughness', parseFloat(e.target.value))}
               className="number-input"
             />
@@ -2265,10 +1890,10 @@ modelId 含义：
     );
   };
 
-  // 如果 currentChess 还没有准备好，显示加载状态
-  if (!currentChess) {
+  // 如果 currentTemplate 还没有准备好，显示加载状态
+  if (!currentTemplate) {
     return (
-      <div className="chess-editor" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <div className="template-editor" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
         <div style={{ textAlign: 'center' }}>
           <h2>加载中...</h2>
           <p>正在准备棋子数据</p>
@@ -2278,12 +1903,12 @@ modelId 含义：
   }
 
   return (
-    <div className="chess-editor">
+    <div className="template-editor">
       {/* 顶部标题栏 */}
       <header className="editor-header">
         <div className="header-left">
           <button className="back-button" onClick={handleBack}>← 返回</button>
-          <h1 className="chess-name">{currentChess?.name || '棋子编辑器'}</h1>
+          <h1 className="template-name">{currentTemplate?.name || '棋子编辑器'}</h1>
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
@@ -2321,10 +1946,9 @@ modelId 含义：
         {/* 中间预览区域 */}
         <main className="preview-area">
           <ModelRenderer
-            chess={currentChess}
+            template={currentTemplate}
             onModelReady={handleModelReady}
             hdrFile={hdrPresets.find(p => p.id === selectedHdrPreset)?.file || '/stage.hdr'}
-            smoothTexture={smoothTexture}
           />
 
           {/* HDR 预设选择器 */}
@@ -2334,7 +1958,7 @@ modelId 含义：
               onClick={() => setShowHdrSelector(!showHdrSelector)}
               title="选择环境贴图"
             >
-              🌍 切换天空盒
+              🌍 环境光
             </button>
 
             {showHdrSelector && (
@@ -2396,42 +2020,21 @@ modelId 含义：
                   className="export-option-button"
                   onClick={() => handleExportAction('json')}
                 >
-                  JSON 数据
+                  JSON数据
                 </button>
                 <button
                   className="export-option-button"
                   onClick={() => handleExportAction('stl')}
                 >
-                  STL（适合 3D 打印）
+                  STL（适合3D打印）
                 </button>
                 <button
                   className="export-option-button"
                   onClick={() => handleExportAction('obj')}
                 >
-                  OBJ（适合 3D 建模软件）
+                  OBJ（适合3D建模软件）
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 纹理选择器弹窗 */}
-      {showTextureSelector && (
-        <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
-          <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
-              <button className="close-button" onClick={() => setShowTextureSelector(false)}>
-                ×
-              </button>
-            </div>
-            <div className="modal-content texture-selector-content">
-              <TextureGrid
-                onSelectTexture={handleTextureSelect}
-                onClose={() => setShowTextureSelector(false)}
-                mode={textureMode}
-              />
             </div>
           </div>
         </div>
@@ -2440,4 +2043,4 @@ modelId 含义：
   );
 }
 
-export default ChessEditor;
+export default TemplateEditor;

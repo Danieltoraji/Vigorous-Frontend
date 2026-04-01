@@ -741,3 +741,72 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
+
+.import-modal-two-column {
+  min-width: 600px;
+  max-width: 700px;
+  text-align: center;
+}
+
+.import-modal-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--fluent-text);
+  margin-bottom: 24px;
+}
+
+.import-columns {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.import-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--fluent-radius);
+  border: 1px solid var(--fluent-border);
+}
+
+.import-column-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--fluent-text);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.import-column .drag-drop-area {
+  width: 100%;
+  margin: 0 0 16px 0;
+  padding: 24px 16px;
+}
+
+.import-column-desc {
+  color: var(--fluent-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.import-column-btn {
+  width: 100%;
+}
+
+.import-column-btn.large {
+  padding: 16px 24px;
+  font-size: 16px;
+  min-height: 48px;
+}
+
+.import-modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}

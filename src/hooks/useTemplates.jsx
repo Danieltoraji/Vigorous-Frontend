@@ -69,8 +69,65 @@ export function TemplatesProvider({ children }) {
   };
 
   // 创建新模板
-  const createTemplate = async (templateData) => {
+  const createTemplate = async () => {
     try {
+      const templateData = {
+        name: "新模板",
+        parts: {
+          "base": {
+            "shape": {
+              "type": "cycle",
+              "size1": 15,
+              "size2": 15,
+              "height": 1
+            },
+            "customShape": {
+              "profilePoints": [],
+              "pathPoints": []
+            },
+            "material": null,
+            "pattern": {
+              "shape": "text",
+              "position": { "x": 0, "y":0, "z": 0 },
+              "size": 10,
+              "depth": 1
+            },
+            "edge": { "type": "none", "depth": 0 },
+            "position": { "x": 0, "y": 0, "z": 0 }
+          },
+          "column": {
+            "shape": {
+              "type": "cycle",
+              "size1": 10,
+              "size2": 10,
+              "height": 20
+            },
+            "customShape": {
+              "profilePoints": [],
+              "pathPoints": []
+            },
+            "material": null,
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "sideTreatment": "none",
+            "pattern": {
+              "shape": "geometry",
+              "geometryType":"Cube",
+              "position": { "x": 0, "y": 0, "z": 0 },
+              "size": 5,
+              "depth": 0.5
+            },
+            "edge": { "type": "smooth", "depth": 0.2 }
+          },
+          "decoration": {
+            "modelId": "0",
+            "size": { "size1": 5, "size2": 5, "size3": 5 },
+            "position": { "x": 0, "y": 21, "z": 0 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "material": null
+          },
+          "image": ""
+        },
+      }
       const response = await csrfapi.post('/presets/', templateData);
       const newTemplate = response.data;
       
@@ -90,6 +147,7 @@ export function TemplatesProvider({ children }) {
   // 从既定的JSON中创建模板
   const createTemplateFromJson = async (templateJson) => {
     try {
+      console.log("从JSON创建模板，使用数据：",templateJson)
       const templateData = {
         name: '新模板',
         parts: {
