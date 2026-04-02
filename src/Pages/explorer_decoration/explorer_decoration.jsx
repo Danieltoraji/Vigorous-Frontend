@@ -7,7 +7,6 @@ import { useUser } from '../../hooks/useUser.jsx'
 import { useDecoration } from '../../hooks/useDecoration.jsx'
 import DecorationList from './DecorationList.jsx'
 import DecorationUploadModal from './DecorationUploadModal.jsx'
-import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
 import './explorer_decoration.css'
 
 function ExplorerDecoration() {
@@ -98,7 +97,6 @@ function ExplorerDecoration() {
         />
       )}
 
-      <ExplorerBottom />
     </div>
   )
 }

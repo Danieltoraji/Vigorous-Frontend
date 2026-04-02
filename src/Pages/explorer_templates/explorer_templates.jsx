@@ -3,7 +3,6 @@ import { useUser } from '../../hooks/useUser.jsx'
 import { useTemplates } from '../../hooks/useTemplates.jsx'
 import './explorer_templates.css'
 import { useNavigate } from 'react-router-dom'
-import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
 import ImportFromProject from './import_from_project/import_from_project.jsx'
 
 // 格式化日期时间
@@ -617,7 +616,6 @@ function ExplorerTemplates() {
         onConfirm={handleConfirmImportFromProject}
       />
 
-      <ExplorerBottom />
     </div>
   )
 }
