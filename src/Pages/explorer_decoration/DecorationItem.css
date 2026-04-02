@@ -1,61 +1,39 @@
 .decoration-item {
-  background: linear-gradient(135deg, #ffffff 0%, #fafaf8 100%);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: none;
+  padding-top: 80px;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-bottom: 20px;
   transition: transform 0.3s, box-shadow 0.3s;
-  width: 300px;
-  min-height: 250px;
-  height: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  position: relative;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.decoration-item::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 14px;
-  padding: 2px;
-  background: linear-gradient(135deg, rgba(100, 150, 255, 0.5), rgba(150, 100, 255, 0.5), rgba(100, 200, 255, 0.5));
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.decoration-item:hover::before {
-  opacity: 1;
+  width: 396px;
+  min-height: 330px;
+  height: auto;
+  background: url("/static/decorationExplorer/sticker.png") center / cover no-repeat;
+  background-size: 100% 100%;
+  inset: -10%;
 }
 
 .decoration-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.12),
-    0 0 20px rgba(100, 150, 255, 0.15),
-    0 0 40px rgba(150, 100, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 .decoration-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #f8f8f5 0%, #f0f0eb 100%);
+  padding: 0;
+  background: transparent;
   color: #333;
   flex-shrink: 0;
 }
 
 .decoration-name {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -74,7 +52,7 @@
 }
 
 .decoration-item-body {
-  padding: 12px 16px;
+  padding: 0;
   display: flex;
   flex-direction: column;
 }
@@ -119,15 +97,15 @@
 
 .decoration-meta {
   margin-bottom: 8px;
-  padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.02);
+  padding: 8px 0px;
+  background: transparent;
   border-radius: 6px;
   flex-shrink: 0;
 }
 
 .decoration-meta-item {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -160,9 +138,10 @@
 .decoration-item-footer {
   display: flex;
   gap: 8px;
-  padding: 10px 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0;
+  border-top: none;
   flex-shrink: 0;
+  margin-top: auto;
 }
 
 .decoration-item-footer .btn {

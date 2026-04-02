@@ -10,10 +10,10 @@
   align-items: center;
   margin-bottom: 20px;
   padding: 15px 20px;
-  background: linear-gradient(135deg, #ffffff 0%, #fafaf8 100%);
+  background: transparent;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: none;
+  border: none;
 }
 
 .decoration-list-header h2 {
