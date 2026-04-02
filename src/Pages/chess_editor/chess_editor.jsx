@@ -1565,11 +1565,6 @@ modelId 含义：
             </button>
           </div>
           <div className="editor-item">
-            <button className="import-model-button">
-              导入模型
-            </button>
-          </div>
-          <div className="editor-item">
             <button
               className="btn btn-primary"
               onClick={() => setShowAIGenerator(!showAIGenerator)}
@@ -2114,8 +2109,9 @@ modelId 含义：
       <ChooseDecoration
         isOpen={showDecorationModal}
         onClose={() => setShowDecorationModal(false)}
-        currentModelId={getSafeValue(currentChess?.parts?.decoration?.modelId, '0')}
+        currentModelId={currentChess?.parts?.decoration?.modelId}
         onSelect={handleDecorationSelect}
+        onSaveAndNavigate={handleSave}
       />
     </div>
   );

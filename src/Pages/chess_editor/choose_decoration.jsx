@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDecoration } from '../../hooks/useDecoration.jsx';
+import { useNavigate } from 'react-router-dom';
 import './choose_decoration.css';
 
 const PRESET_DECORATIONS = [
@@ -18,8 +19,9 @@ const BASIC_GEOMETRIES = [
   { id: 'geo_cone', name: '圆锥体', icon: '🔺' },
 ];
 
-function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect }) {
+function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect, onSaveAndNavigate }) {
   const { decorationData, loading, error } = useDecoration();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(currentModelId || '0');
   const [selectedType, setSelectedType] = useState('preset');
 
@@ -48,6 +50,14 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect }) {
       onSelect(selectedId, selectedType);
     }
     onClose();
+  };
+
+  const handleNavigateToExplorer = async () => {
+    if (onSaveAndNavigate) {
+      await onSaveAndNavigate();
+    }
+    onClose();
+    navigate('/explorer-decoration');
   };
 
   const handleOverlayClick = (e) => {
@@ -147,6 +157,12 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect }) {
         <div className="decoration-modal-footer">
           <button className="decoration-btn decoration-btn-cancel" onClick={onClose}>
             取消
+          </button>
+          <button 
+            className="decoration-btn decoration-btn-explorer" 
+            onClick={handleNavigateToExplorer}
+          >
+            前往模型资源管理器
           </button>
           <button className="decoration-btn decoration-btn-confirm" onClick={handleConfirm}>
             确认选择

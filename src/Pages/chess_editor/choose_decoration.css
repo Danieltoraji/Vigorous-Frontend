@@ -210,6 +210,18 @@
   background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
 }
 
+.decoration-btn-explorer {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid #d9d9d9;
+}
+
+.decoration-btn-explorer:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+  background: #f0f9ff;
+}
+
 @media (max-width: 480px) {
   .decoration-modal {
     max-height: 90vh;
