@@ -1390,6 +1390,45 @@ input:checked+.toggle-label:before {
   animation: aiPanelFadeIn 0.3s ease-out;
 }
 
+/* 装饰尺寸精细调节样式 */
+.size-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.size-section-header h4 {
+  margin: 0;
+}
+
+.fine-tune-toggle {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.fine-tune-range-panel {
+  background: rgba(102, 126, 234, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.fine-tune-range-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fine-tune-range-row label {
+  min-width: 40px;
+}
+
+.fine-tune-range-row .number-input {
+  flex: 1;
+}
+
 @keyframes aiPanelFadeIn {
   from {
     opacity: 0;

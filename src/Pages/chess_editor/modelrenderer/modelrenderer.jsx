@@ -696,18 +696,30 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
         };
         const mat = material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
 
+        // 预设装饰的基准尺寸
+        const BASE_SIZE = 5;
+        
+        // 计算实际缩放：缩放因子 × 基准尺寸
+        const scaleX = size1 * BASE_SIZE;
+        const scaleY = size2 * BASE_SIZE;
+        const scaleZ = size3 * BASE_SIZE;
+
         if (PRESET_DECORATION_IDS.includes(modelId)) {  //预设的装饰列表
             switch (modelId) {
                 case "0":
                     return null;
-                case "1":
+                case "1": // 旗子
+                    // scaleX: 旗杆和旗面的水平尺寸
+                    // scaleY: 旗杆高度
+                    // scaleZ: 旗面厚度
                     return (
                         <group
                             position={[pos.x, pos.y, pos.z]}
                             rotation={[rotRad.x, rotRad.y, rotRad.z]}
                         >
-                            <mesh position={[0, size2 / 2, 0]} castShadow receiveShadow>
-                                <cylinderGeometry args={[size1 * 0.05, size1 * 0.05, size2, 16]} />
+                            {/* 旗杆 */}
+                            <mesh position={[0, scaleY / 2, 0]} castShadow receiveShadow>
+                                <cylinderGeometry args={[scaleX * 0.05, scaleX * 0.05, scaleY, 16]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
                                     metalness={mat.metalness}
@@ -716,13 +728,14 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                                     clearcoatRoughness={mat.clearcoatRoughness}
                                 />
                             </mesh>
+                            {/* 旗面 */}
                             <mesh
-                                position={[size1 * 0.3, size2 - size1 * 0.3, 0]}
+                                position={[scaleX * 0.3, scaleY - scaleX * 0.3, 0]}
                                 rotation={[Math.PI / 2, Math.PI / 2, 0]}
                                 castShadow
                                 receiveShadow
                             >
-                                <cylinderGeometry args={[size1 * 0.6, size1 * 0.6, size1 * 0.12, 3]} />
+                                <cylinderGeometry args={[scaleX * 0.6, scaleX * 0.6, scaleZ * 0.5, 3]} />
                                 <meshStandardMaterial
                                     color="#FF0000"
                                     metalness={mat.metalness}
@@ -733,9 +746,12 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                             </mesh>
                         </group>
                     );
-                case "2": {
+                case "2": { // 五角星
+                    // scaleX: 星星外半径
+                    // scaleY: 星星厚度
+                    // scaleZ: 同scaleY（用于挤出深度）
                     const starShape = new Shape();
-                    const outerRadius = size1 / 2;
+                    const outerRadius = scaleX / 2;
                     const innerRadius = outerRadius * 0.4;
                     const points = 5;
                     for (let i = 0; i < points * 2; i++) {
@@ -752,16 +768,16 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                     starShape.closePath();
 
                     const extrudeSettings = {
-                        depth: size3,
+                        depth: scaleY,
                         bevelEnabled: true,
-                        bevelThickness: size3 * 0.1,
-                        bevelSize: size3 * 0.1,
+                        bevelThickness: scaleY * 0.1,
+                        bevelSize: scaleY * 0.1,
                         bevelSegments: 2
                     };
 
                     const starGeometry = new ExtrudeGeometry(starShape, extrudeSettings);
                     starGeometry.rotateX(-Math.PI / 2);
-                    starGeometry.translate(0, size3 / 2, 0);
+                    starGeometry.translate(0, scaleY / 2, 0);
 
                     return (
                         <mesh
@@ -781,15 +797,17 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                         </mesh>
                     );
                 }
-                case "3":
+                case "3": // 球体
+                    // scaleX/Y/Z: 用于非均匀缩放球体
                     return (
                         <mesh
                             position={[pos.x, pos.y, pos.z]}
                             rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                            scale={[size1, size2, size3]}
                             castShadow
                             receiveShadow
                         >
-                            <sphereGeometry args={[size1 / 2, 32, 32]} />
+                            <sphereGeometry args={[BASE_SIZE / 2, 32, 32]} />
                             <meshStandardMaterial
                                 color="#FFD700"
                                 metalness={mat.metalness}
@@ -799,15 +817,18 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                             />
                         </mesh>
                     );
-                case "4":
+                case "4": // 四棱锥
+                    // scaleX: 底面尺寸
+                    // scaleY: 高度
+                    // scaleZ: 同scaleX（底面尺寸）
                     return (
                         <mesh
-                            position={[pos.x, pos.y + size2 / 2, pos.z]}
+                            position={[pos.x, pos.y + scaleY / 2, pos.z]}
                             rotation={[rotRad.x, rotRad.y, rotRad.z]}
                             castShadow
                             receiveShadow
                         >
-                            <coneGeometry args={[size1 / 2, size2, 4]} />
+                            <coneGeometry args={[scaleX / 2, scaleY, 4]} />
                             <meshStandardMaterial
                                 color="#FFD700"
                                 metalness={mat.metalness}
@@ -836,7 +857,11 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
             const modelUrl = customDecoration.file || customDecoration.modelUrl || customDecoration.model_url;
             
             if (modelUrl) {
-                const scale = customDecoration.scale || 1;
+                // size1/size2/size3 分别控制 x/y/z 方向的缩放
+                // 默认值为 1（100%），用户可以通过尺寸调整缩放比例
+                const scaleX = size1 || 1;
+                const scaleY = size2 || 1;
+                const scaleZ = size3 || 1;
                 
                 return (
                     <Suspense fallback={<FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />}>
@@ -844,7 +869,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                             url={modelUrl}
                             position={[pos.x, pos.y, pos.z]}
                             rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                            scale={[scale, scale, scale]}
+                            scale={[scaleX, scaleY, scaleZ]}
                             material={mat}
                         />
                     </Suspense>

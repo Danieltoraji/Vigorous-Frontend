@@ -58,6 +58,11 @@ function ChessEditor() {
   const [isGenerating, setIsGenerating] = useState(false); // AI 生成中状态
   const [aiError, setAiError] = useState(''); // AI 生成错误信息
 
+  // 装饰尺寸精细调节状态
+  const [fineTuneMode, setFineTuneMode] = useState(false); // 精细调节模式
+  const [fineTuneMin, setFineTuneMin] = useState(0.1); // 精细调节下限
+  const [fineTuneMax, setFineTuneMax] = useState(0.5); // 精细调节上限
+
   // 引用
   const editorContentRef = useRef(null);
 
@@ -1642,61 +1647,103 @@ modelId 含义：
 
         {/* Size 部分 */}
         <div className="editor-section">
-          <h4>尺寸</h4>
+          <div className="size-section-header">
+            <h4>尺寸（缩放比例）</h4>
+            <button
+              className={`edge-toggle-button fine-tune-toggle ${fineTuneMode ? 'active' : ''}`}
+              onClick={() => setFineTuneMode(!fineTuneMode)}
+            >
+              {fineTuneMode ? '✓ 精细调节' : '精细调节'}
+            </button>
+          </div>
+
+          {/* 精细调节范围控制 */}
+          {fineTuneMode && (
+            <div className="fine-tune-range-panel">
+              <div className="fine-tune-range-row">
+                <label>下限：</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  max="2"
+                  step="0.01"
+                  value={fineTuneMin}
+                  onChange={(e) => setFineTuneMin(Math.max(0.01, parseFloat(e.target.value) || 0.01))}
+                  className="number-input"
+                />
+                <label>上限：</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  max="2"
+                  step="0.01"
+                  value={fineTuneMax}
+                  onChange={(e) => setFineTuneMax(Math.min(2, parseFloat(e.target.value) || 0.5))}
+                  className="number-input"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="editor-item">
-            <label>尺寸 1：</label>
+            <label>X 轴缩放：</label>
             <input
               type="range"
-              min="0"
-              max="30"
-              value={getSafeValue(size.size1, 5)}
-              onChange={(e) => handleDataUpdate('parts.decoration.size.size1', parseInt(e.target.value))}
+              min={fineTuneMode ? fineTuneMin : 0.01}
+              max={fineTuneMode ? fineTuneMax : 2}
+              step={fineTuneMode ? 0.001 : 0.01}
+              value={getSafeValue(size.size1, 1)}
+              onChange={(e) => handleDataUpdate('parts.decoration.size.size1', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
-              max="30"
-              value={getSafeValue(size.size1, 5)}
-              onChange={(e) => handleDataUpdate('parts.decoration.size.size1', parseInt(e.target.value))}
+              min="0.01"
+              max="2"
+              step={fineTuneMode ? 0.001 : 0.01}
+              value={getSafeValue(size.size1, 1)}
+              onChange={(e) => handleDataUpdate('parts.decoration.size.size1', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
 
           <div className="editor-item">
-            <label>尺寸 2：</label>
+            <label>Y 轴缩放：</label>
             <input
               type="range"
-              min="0"
-              max="30"
-              value={getSafeValue(size.size2, 5)}
-              onChange={(e) => handleDataUpdate('parts.decoration.size.size2', parseInt(e.target.value))}
+              min={fineTuneMode ? fineTuneMin : 0.01}
+              max={fineTuneMode ? fineTuneMax : 2}
+              step={fineTuneMode ? 0.001 : 0.01}
+              value={getSafeValue(size.size2, 1)}
+              onChange={(e) => handleDataUpdate('parts.decoration.size.size2', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
-              max="30"
-              value={getSafeValue(size.size2, 5)}
-              onChange={(e) => handleDataUpdate('parts.decoration.size.size2', parseInt(e.target.value))}
+              min="0.01"
+              max="2"
+              step={fineTuneMode ? 0.001 : 0.01}
+              value={getSafeValue(size.size2, 1)}
+              onChange={(e) => handleDataUpdate('parts.decoration.size.size2', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
 
           <div className="editor-item">
-            <label>尺寸 3：</label>
+            <label>Z 轴缩放：</label>
             <input
               type="range"
-              min="0"
-              max="20"
-              value={getSafeValue(size.size3, 5)}
-              onChange={(e) => handleDataUpdate('parts.decoration.size.size3', parseInt(e.target.value))}
+              min={fineTuneMode ? fineTuneMin : 0.01}
+              max={fineTuneMode ? fineTuneMax : 2}
+              step={fineTuneMode ? 0.001 : 0.01}
+              value={getSafeValue(size.size3, 1)}
+              onChange={(e) => handleDataUpdate('parts.decoration.size.size3', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
-              max="20"
-              value={getSafeValue(size.size3, 5)}
-              onChange={(e) => handleDataUpdate('parts.decoration.size.size3', parseInt(e.target.value))}
+              min="0.01"
+              max="2"
+              step={fineTuneMode ? 0.001 : 0.01}
+              value={getSafeValue(size.size3, 1)}
+              onChange={(e) => handleDataUpdate('parts.decoration.size.size3', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
