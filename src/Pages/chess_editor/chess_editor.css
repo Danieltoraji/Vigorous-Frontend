@@ -1240,6 +1240,45 @@ input:checked+.toggle-label:before {
   transform: translateY(0);
 }
 
+/* Toast 提示样式 */
+.toast-success {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 2000;
+  animation: toastFadeIn 0.3s ease, toastFadeOut 0.3s ease 2.7s;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
 /* 响应式设计 */
 @media (max-width: 480px) {
   .export-modal {

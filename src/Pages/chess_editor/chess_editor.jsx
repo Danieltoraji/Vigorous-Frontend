@@ -29,6 +29,17 @@ function ChessEditor() {
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false);
   const [showDecorationModal, setShowDecorationModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
+  // 显示 toast 提示
+  const showSuccessToast = useCallback((message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
 
   const PRESET_DECORATIONS = [
     { id: '0', name: '无装饰' },
@@ -147,6 +158,8 @@ function ChessEditor() {
 
       // 更新保存时间
       setLastSaved(new Date().toLocaleString());
+      // 显示保存成功提示
+      showSuccessToast('保存成功');
     } catch (error) {
       alert('保存失败：' + (error.message || '未知错误'));
     }
@@ -2113,6 +2126,13 @@ modelId 含义：
         onSelect={handleDecorationSelect}
         onSaveAndNavigate={handleSave}
       />
+
+      {/* Toast 提示 */}
+      {showToast && (
+        <div className="toast-success">
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }
