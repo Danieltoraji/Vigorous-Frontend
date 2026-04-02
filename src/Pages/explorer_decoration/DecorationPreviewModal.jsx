@@ -40,7 +40,7 @@ function Model({ url, fileType }) {
           const size = new THREE.Vector3();
           boundingBox.getSize(size);
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 5 / maxDim;
+          const scale = 20 / maxDim;
           mesh.scale.setScalar(scale);
 
           mesh.castShadow = true;
@@ -61,7 +61,7 @@ function Model({ url, fileType }) {
           const size = new THREE.Vector3();
           box.getSize(size);
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 5 / maxDim;
+          const scale = 20 / maxDim;
           obj.scale.setScalar(scale);
 
           obj.traverse((child) => {
@@ -122,8 +122,12 @@ function Scene({ url, fileType }) {
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={1}
-        maxDistance={50}
+        minDistance={0.5}
+        maxDistance={100}
+        rotateSpeed={1.5}
+        zoomSpeed={1.2}
+        panSpeed={1.0}
+        target={[0, 0, 0]}
       />
       <Environment preset="studio" />
     </>
@@ -182,7 +186,7 @@ function DecorationPreviewModal({ isOpen, onClose, decoration }) {
           {modelUrl && fileType && (
             <div className="preview-canvas-container">
               <Canvas
-                camera={{ position: [8, 8, 8], fov: 50 }}
+                camera={{ position: [18, 14, 18], fov: 45 }}
                 shadows
                 style={{ background: '#f0f0f0' }}
               >
