@@ -1,253 +1,139 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useEffect, useRef, useState, Suspense, useMemo } from 'react';
+import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
+import { STLLoader } from 'three-stdlib';
+import { OBJLoader } from 'three-stdlib';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
+import { useDecoration } from '../../../hooks/useDecoration.jsx';
 
-// 从 THREE 命名空间获取常用几何体和工具
-const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector3 } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
 
-/**
- * 创建无限网格 - 使用LineSegments，不创建实体
- * @param {number} size 网格范围
- * @param {number} divisions 分割数
- * @returns {THREE.LineSegments} 网格线条
- */
-function createGridLines(size = 200, divisions = 100) {
-    const geometry = new BufferGeometry();
-    const positions = [];
+const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 
-    const step = size / divisions;
-    const halfSize = size / 2;
+// 基础几何图形 ID 列表
+const BASIC_GEOMETRY_IDS = ['geo_sphere', 'geo_cube', 'geo_cylinder', 'geo_cone'];
 
-    // 绘制网格线
-    for (let i = 0; i <= divisions; i++) {
-        const pos = -halfSize + i * step;
+// 根据文件扩展名判断模型类型
+function getModelType(url) {
+    const extension = url.split('.').pop().toLowerCase();
+    if (extension === 'stl') return 'stl';
+    if (extension === 'obj') return 'obj';
+    return null;
+}
 
-        // X方向平行线
-        positions.push(pos, 0, -halfSize);
-        positions.push(pos, 0, halfSize);
+// STL 模型加载组件
+function STLModel({ url, position, rotation, scale, material }) {
+    const geometry = useLoader(STLLoader, url);
 
-        // Z方向平行线
-        positions.push(-halfSize, 0, pos);
-        positions.push(halfSize, 0, pos);
+    const clonedGeometry = useMemo(() => {
+        const geo = geometry.clone();
+        // 居中几何体
+        geo.computeBoundingBox();
+        const center = new THREE.Vector3();
+        geo.boundingBox.getCenter(center);
+        geo.translate(-center.x, -center.y, -center.z);
+        return geo;
+    }, [geometry]);
+
+    return (
+        <mesh
+            position={position}
+            rotation={rotation}
+            scale={scale}
+            castShadow
+            receiveShadow
+        >
+            <primitive object={clonedGeometry} />
+            <meshStandardMaterial
+                color={material?.color || '#FFD700'}
+                metalness={material?.metalness || 0.5}
+                roughness={material?.roughness || 0.3}
+                clearcoat={material?.clearcoat || 0}
+                clearcoatRoughness={material?.clearcoatRoughness || 0}
+            />
+        </mesh>
+    );
+}
+
+// OBJ 模型加载组件
+function OBJModel({ url, position, rotation, scale, material }) {
+    const obj = useLoader(OBJLoader, url);
+
+    const clonedObj = useMemo(() => {
+        const cloned = obj.clone();
+        cloned.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                if (material) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: material.color || '#FFD700',
+                        metalness: material.metalness || 0.5,
+                        roughness: material.roughness || 0.3,
+                        clearcoat: material.clearcoat || 0,
+                        clearcoatRoughness: material.clearcoatRoughness || 0
+                    });
+                }
+            }
+        });
+        return cloned;
+    }, [obj, material]);
+
+    return (
+        <primitive
+            object={clonedObj}
+            position={position}
+            rotation={rotation}
+            scale={scale}
+        />
+    );
+}
+
+// 统一的自定义装饰模型组件
+function CustomDecorationModel({ url, position, rotation, scale, material }) {
+    const modelType = getModelType(url);
+
+    if (modelType === 'stl') {
+        return (
+            <STLModel
+                url={url}
+                position={position}
+                rotation={rotation}
+                scale={scale}
+                material={material}
+            />
+        );
     }
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-    const material = new LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
-    return new LineSegments(geometry, material);
+    if (modelType === 'obj') {
+        return (
+            <OBJModel
+                url={url}
+                position={position}
+                rotation={rotation}
+                scale={scale}
+                material={material}
+            />
+        );
+    }
+
+    // 不支持的格式返回占位符
+    return (
+        <mesh position={position} castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#FF0000" />
+        </mesh>
+    );
 }
 
-/**
- * 创建坐标轴 - 使用LineSegments，不创建实体
- * @param {number} length 轴线长度
- * @param {number} thickness 轴线粗度（通过渲染时放大实现）
- * @returns {Array<THREE.LineSegments>} 三个轴线对象
- */
-function createAxisLines(length = 80, thickness = 2) {
-    const axes = [];
-
-    // X轴 - 红色
-    const xGeometry = new BufferGeometry();
-    xGeometry.setAttribute('position', new THREE.BufferAttribute(
-        new Float32Array([0, 0, 0, length, 0, 0]), 3
-    ));
-    const xMaterial = new LineBasicMaterial({ color: 0xff0000, linewidth: thickness });
-    const xAxis = new LineSegments(xGeometry, xMaterial);
-    axes.push(xAxis);
-
-    // Y轴 - 绿色
-    const yGeometry = new BufferGeometry();
-    yGeometry.setAttribute('position', new THREE.BufferAttribute(
-        new Float32Array([0, 0, 0, 0, length, 0]), 3
-    ));
-    const yMaterial = new LineBasicMaterial({ color: 0x00ff00, linewidth: thickness });
-    const yAxis = new LineSegments(yGeometry, yMaterial);
-    axes.push(yAxis);
-
-    // Z轴 - 蓝色
-    const zGeometry = new BufferGeometry();
-    zGeometry.setAttribute('position', new THREE.BufferAttribute(
-        new Float32Array([0, 0, 0, 0, 0, length]), 3
-    ));
-    const zMaterial = new LineBasicMaterial({ color: 0x0000ff, linewidth: thickness });
-    const zAxis = new LineSegments(zGeometry, zMaterial);
-    axes.push(zAxis);
-
-    return axes;
-}
-
-// 创建纹理加载器实例
-const textureLoader = new TextureLoader();
-
-/**
- * 从灰度图生成体素网格几何体（只有顶面）
- * @param {string} textureFile - 灰度图路径
- * @param {number} size - 平面尺寸
- * @param {number} depth - 最大深度（高度）
- * @param {number} sampleRate - 采样率（每隔几个像素取一个点）
- * @param {boolean} smooth - 是否启用平滑（3x3 均值滤波）
- */
-function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smooth = false }) {
-    const [geometry, setGeometry] = useState(null);
-
-    useEffect(() => {
-        if (!textureFile) {
-            setGeometry(null);
-            return;
-        }
-
-        const loadTextureAndCreateGeometry = async () => {
-            try {
-                const texture = await new Promise((resolve, reject) => {
-                    textureLoader.load(
-                        textureFile,
-                        resolve,
-                        undefined,
-                        reject
-                    );
-                });
-
-                const image = texture.image;
-                if (!image) {
-                    console.warn('纹理图像未加载完成');
-                    return;
-                }
-
-                const width = image.width;
-                const height = image.height;
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, 0, 0);
-
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const data = imageData.data;
-
-                // 存储所有体素点的高度值
-                const heightMap = [];
-                const step = sampleRate;
-
-                // 先提取原始灰度数据到数组
-                const rawGrayData = [];
-                for (let y = 0; y < height; y += step) {
-                    const row = [];
-                    for (let x = 0; x < width; x += step) {
-                        const idx = (y * width + x) * 4;
-                        // 计算灰度值 (0-1)
-                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-                        row.push(gray);
-                    }
-                    rawGrayData.push(row);
-                }
-
-                // 根据 smooth 参数决定是否应用 3x3 均值滤波
-                const grayDataToUse = smooth ? [] : rawGrayData;
-
-                if (smooth) {
-                    // 应用 3x3 均值滤波消除噪点
-                    for (let row = 0; row < rawGrayData.length; row++) {
-                        const filteredRow = [];
-                        for (let col = 0; col < rawGrayData[row].length; col++) {
-                            let sum = 0;
-                            let count = 0;
-
-                            // 取周围 3x3 邻域的平均值
-                            for (let dy = -1; dy <= 1; dy++) {
-                                for (let dx = -1; dx <= 1; dx++) {
-                                    const newRow = row + dy;
-                                    const newCol = col + dx;
-
-                                    if (newRow >= 0 && newRow < rawGrayData.length &&
-                                        newCol >= 0 && newCol < rawGrayData[row].length) {
-                                        sum += rawGrayData[newRow][newCol];
-                                        count++;
-                                    }
-                                }
-                            }
-
-                            filteredRow.push(sum / count);
-                        }
-                        grayDataToUse.push(filteredRow);
-                    }
-                }
-
-                // 使用选定的灰度数据生成高度图
-                for (let row = 0; row < grayDataToUse.length; row++) {
-                    for (let col = 0; col < grayDataToUse[row].length; col++) {
-                        const gray = grayDataToUse[row][col];
-                        // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
-                        const h = (1 - gray) * depth;
-                        heightMap.push({
-                            x: col * step,
-                            y: row * step,
-                            height: h
-                        });
-                    }
-                }
-
-                // 生成网格顶点和索引（只有顶面）
-                const positions = [];
-                const indices = [];
-
-                const gridWidth = Math.floor(width / step);
-                const gridHeight = Math.floor(height / step);
-                const planeSize = size / Math.max(gridWidth, gridHeight);
-
-                // 生成顶点
-                for (let i = 0; i < heightMap.length; i++) {
-                    const point = heightMap[i];
-                    // 直接生成在 XZ 平面，高度沿 Y 轴
-                    const px = -(point.x - width / 2) * planeSize;
-                    const py = point.height;
-                    const pz = -(point.y - height / 2) * planeSize;
-
-                    positions.push(px, py, pz);
-                }
-
-                // 生成三角形索引（连接相邻点）
-                for (let row = 0; row < gridHeight - 1; row++) {
-                    for (let col = 0; col < gridWidth - 1; col++) {
-                        const a = row * gridWidth + col;
-                        const b = row * gridWidth + (col + 1);
-                        const c = (row + 1) * gridWidth + col;
-                        const d = (row + 1) * gridWidth + (col + 1);
-
-                        // 两个三角形组成一个四边形
-                        // 三角形 1: a-b-c
-                        indices.push(a, b, c);
-                        // 三角形 2: b-d-c
-                        indices.push(b, d, c);
-                    }
-                }
-
-                // 创建几何体
-                const geom = new BufferGeometry();
-                geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-                geom.setIndex(indices);
-                geom.computeVertexNormals();
-
-
-                console.log('体素几何体创建成功:', {
-                    vertexCount: positions.length / 3,
-                    triangleCount: indices.length / 3,
-                    gridSize: `${gridWidth}x${gridHeight}`
-                });
-
-                setGeometry(geom);
-            } catch (error) {
-                console.error('体素几何体创建失败:', error);
-                setGeometry(null);
-            }
-        };
-
-        loadTextureAndCreateGeometry();
-    }, [textureFile, size, depth, sampleRate, smooth]);
-
-    if (!geometry) return null;
-
-    return <primitive object={geometry} />;
+function FallbackDecoration({ position, size }) {
+    return (
+        <mesh position={position} castShadow receiveShadow>
+            <boxGeometry args={[size || 2, size || 2, size || 2]} />
+            <meshStandardMaterial color="#888888" metalness={0.3} roughness={0.5} />
+        </mesh>
+    );
 }
 
 /**
@@ -256,8 +142,8 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
  */
 function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
     const modelRootRef = useRef();
+    const { decorationData, loading: decorationLoading } = useDecoration();
 
-    // Notify parent when model is ready
     useEffect(() => {
         if (onModelReady && modelRootRef.current) {
             onModelReady(modelRootRef.current);
@@ -951,7 +837,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             </group>
         );
     };
-    //渲染装饰层组件
+    // 渲染装饰组件
     const renderDecoration = (decoration) => {
         if (!decoration) return null;
 
@@ -968,99 +854,184 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         };
         const mat = material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
 
-        switch (modelId) {
-            case "0":
-                return null;
-            case "1":
-                return (
-                    <group
-                        position={[pos.x, pos.y, pos.z]}
-                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                    >
-                        <mesh position={[0, size2 / 2, 0]} castShadow receiveShadow>
-                            <cylinderGeometry args={[size1 * 0.05, size1 * 0.05, size2, 16]} />
-                            <meshStandardMaterial
-                                color="#8B4513"
-                                metalness={mat.metalness}
-                                roughness={mat.roughness}
-                                clearcoat={mat.clearcoat}
-                                clearcoatRoughness={mat.clearcoatRoughness}
-                            />
-                        </mesh>
+        // 预设装饰的基准尺寸
+        const BASE_SIZE = 5;
+
+        // 计算实际缩放：缩放因子 × 基准尺寸
+        const scaleX = size1 * BASE_SIZE;
+        const scaleY = size2 * BASE_SIZE;
+        const scaleZ = size3 * BASE_SIZE;
+
+        if (PRESET_DECORATION_IDS.includes(modelId)) {  //预设的装饰列表
+            switch (modelId) {
+                case "0":
+                    return null;
+                case "1": // 旗子
+                    // scaleX: 旗杆和旗面的水平尺寸
+                    // scaleY: 旗杆高度
+                    // scaleZ: 旗面厚度
+                    return (
+                        <group
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        >
+                            {/* 旗杆 */}
+                            <mesh position={[0, scaleY / 2, 0]} castShadow receiveShadow>
+                                <cylinderGeometry args={[scaleX * 0.05, scaleX * 0.05, scaleY, 16]} />
+                                <meshStandardMaterial
+                                    color="#8B4513"
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                            {/* 旗面 */}
+                            <mesh
+                                position={[scaleX * 0.3, scaleY - scaleX * 0.3, 0]}
+                                rotation={[Math.PI / 2, Math.PI / 2, 0]}
+                                castShadow
+                                receiveShadow
+                            >
+                                <cylinderGeometry args={[scaleX * 0.6, scaleX * 0.6, scaleZ * 0.5, 3]} />
+                                <meshStandardMaterial
+                                    color="#FF0000"
+                                    metalness={mat.metalness}
+                                    roughness={mat.roughness}
+                                    clearcoat={mat.clearcoat}
+                                    clearcoatRoughness={mat.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
+                    );
+                case "2": { // 五角星
+                    // scaleX: 星星外半径
+                    // scaleY: 星星厚度
+                    // scaleZ: 同scaleY（用于挤出深度）
+                    const starShape = new Shape();
+                    const outerRadius = scaleX / 2;
+                    const innerRadius = outerRadius * 0.4;
+                    const points = 5;
+                    for (let i = 0; i < points * 2; i++) {
+                        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                        const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        if (i === 0) {
+                            starShape.moveTo(x, y);
+                        } else {
+                            starShape.lineTo(x, y);
+                        }
+                    }
+                    starShape.closePath();
+
+                    const extrudeSettings = {
+                        depth: scaleY,
+                        bevelEnabled: true,
+                        bevelThickness: scaleY * 0.1,
+                        bevelSize: scaleY * 0.1,
+                        bevelSegments: 2
+                    };
+
+                    const starGeometry = new ExtrudeGeometry(starShape, extrudeSettings);
+                    starGeometry.rotateX(-Math.PI / 2);
+                    starGeometry.translate(0, scaleY / 2, 0);
+
+                    return (
                         <mesh
-                            position={[size1 * 0.3, size2 - size1 * 0.3, 0]}
-                            rotation={[Math.PI / 2, Math.PI / 2, 0]}
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
                             castShadow
                             receiveShadow
                         >
-                            <cylinderGeometry args={[size1 * 0.6, size1 * 0.6, size1 * 0.12, 3]} />
+                            <primitive object={starGeometry} />
                             <meshStandardMaterial
-                                color="#FF0000"
+                                color="#FFD700"
                                 metalness={mat.metalness}
                                 roughness={mat.roughness}
                                 clearcoat={mat.clearcoat}
                                 clearcoatRoughness={mat.clearcoatRoughness}
                             />
                         </mesh>
-                    </group>
-                );
-            case "2": {
-                const starShape = new Shape();
-                const outerRadius = size1 / 2;
-                const innerRadius = outerRadius * 0.4;
-                const points = 5;
-                for (let i = 0; i < points * 2; i++) {
-                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                    const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
-                    const x = Math.cos(angle) * radius;
-                    const y = Math.sin(angle) * radius;
-                    if (i === 0) {
-                        starShape.moveTo(x, y);
-                    } else {
-                        starShape.lineTo(x, y);
-                    }
+                    );
                 }
-                starShape.closePath();
-
-                const extrudeSettings = {
-                    depth: size3,
-                    bevelEnabled: true,
-                    bevelThickness: size3 * 0.1,
-                    bevelSize: size3 * 0.1,
-                    bevelSegments: 2
-                };
-
-                const starGeometry = new ExtrudeGeometry(starShape, extrudeSettings);
-                starGeometry.rotateX(-Math.PI / 2);
-                starGeometry.translate(0, size3 / 2, 0);
-
-                return (
-                    <mesh
-                        position={[pos.x, pos.y, pos.z]}
-                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                        castShadow
-                        receiveShadow
-                    >
-                        <primitive object={starGeometry} />
-                        <meshStandardMaterial
-                            color="#FFD700"
-                            metalness={mat.metalness}
-                            roughness={mat.roughness}
-                            clearcoat={mat.clearcoat}
-                            clearcoatRoughness={mat.clearcoatRoughness}
-                        />
-                    </mesh>
-                );
+                case "3": // 球体
+                    // scaleX/Y/Z: 用于非均匀缩放球体
+                    return (
+                        <mesh
+                            position={[pos.x, pos.y, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                            scale={[size1, size2, size3]}
+                            castShadow
+                            receiveShadow
+                        >
+                            <sphereGeometry args={[BASE_SIZE / 2, 32, 32]} />
+                            <meshStandardMaterial
+                                color="#FFD700"
+                                metalness={mat.metalness}
+                                roughness={mat.roughness}
+                                clearcoat={mat.clearcoat}
+                                clearcoatRoughness={mat.clearcoatRoughness}
+                            />
+                        </mesh>
+                    );
+                case "4": // 四棱锥
+                    // scaleX: 底面尺寸
+                    // scaleY: 高度
+                    // scaleZ: 同scaleX（底面尺寸）
+                    return (
+                        <mesh
+                            position={[pos.x, pos.y + scaleY / 2, pos.z]}
+                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                            castShadow
+                            receiveShadow
+                        >
+                            <coneGeometry args={[scaleX / 2, scaleY, 4]} />
+                            <meshStandardMaterial
+                                color="#FFD700"
+                                metalness={mat.metalness}
+                                roughness={mat.roughness}
+                                clearcoat={mat.clearcoat}
+                                clearcoatRoughness={mat.clearcoatRoughness}
+                            />
+                        </mesh>
+                    );
+                default:
+                    return null;
             }
-            case "3":
+        }
+
+        // 渲染基础几何图形
+        if (BASIC_GEOMETRY_IDS.includes(modelId)) {
+            return renderBasicGeometry(modelId, size1, size2, size3, pos, rotRad, mat);
+        }
+
+        // 渲染自定义模型（STL/OBJ）
+        if (!PRESET_DECORATION_IDS.includes(modelId) && !BASIC_GEOMETRY_IDS.includes(modelId) && modelId !== '0') {
+            return renderCustomModel(modelId, size1, size2, size3, pos, rotRad, mat);
+        }
+
+        return null;
+    };
+
+    // 渲染基础几何图形
+    const renderBasicGeometry = (modelId, size1, size2, size3, pos, rotRad, mat) => {
+        const BASE_SIZE = 5;
+        const scaleX = size1 * BASE_SIZE;
+        const scaleY = size2 * BASE_SIZE;
+        const scaleZ = size3 * BASE_SIZE;
+
+        switch (modelId) {
+            case 'geo_sphere':
                 return (
                     <mesh
                         position={[pos.x, pos.y, pos.z]}
                         rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[size1, size2, size3]}
                         castShadow
                         receiveShadow
                     >
-                        <sphereGeometry args={[size1 / 2, 32, 32]} />
+                        <sphereGeometry args={[BASE_SIZE / 2, 32, 32]} />
                         <meshStandardMaterial
                             color="#FFD700"
                             metalness={mat.metalness}
@@ -1070,17 +1041,55 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         />
                     </mesh>
                 );
-            case "4":
+            case 'geo_cube':
                 return (
                     <mesh
-                        position={[pos.x, pos.y + size2 / 2, pos.z]}
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[size1, size2, size3]}
+                        castShadow
+                        receiveShadow
+                    >
+                        <boxGeometry args={[BASE_SIZE, BASE_SIZE, BASE_SIZE]} />
+                        <meshStandardMaterial
+                            color="#C0C0C0"
+                            metalness={mat.metalness}
+                            roughness={mat.roughness}
+                            clearcoat={mat.clearcoat}
+                            clearcoatRoughness={mat.clearcoatRoughness}
+                        />
+                    </mesh>
+                );
+            case 'geo_cylinder':
+                return (
+                    <mesh
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[size1, size2, size3]}
+                        castShadow
+                        receiveShadow
+                    >
+                        <cylinderGeometry args={[BASE_SIZE / 2, BASE_SIZE / 2, BASE_SIZE, 32]} />
+                        <meshStandardMaterial
+                            color="#CD853F"
+                            metalness={mat.metalness}
+                            roughness={mat.roughness}
+                            clearcoat={mat.clearcoat}
+                            clearcoatRoughness={mat.clearcoatRoughness}
+                        />
+                    </mesh>
+                );
+            case 'geo_cone':
+                return (
+                    <mesh
+                        position={[pos.x, pos.y + scaleY / 2, pos.z]}
                         rotation={[rotRad.x, rotRad.y, rotRad.z]}
                         castShadow
                         receiveShadow
                     >
-                        <coneGeometry args={[size1 / 2, size2, 4]} />
+                        <coneGeometry args={[scaleX / 2, scaleY, 32]} />
                         <meshStandardMaterial
-                            color="#FFD700"
+                            color="#B8860B"
                             metalness={mat.metalness}
                             roughness={mat.roughness}
                             clearcoat={mat.clearcoat}
@@ -1089,8 +1098,45 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     </mesh>
                 );
             default:
-                return null;
+                return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
         }
+    };
+
+    // 渲染自定义模型（STL/OBJ 文件）
+    const renderCustomModel = (modelId, size1, size2, size3, pos, rotRad, mat) => {
+        const customDecoration = decorationData?.[modelId];
+
+        if (!customDecoration) {
+            if (decorationLoading) {
+                return null;
+            }
+            return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
+        }
+
+        // 检查文件字段（后端使用 'file' 字段存储模型文件）
+        const modelUrl = customDecoration.file || customDecoration.modelUrl || customDecoration.model_url;
+
+        if (modelUrl) {
+            // size1/size2/size3 分别控制 x/y/z 方向的缩放
+            // 默认值为 1（100%），用户可以通过尺寸调整缩放比例
+            const scaleX = size1 || 1;
+            const scaleY = size2 || 1;
+            const scaleZ = size3 || 1;
+
+            return (
+                <Suspense fallback={<FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />}>
+                    <CustomDecorationModel
+                        url={modelUrl}
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[scaleX, scaleY, scaleZ]}
+                        material={mat}
+                    />
+                </Suspense>
+            );
+        }
+
+        return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
     };
 
     return (

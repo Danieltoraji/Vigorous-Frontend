@@ -197,7 +197,7 @@ export function TemplatesProvider({ children }) {
           },
           "decoration": templateJson?.parts?.decoration ? JSON.parse(JSON.stringify(templateJson.parts.decoration)) : {
             "modelId": "0",
-            "size": { "size1": 5, "size2": 5, "size3": 5 },
+            "size": { "size1": 1, "size2": 1, "size3": 1 },
             "position": { "x": 0, "y": 21, "z": 0 },
             "rotation": { "x": 0, "y": 0, "z": 0 },
             "material": null
