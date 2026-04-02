@@ -832,8 +832,10 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
                 return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
             }
 
-            if (customDecoration.modelUrl || customDecoration.model_url) {
-                const modelUrl = customDecoration.modelUrl || customDecoration.model_url;
+            // 检查文件字段（后端使用 'file' 字段存储模型文件）
+            const modelUrl = customDecoration.file || customDecoration.modelUrl || customDecoration.model_url;
+            
+            if (modelUrl) {
                 const scale = customDecoration.scale || 1;
                 
                 return (
