@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text, Environment, Text3D, useGLTF } from '@react-three/drei';
+import React, { useEffect, useRef, useState, Suspense, useMemo } from 'react';
+import { Canvas, useLoader } from '@react-three/fiber';
+import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
+import { STLLoader } from 'three-stdlib';
+import { OBJLoader } from 'three-stdlib';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import { useDecoration } from '../../../hooks/useDecoration.jsx';
 
@@ -9,33 +11,116 @@ const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
 
 const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 
-function CustomDecorationModel({ url, position, rotation, scale, material }) {
-    const { scene } = useGLTF(url);
-    const clonedScene = scene.clone();
+// 根据文件扩展名判断模型类型
+function getModelType(url) {
+    const extension = url.split('.').pop().toLowerCase();
+    if (extension === 'stl') return 'stl';
+    if (extension === 'obj') return 'obj';
+    return null;
+}
+
+// STL 模型加载组件
+function STLModel({ url, position, rotation, scale, material }) {
+    const geometry = useLoader(STLLoader, url);
     
-    clonedScene.traverse((child) => {
-        if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-            if (material) {
-                child.material = new THREE.MeshStandardMaterial({
-                    color: child.material.color || '#FFD700',
-                    metalness: material.metalness || 0.5,
-                    roughness: material.roughness || 0.3,
-                    clearcoat: material.clearcoat || 0,
-                    clearcoatRoughness: material.clearcoatRoughness || 0
-                });
+    const clonedGeometry = useMemo(() => {
+        const geo = geometry.clone();
+        // 居中几何体
+        geo.computeBoundingBox();
+        const center = new THREE.Vector3();
+        geo.boundingBox.getCenter(center);
+        geo.translate(-center.x, -center.y, -center.z);
+        return geo;
+    }, [geometry]);
+
+    return (
+        <mesh 
+            position={position}
+            rotation={rotation}
+            scale={scale}
+            castShadow 
+            receiveShadow
+        >
+            <primitive object={clonedGeometry} />
+            <meshStandardMaterial
+                color={material?.color || '#FFD700'}
+                metalness={material?.metalness || 0.5}
+                roughness={material?.roughness || 0.3}
+                clearcoat={material?.clearcoat || 0}
+                clearcoatRoughness={material?.clearcoatRoughness || 0}
+            />
+        </mesh>
+    );
+}
+
+// OBJ 模型加载组件
+function OBJModel({ url, position, rotation, scale, material }) {
+    const obj = useLoader(OBJLoader, url);
+    
+    const clonedObj = useMemo(() => {
+        const cloned = obj.clone();
+        cloned.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                if (material) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: material.color || '#FFD700',
+                        metalness: material.metalness || 0.5,
+                        roughness: material.roughness || 0.3,
+                        clearcoat: material.clearcoat || 0,
+                        clearcoatRoughness: material.clearcoatRoughness || 0
+                    });
+                }
             }
-        }
-    });
+        });
+        return cloned;
+    }, [obj, material]);
 
     return (
         <primitive 
-            object={clonedScene} 
+            object={clonedObj} 
             position={position}
             rotation={rotation}
             scale={scale}
         />
+    );
+}
+
+// 统一的自定义装饰模型组件
+function CustomDecorationModel({ url, position, rotation, scale, material }) {
+    const modelType = getModelType(url);
+    
+    if (modelType === 'stl') {
+        return (
+            <STLModel 
+                url={url}
+                position={position}
+                rotation={rotation}
+                scale={scale}
+                material={material}
+            />
+        );
+    }
+    
+    if (modelType === 'obj') {
+        return (
+            <OBJModel 
+                url={url}
+                position={position}
+                rotation={rotation}
+                scale={scale}
+                material={material}
+            />
+        );
+    }
+    
+    // 不支持的格式返回占位符
+    return (
+        <mesh position={position} castShadow receiveShadow>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#FF0000" />
+        </mesh>
     );
 }
 
@@ -594,6 +679,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
             </group>
         );
     };
+    // 渲染装饰组件
     const renderDecoration = (decoration) => {
         if (!decoration) return null;
 
@@ -610,7 +696,7 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
         };
         const mat = material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
 
-        if (PRESET_DECORATION_IDS.includes(modelId)) {
+        if (PRESET_DECORATION_IDS.includes(modelId)) {  //预设的装饰列表
             switch (modelId) {
                 case "0":
                     return null;

@@ -522,7 +522,7 @@ function ExplorerTemplates() {
                   className="btn btn-primary import-column-btn"
                   onClick={handleImportFromJson}
                 >
-                  从JSON文件导入
+                  选择JSON文件...
                 </button>
               </div>
               
@@ -533,7 +533,7 @@ function ExplorerTemplates() {
                   className="btn btn-primary import-column-btn large"
                   onClick={handleImportFromProject}
                 >
-                  从项目棋子导入
+                  选择项目中的棋子...
                 </button>
               </div>
             </div>
