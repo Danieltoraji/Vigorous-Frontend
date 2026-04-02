@@ -11,6 +11,9 @@ const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
 
 const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 
+// 基础几何图形 ID 列表
+const BASIC_GEOMETRY_IDS = ['geo_sphere', 'geo_cube', 'geo_cylinder', 'geo_cone'];
+
 // 根据文件扩展名判断模型类型
 function getModelType(url) {
     const extension = url.split('.').pop().toLowerCase();
@@ -843,122 +846,142 @@ function SceneContent({ chess, onModelReady, hdrFile }) {
             }
         }
 
-        if (!PRESET_DECORATION_IDS.includes(modelId) && modelId !== '0') {
-            const customDecoration = decorationData?.[modelId];
-            
-            if (!customDecoration) {
-                if (decorationLoading) {
-                    return null;
-                }
-                return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
-            }
+        // 渲染基础几何图形
+        if (BASIC_GEOMETRY_IDS.includes(modelId)) {
+            return renderBasicGeometry(modelId, size1, size2, size3, pos, rotRad, mat);
+        }
 
-            // 检查文件字段（后端使用 'file' 字段存储模型文件）
-            const modelUrl = customDecoration.file || customDecoration.modelUrl || customDecoration.model_url;
-            
-            if (modelUrl) {
-                // size1/size2/size3 分别控制 x/y/z 方向的缩放
-                // 默认值为 1（100%），用户可以通过尺寸调整缩放比例
-                const scaleX = size1 || 1;
-                const scaleY = size2 || 1;
-                const scaleZ = size3 || 1;
-                
-                return (
-                    <Suspense fallback={<FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />}>
-                        <CustomDecorationModel
-                            url={modelUrl}
-                            position={[pos.x, pos.y, pos.z]}
-                            rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                            scale={[scaleX, scaleY, scaleZ]}
-                            material={mat}
-                        />
-                    </Suspense>
-                );
-            }
-
-            if (customDecoration.geometryType) {
-                switch (customDecoration.geometryType) {
-                    case 'sphere':
-                        return (
-                            <mesh
-                                position={[pos.x, pos.y, pos.z]}
-                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                                castShadow
-                                receiveShadow
-                            >
-                                <sphereGeometry args={[size1 / 2, 32, 32]} />
-                                <meshStandardMaterial
-                                    color={customDecoration.color || "#FFD700"}
-                                    metalness={mat.metalness}
-                                    roughness={mat.roughness}
-                                    clearcoat={mat.clearcoat}
-                                    clearcoatRoughness={mat.clearcoatRoughness}
-                                />
-                            </mesh>
-                        );
-                    case 'cube':
-                        return (
-                            <mesh
-                                position={[pos.x, pos.y, pos.z]}
-                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                                castShadow
-                                receiveShadow
-                            >
-                                <boxGeometry args={[size1, size2 || size1, size3 || size1]} />
-                                <meshStandardMaterial
-                                    color={customDecoration.color || "#FFD700"}
-                                    metalness={mat.metalness}
-                                    roughness={mat.roughness}
-                                    clearcoat={mat.clearcoat}
-                                    clearcoatRoughness={mat.clearcoatRoughness}
-                                />
-                            </mesh>
-                        );
-                    case 'cone':
-                        return (
-                            <mesh
-                                position={[pos.x, pos.y + (size2 || size1) / 2, pos.z]}
-                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                                castShadow
-                                receiveShadow
-                            >
-                                <coneGeometry args={[size1 / 2, size2 || size1, 32]} />
-                                <meshStandardMaterial
-                                    color={customDecoration.color || "#FFD700"}
-                                    metalness={mat.metalness}
-                                    roughness={mat.roughness}
-                                    clearcoat={mat.clearcoat}
-                                    clearcoatRoughness={mat.clearcoatRoughness}
-                                />
-                            </mesh>
-                        );
-                    case 'cylinder':
-                        return (
-                            <mesh
-                                position={[pos.x, pos.y, pos.z]}
-                                rotation={[rotRad.x, rotRad.y, rotRad.z]}
-                                castShadow
-                                receiveShadow
-                            >
-                                <cylinderGeometry args={[size1 / 2, size1 / 2, size2 || size1, 32]} />
-                                <meshStandardMaterial
-                                    color={customDecoration.color || "#FFD700"}
-                                    metalness={mat.metalness}
-                                    roughness={mat.roughness}
-                                    clearcoat={mat.clearcoat}
-                                    clearcoatRoughness={mat.clearcoatRoughness}
-                                />
-                            </mesh>
-                        );
-                    default:
-                        return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
-                }
-            }
-
-            return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
+        // 渲染自定义模型（STL/OBJ）
+        if (!PRESET_DECORATION_IDS.includes(modelId) && !BASIC_GEOMETRY_IDS.includes(modelId) && modelId !== '0') {
+            return renderCustomModel(modelId, size1, size2, size3, pos, rotRad, mat);
         }
 
         return null;
+    };
+
+    // 渲染基础几何图形
+    const renderBasicGeometry = (modelId, size1, size2, size3, pos, rotRad, mat) => {
+        const BASE_SIZE = 5;
+        const scaleX = size1 * BASE_SIZE;
+        const scaleY = size2 * BASE_SIZE;
+        const scaleZ = size3 * BASE_SIZE;
+
+        switch (modelId) {
+            case 'geo_sphere':
+                return (
+                    <mesh
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[size1, size2, size3]}
+                        castShadow
+                        receiveShadow
+                    >
+                        <sphereGeometry args={[BASE_SIZE / 2, 32, 32]} />
+                        <meshStandardMaterial
+                            color="#FFD700"
+                            metalness={mat.metalness}
+                            roughness={mat.roughness}
+                            clearcoat={mat.clearcoat}
+                            clearcoatRoughness={mat.clearcoatRoughness}
+                        />
+                    </mesh>
+                );
+            case 'geo_cube':
+                return (
+                    <mesh
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[size1, size2, size3]}
+                        castShadow
+                        receiveShadow
+                    >
+                        <boxGeometry args={[BASE_SIZE, BASE_SIZE, BASE_SIZE]} />
+                        <meshStandardMaterial
+                            color="#C0C0C0"
+                            metalness={mat.metalness}
+                            roughness={mat.roughness}
+                            clearcoat={mat.clearcoat}
+                            clearcoatRoughness={mat.clearcoatRoughness}
+                        />
+                    </mesh>
+                );
+            case 'geo_cylinder':
+                return (
+                    <mesh
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[size1, size2, size3]}
+                        castShadow
+                        receiveShadow
+                    >
+                        <cylinderGeometry args={[BASE_SIZE / 2, BASE_SIZE / 2, BASE_SIZE, 32]} />
+                        <meshStandardMaterial
+                            color="#CD853F"
+                            metalness={mat.metalness}
+                            roughness={mat.roughness}
+                            clearcoat={mat.clearcoat}
+                            clearcoatRoughness={mat.clearcoatRoughness}
+                        />
+                    </mesh>
+                );
+            case 'geo_cone':
+                return (
+                    <mesh
+                        position={[pos.x, pos.y + scaleY / 2, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        castShadow
+                        receiveShadow
+                    >
+                        <coneGeometry args={[scaleX / 2, scaleY, 32]} />
+                        <meshStandardMaterial
+                            color="#B8860B"
+                            metalness={mat.metalness}
+                            roughness={mat.roughness}
+                            clearcoat={mat.clearcoat}
+                            clearcoatRoughness={mat.clearcoatRoughness}
+                        />
+                    </mesh>
+                );
+            default:
+                return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
+        }
+    };
+
+    // 渲染自定义模型（STL/OBJ 文件）
+    const renderCustomModel = (modelId, size1, size2, size3, pos, rotRad, mat) => {
+        const customDecoration = decorationData?.[modelId];
+        
+        if (!customDecoration) {
+            if (decorationLoading) {
+                return null;
+            }
+            return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
+        }
+
+        // 检查文件字段（后端使用 'file' 字段存储模型文件）
+        const modelUrl = customDecoration.file || customDecoration.modelUrl || customDecoration.model_url;
+        
+        if (modelUrl) {
+            // size1/size2/size3 分别控制 x/y/z 方向的缩放
+            // 默认值为 1（100%），用户可以通过尺寸调整缩放比例
+            const scaleX = size1 || 1;
+            const scaleY = size2 || 1;
+            const scaleZ = size3 || 1;
+            
+            return (
+                <Suspense fallback={<FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />}>
+                    <CustomDecorationModel
+                        url={modelUrl}
+                        position={[pos.x, pos.y, pos.z]}
+                        rotation={[rotRad.x, rotRad.y, rotRad.z]}
+                        scale={[scaleX, scaleY, scaleZ]}
+                        material={mat}
+                    />
+                </Suspense>
+            );
+        }
+
+        return <FallbackDecoration position={[pos.x, pos.y, pos.z]} size={size1} />;
     };
 
     return (

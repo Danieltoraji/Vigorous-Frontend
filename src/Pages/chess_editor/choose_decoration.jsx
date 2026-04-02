@@ -10,6 +10,14 @@ const PRESET_DECORATIONS = [
   { id: '4', name: '四棱锥', icon: '▲' },
 ];
 
+// 基础几何图形列表
+const BASIC_GEOMETRIES = [
+  { id: 'geo_sphere', name: '球体', icon: '🔵' },
+  { id: 'geo_cube', name: '立方体', icon: '🟧' },
+  { id: 'geo_cylinder', name: '圆柱体', icon: '🛢️' },
+  { id: 'geo_cone', name: '圆锥体', icon: '🔺' },
+];
+
 function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect }) {
   const { decorationData, loading, error } = useDecoration();
   const [selectedId, setSelectedId] = useState(currentModelId || '0');
@@ -18,7 +26,14 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect }) {
   useEffect(() => {
     if (currentModelId) {
       const isPreset = PRESET_DECORATIONS.some(d => d.id === currentModelId);
-      setSelectedType(isPreset ? 'preset' : 'custom');
+      const isBasicGeometry = BASIC_GEOMETRIES.some(d => d.id === currentModelId);
+      if (isPreset) {
+        setSelectedType('preset');
+      } else if (isBasicGeometry) {
+        setSelectedType('basic');
+      } else {
+        setSelectedType('custom');
+      }
       setSelectedId(currentModelId);
     }
   }, [currentModelId, isOpen]);
@@ -68,6 +83,25 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect }) {
                   <div className="decoration-card-icon">{decoration.icon}</div>
                   <div className="decoration-card-name">{decoration.name}</div>
                   {selectedId === decoration.id && selectedType === 'preset' && (
+                    <div className="decoration-card-check">✓</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="decoration-section">
+            <h3 className="decoration-section-title">基础几何图形</h3>
+            <div className="decoration-cards-grid">
+              {BASIC_GEOMETRIES.map((geometry) => (
+                <div
+                  key={geometry.id}
+                  className={`decoration-card ${selectedId === geometry.id && selectedType === 'basic' ? 'selected' : ''}`}
+                  onClick={() => handleSelect(geometry.id, 'basic')}
+                >
+                  <div className="decoration-card-icon">{geometry.icon}</div>
+                  <div className="decoration-card-name">{geometry.name}</div>
+                  {selectedId === geometry.id && selectedType === 'basic' && (
                     <div className="decoration-card-check">✓</div>
                   )}
                 </div>
