@@ -98,6 +98,7 @@ function ExplorerTexture() {
 
   return (
     <div className="explorer-texture">
+      <div className="explorer-texture-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回

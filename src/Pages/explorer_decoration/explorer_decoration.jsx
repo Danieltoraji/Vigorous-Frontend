@@ -84,6 +84,7 @@ function ExplorerDecoration() {
 
   return (
     <div className="explorer-decoration">
+      <div className="explorer-decoration-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回

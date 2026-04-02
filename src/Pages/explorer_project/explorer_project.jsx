@@ -67,6 +67,7 @@ function ExplorerProject() {
 
   return (
     <div className="explorer-project">
+      <div className="explorer-project-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
