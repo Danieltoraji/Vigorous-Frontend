@@ -120,6 +120,7 @@ export function ChessProvider({ children }) {
             "pattern": {
               "shape": "text",
               "position": { "x": 0, "y":0, "z": 0 },
+              "textureFile":"000",
               "size": 10,
               "depth": 1,
               "scaleX": 1,
@@ -147,6 +148,7 @@ export function ChessProvider({ children }) {
               "shape": "geometry",
               "geometryType":"Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
+              "textureFile":"000",
               "size": 5,
               "depth": 0.5,
               "scaleX": 1,
@@ -202,6 +204,7 @@ export function ChessProvider({ children }) {
             "pattern": {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
+              "textureFile":"00000",
               "size": 10,
               "depth": 1,
               "scaleX": 1,
@@ -229,6 +232,7 @@ export function ChessProvider({ children }) {
               "shape": "geometry",
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
+              "textureFile":"00000",
               "size": 5,
               "depth": 0.5,
               "scaleX": 1,
