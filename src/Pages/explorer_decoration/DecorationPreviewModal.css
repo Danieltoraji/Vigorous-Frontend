@@ -23,9 +23,9 @@
 }
 
 .preview-modal {
-  background: #ffffff;
+  background: linear-gradient(135deg, #ffffff 0%, #fafaf8 100%);
   border-radius: 16px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
@@ -33,6 +33,7 @@
   flex-direction: column;
   overflow: hidden;
   animation: slideUp 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideUp {
@@ -51,22 +52,22 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid #e8e8e8;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8f8f5 0%, #f0f0eb 100%);
 }
 
 .preview-modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: #333;
 }
 
 .preview-modal-close {
   background: none;
   border: none;
   font-size: 28px;
-  color: #ffffff;
+  color: #999;
   cursor: pointer;
   padding: 0;
   width: 36px;
@@ -75,11 +76,12 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .preview-modal-close:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #666;
 }
 
 .preview-modal-content {
@@ -99,7 +101,7 @@
   min-height: 400px;
   border-radius: 0;
   overflow: hidden;
-  background: #f5f5f5;
+  background: #f0f0eb;
   display: flex;
   flex-direction: column;
 }
@@ -123,7 +125,7 @@
   flex: 1;
   width: 100%;
   min-height: 400px;
-  color: #666;
+  color: #999;
   gap: 12px;
 }
 
@@ -136,8 +138,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-top: 1px solid #e8e8e8;
-  background: #fafafa;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .preview-info {
@@ -147,15 +149,15 @@
 }
 
 .info-label {
-  color: #666;
+  color: #888;
   font-size: 14px;
 }
 
 .info-value {
-  color: #333;
+  color: #555;
   font-size: 14px;
   font-weight: 600;
-  background: #e9ecef;
+  background: rgba(100, 150, 255, 0.12);
   padding: 4px 12px;
   border-radius: 12px;
 }
@@ -171,12 +173,12 @@
 }
 
 .preview-modal-footer .btn-secondary {
-  background: #6c757d;
-  color: white;
+  background: #e8e8e5;
+  color: #555;
 }
 
 .preview-modal-footer .btn-secondary:hover {
-  background: #5a6268;
+  background: #d8d8d5;
 }
 
 @media (max-width: 600px) {
