@@ -14,6 +14,53 @@ const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 // 基础几何图形 ID 列表
 const BASIC_GEOMETRY_IDS = ['geo_sphere', 'geo_cube', 'geo_cylinder', 'geo_cone'];
 
+// 创建网格辅助线（LineSegments，不会被导出为模型网格）
+function createGridLines(size = 200, divisions = 100) {
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+
+    const step = size / divisions;
+    const halfSize = size / 2;
+
+    for (let i = 0; i <= divisions; i++) {
+        const pos = -halfSize + i * step;
+
+        // X 方向平行线
+        positions.push(pos, 0, -halfSize);
+        positions.push(pos, 0, halfSize);
+
+        // Z 方向平行线
+        positions.push(-halfSize, 0, pos);
+        positions.push(halfSize, 0, pos);
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    const material = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+    return new THREE.LineSegments(geometry, material);
+}
+
+// 创建 XYZ 坐标轴辅助线（LineSegments，不会被导出为模型网格）
+function createAxisLines(length = 80, thickness = 2) {
+    const axes = [];
+
+    const xGeometry = new THREE.BufferGeometry();
+    xGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, length, 0, 0]), 3));
+    const xMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: thickness });
+    axes.push(new THREE.LineSegments(xGeometry, xMaterial));
+
+    const yGeometry = new THREE.BufferGeometry();
+    yGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 0, length, 0]), 3));
+    const yMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: thickness });
+    axes.push(new THREE.LineSegments(yGeometry, yMaterial));
+
+    const zGeometry = new THREE.BufferGeometry();
+    zGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, 0, 0, length]), 3));
+    const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: thickness });
+    axes.push(new THREE.LineSegments(zGeometry, zMaterial));
+
+    return axes;
+}
+
 // 根据文件扩展名判断模型类型
 function getModelType(url) {
     const extension = url.split('.').pop().toLowerCase();
