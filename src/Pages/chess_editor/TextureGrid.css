@@ -1,0 +1,240 @@
+.texture-grid-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(85vh - 80px);
+}
+
+.texture-grid-loading,
+.texture-grid-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--fluent-text-secondary);
+  flex: 1;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.generator-hint {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-left: 4px solid #667eea;
+  border-radius: 6px;
+  margin: 16px;
+  flex-shrink: 0;
+}
+
+.generator-hint p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fluent-text);
+  line-height: 1.5;
+}
+
+.texture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+
+.texture-grid-item {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.texture-grid-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.texture-grid-item.selected {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.texture-grid-preview {
+  width: 100%;
+  height: 150px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.texture-grid-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.texture-grid-item:hover .texture-grid-preview img {
+  transform: scale(1.05);
+}
+
+.no-preview {
+  color: #999;
+  font-size: 13px;
+}
+
+.texture-grid-info {
+  padding: 12px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.texture-grid-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fluent-text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.selected-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  animation: badgePop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes badgePop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.no-textures {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--fluent-text-secondary);
+  font-size: 14px;
+}
+
+.texture-grid-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* 完全重写按钮样式，覆盖所有全局样式 */
+.texture-grid-footer button {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.texture-grid-footer .btn-secondary {
+  background: rgba(220, 220, 220, 0.7);
+  color: #242424;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.texture-grid-footer .btn-secondary:hover {
+  background: rgba(200, 200, 200, 0.8);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.texture-grid-footer .btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+}
+
+.texture-grid-footer .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5568d3, #6a4190);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.texture-grid-footer .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #cccccc, #dddddd);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .texture-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .texture-grid-preview {
+    height: 120px;
+  }
+
+  .texture-grid-footer {
+    flex-direction: column;
+  }
+}

@@ -1,8 +1,22 @@
 .explorer-templates {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
   margin: 0;
-  padding: 100px 20px 20px;
+  padding: 0;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: url("/static/templateExplorer/bg.png") center center fixed repeat;
+  background-size: cover;
+  z-index: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.explorer-templates>* {
+  position: relative;
+  z-index: 1;
 }
 
 .explorer-header {
@@ -40,6 +54,7 @@
   color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   margin-bottom: -10px;
+  cursor: pointer;
 }
 
 .user-welcome {
@@ -53,7 +68,7 @@
   font-size: 2rem;
   font-weight: 600;
   color: var(--fluent-text);
-  margin-bottom: 10px;
+  margin: 0;
 }
 
 .explorer-header p {
@@ -63,6 +78,10 @@
 }
 
 .explorer-content {
+  margin-top: 120px;
+  margin-bottom: 50px;
+  margin-left: 20px;
+  margin-right: 20px;
   display: flex;
   gap: 24px;
 }
@@ -164,10 +183,11 @@
 }
 
 .view-controls {
-  margin-bottom: 24px;
+  justify-content: center;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: transparent;
 }
 
 .template-actions-buttons {
@@ -292,41 +312,42 @@
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
+  margin-top: 50px;
 }
 
 .template-card {
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  transition: var(--fluent-transition);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
-  position: relative;
-  z-index: 1;
+  border: none;
+  padding-top: 70px;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-bottom: 40px;
+  transition: transform 0.3s, box-shadow 0.3s;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: url("/static/templateExplorer/sticker.png") center / cover no-repeat;
+  background-size: 100% 100%;
 }
 
 .template-card:hover {
-  box-shadow: var(--fluent-shadow-hover);
   transform: translateY(-2px);
 }
 
 .template-card-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--fluent-border-light);
-  background: linear-gradient(135deg, #E6F4FF 0%, #D1E7FF 100%);
+  padding: 0;
+  border-bottom: none;
+  background: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .template-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--fluent-primary);
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: #333;
   margin: 0;
 }
 
@@ -439,18 +460,18 @@
 }
 
 .template-card-body {
-  padding: 16px;
+  padding: 0;
 }
 
 .template-description {
-  color: var(--fluent-text-secondary);
+  color: #333;
   font-size: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   line-height: 1.5;
 }
 
 .template-meta {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .template-meta-item {
@@ -461,12 +482,12 @@
 }
 
 .meta-label {
-  color: var(--fluent-text-tertiary);
+  color: #888;
   font-weight: 500;
 }
 
 .meta-value {
-  color: var(--fluent-text-secondary);
+  color: #555;
   font-weight: 500;
 }
 
@@ -474,29 +495,35 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .template-tag {
-  padding: 4px 12px;
-  background: rgba(0, 120, 212, 0.1);
-  color: var(--fluent-primary);
+  padding: 4px 10px;
+  background: rgba(96, 128, 192, 0.15);
+  color: #4a6ab8;
   border-radius: var(--fluent-radius-full);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 
 .template-card-footer {
-  padding: 16px;
-  border-top: 1px solid var(--fluent-border-light);
-  background: rgba(255, 255, 255, 0.5);
+  padding: 0;
+  border-top: none;
+  background: transparent;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .template-actions {
   display: flex;
+  padding-top: 20px;
+
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .btn {
@@ -735,4 +762,73 @@
   .template-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
+}
+
+.import-modal-two-column {
+  min-width: 600px;
+  max-width: 700px;
+  text-align: center;
+}
+
+.import-modal-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--fluent-text);
+  margin-bottom: 24px;
+}
+
+.import-columns {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.import-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--fluent-radius);
+  border: 1px solid var(--fluent-border);
+}
+
+.import-column-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--fluent-text);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.import-column .drag-drop-area {
+  width: 100%;
+  margin: 0 0 16px 0;
+  padding: 24px 16px;
+}
+
+.import-column-desc {
+  color: var(--fluent-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.import-column-btn {
+  width: 100%;
+}
+
+.import-column-btn.large {
+  padding: 16px 24px;
+  font-size: 16px;
+  min-height: 48px;
+}
+
+.import-modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }

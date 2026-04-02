@@ -27,13 +27,34 @@ const csrfapi = axios.create({
   }
 });
 
-// 请求拦截器 - 自动添加CSRF token
+// 请求拦截器 - 自动添加 CSRF token
 csrfapi.interceptors.request.use(
   (config) => {
     const csrfToken = getCookie('csrftoken');
     if (csrfToken) {
       config.headers['X-CSRFToken'] = csrfToken;
     }
+    
+    // 如果是 FormData 且用户没有手动设置 Content-Type，让浏览器自动设置
+    if (config.data instanceof FormData) {
+      // 只有当用户没有显式设置 Content-Type 时才删除
+      // 这样可以兼容手动设置的情况
+      const userSetContentType = config.headers['Content-Type'] && 
+                                  config.headers['Content-Type'] !== 'application/json';
+      
+      if (userSetContentType) {
+        // 用户手动设置了（比如 multipart/form-data），保留
+        // 但如果是完整的 multipart/form-data，需要删除让浏览器添加 boundary
+        if (config.headers['Content-Type'] === 'multipart/form-data') {
+          delete config.headers['Content-Type'];
+        }
+      } else {
+        // 用户没设置，删除默认的 application/json
+        delete config.headers['Content-Type'];
+        delete config.headers['Accept'];
+      }
+    }
+    
     return config;
   },
   (error) => {

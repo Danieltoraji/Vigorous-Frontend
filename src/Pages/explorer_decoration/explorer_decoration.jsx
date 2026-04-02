@@ -7,7 +7,7 @@ import { useUser } from '../../hooks/useUser.jsx'
 import { useDecoration } from '../../hooks/useDecoration.jsx'
 import DecorationList from './DecorationList.jsx'
 import DecorationUploadModal from './DecorationUploadModal.jsx'
-import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
+import DecorationPreviewModal from './DecorationPreviewModal.jsx'
 import './explorer_decoration.css'
 
 function ExplorerDecoration() {
@@ -16,6 +16,8 @@ function ExplorerDecoration() {
   const { decorationData, setDecorationData, updateDecoration, deleteDecoration, uploadDecoration } = useDecoration()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [currentDecoration, setCurrentDecoration] = useState(null)
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
+  const [previewDecoration, setPreviewDecoration] = useState(null)
 
   const onBack = () => {
     navigate('/menu')
@@ -70,13 +72,26 @@ function ExplorerDecoration() {
     }
   }
 
+  const handlePreviewDecoration = (decoration) => {
+    setPreviewDecoration(decoration)
+    setIsPreviewModalOpen(true)
+  }
+
+  const handleClosePreviewModal = () => {
+    setIsPreviewModalOpen(false)
+    setPreviewDecoration(null)
+  }
+
   return (
     <div className="explorer-decoration">
+      <div className="explorer-decoration-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title'>装饰资源管理器</h1>
+        <h1 className='header-title' onClick={onBack}>
+          ❮  装饰资源管理器
+        </h1>
         <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
@@ -85,6 +100,7 @@ function ExplorerDecoration() {
         onEditDecoration={handleEditDecoration}
         onDeleteDecoration={deleteDecoration}
         onUploadDecoration={() => setIsUploadModalOpen(true)}
+        onPreviewDecoration={handlePreviewDecoration}
       />
 
       {isUploadModalOpen && (
@@ -96,7 +112,14 @@ function ExplorerDecoration() {
         />
       )}
 
-      <ExplorerBottom />
+      {isPreviewModalOpen && (
+        <DecorationPreviewModal
+          isOpen={isPreviewModalOpen}
+          onClose={handleClosePreviewModal}
+          decoration={previewDecoration}
+        />
+      )}
+
     </div>
   )
 }

@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import './DecorationItem.css'
 
-function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
+function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration, onPreviewDecoration }) {
   const navigate = useNavigate()
 
-  // 格式化日期
+  // 格式化日期 - 简短格式
   const formatDate = (dateString) => {
     if (!dateString || dateString === '无数据') return '无数据';
 
@@ -13,7 +13,6 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
       if (isNaN(date.getTime())) return dateString;
 
       return date.toLocaleString('zh-CN', {
-        year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
@@ -53,22 +52,18 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
 
         <div className="decoration-meta">
           <div className="decoration-meta-item">
-            <span className="meta-label">装饰 ID：</span>
-            <span className="meta-value">{decoration.id}</span>
-          </div>
-          <div className="decoration-meta-item">
-            <span className="meta-label">创建时间：</span>
+            <span className="meta-label">创建：</span>
             <span className="meta-value">{formatDate(decoration.created_at)}</span>
           </div>
           <div className="decoration-meta-item">
-            <span className="meta-label">修改时间：</span>
+            <span className="meta-label">修改：</span>
             <span className="meta-value">{formatDate(decoration.edited_at)}</span>
           </div>
         </div>
 
         <div className="decoration-tags">
           {
-            Array.isArray(decoration.decoration_tags) ? (
+            Array.isArray(decoration.decoration_tags) && decoration.decoration_tags.length > 0 ? (
               decoration.decoration_tags.map((tag, index) => (
                 <span key={index} className="decoration-tag">{tag}</span>
               ))
@@ -80,6 +75,9 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration }) {
       </div>
 
       <div className="decoration-item-footer">
+        <button className="btn btn-preview" onClick={() => onPreviewDecoration(decoration)}>
+          预览
+        </button>
         <button className="btn btn-secondary" onClick={() => onEditDecoration(decoration)}>
           编辑
         </button>

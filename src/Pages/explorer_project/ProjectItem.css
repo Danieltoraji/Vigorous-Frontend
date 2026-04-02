@@ -1,33 +1,33 @@
 .project-item {
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
-  padding: 20px;
+  border: none;
+  padding-top: 70px;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-bottom: 10px;
   transition: var(--fluent-transition);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: url("/static/projectExplorer/sticker.png") center / cover no-repeat;
+  background-size: 100% 100%;
+  inset: -10%;
 }
 
 .project-item:hover {
-  box-shadow: var(--fluent-shadow-hover);
   transform: translateY(-2px);
 }
 
 .project-item-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  align-items: center;
+  padding-bottom: 15px;
 }
 
 .project-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--fluent-text);
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: black !important;
   margin: 0;
   flex: 1;
 }
@@ -47,7 +47,7 @@
 }
 
 .project-description {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--fluent-text-secondary);
   margin-bottom: 16px;
   line-height: 1.4;
@@ -94,7 +94,7 @@
 .project-item-footer {
   border-top: 1px solid var(--fluent-border-light);
   padding-top: 16px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
   margin-top: auto;
   margin-left: -20px;
   margin-right: -20px;

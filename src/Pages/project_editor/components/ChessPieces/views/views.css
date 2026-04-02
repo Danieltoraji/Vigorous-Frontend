@@ -6,19 +6,22 @@
 }
 
 .chess-card {
-  border: 1px solid var(--fluent-border);
-  border-radius: var(--fluent-radius);
-  padding: 16px;
-  box-shadow: var(--fluent-shadow);
+  background: url("/static/projectEditor/sticker.png") center / contain no-repeat !important;
+  background-size: 100% 70%;
+  border: none;
+  aspect-ratio: 783/821;
+  padding-top: 70px;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-bottom: 10px;
   transition: var(--fluent-transition);
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  inset: 10%;
 }
 
 .chess-card:hover {
-  box-shadow: var(--fluent-shadow-hover);
   transform: translateY(-2px);
 }
 
@@ -32,8 +35,8 @@
 
 .chess-card-header h3 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--fluent-text);
   transition: var(--fluent-transition);
 }
@@ -92,8 +95,7 @@
   display: flex;
   gap: 8px;
   transition: var(--fluent-transition);
-  background: rgba(255, 255, 255, 0.5);
-  margin: -16px -16px 0 -16px;
+  margin: auto -16px 0 -16px;
   padding: 16px;
   border-top: 1px solid var(--fluent-border-light);
 }
@@ -233,46 +235,46 @@
   .card-view {
     grid-template-columns: 1fr;
   }
-  
+
   .chess-card {
     padding: 12px;
   }
-  
+
   .chess-card-header h3 {
     font-size: 14px;
   }
-  
+
   .chess-meta span {
     font-size: 12px;
   }
-  
+
   .action-button {
     font-size: 12px;
     padding: 4px 8px;
   }
-  
+
   .chess-table th,
   .chess-table td {
     padding: 8px;
     font-size: 13px;
   }
-  
+
   .chess-table th:nth-child(4),
   .chess-table td:nth-child(4),
   .chess-table th:nth-child(5),
   .chess-table td:nth-child(5) {
     display: none;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   .action-buttons .action-button {
     width: 100%;
   }
-  
+
   .chess-card-actions {
     padding: 12px;
     margin: -12px -12px 0 -12px;

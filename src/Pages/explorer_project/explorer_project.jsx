@@ -8,7 +8,6 @@ import { useUser } from '../../hooks/useUser.jsx'
 import { useProject } from '../../hooks/useProject.jsx'
 import ProjectList from './ProjectList.jsx'
 import ProjectEditModal from './ProjectEditModal.jsx'
-import ExplorerBottom from './ExplorerBottom.jsx'
 import './explorer_project.css'
 
 function ExplorerProject() {
@@ -68,11 +67,13 @@ function ExplorerProject() {
 
   return (
     <div className="explorer-project">
+      <div className="explorer-project-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
         </button> */}
-        <h1 className='header-title'>项目资源管理器</h1>
+        <h1 className='header-title' onClick={onBack}>
+          ❮  项目资源管理器</h1>
         <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
@@ -91,7 +92,6 @@ function ExplorerProject() {
         />
       )}
 
-      <ExplorerBottom />
     </div>
   )
 }
