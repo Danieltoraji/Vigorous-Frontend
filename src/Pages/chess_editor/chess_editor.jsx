@@ -6,6 +6,7 @@ import ModelRenderer from './modelrenderer/modelrenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import csrfapi from '../../utils/csrfapi.js';
 import ChooseDecoration from './choose_decoration.jsx';
+import TextureGrid from './TextureGrid.jsx';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function ChessEditor() {
@@ -2493,13 +2494,38 @@ modelId 含义：
         </div>
       )}
 
-      <ChooseDecoration
-        isOpen={showDecorationModal}
-        onClose={() => setShowDecorationModal(false)}
-        currentModelId={currentChess?.parts?.decoration?.modelId}
-        onSelect={handleDecorationSelect}
-        onSaveAndNavigate={handleSave}
-      />
+{/* 纹理选择器弹窗 */}
+      {showTextureSelector && (
+        <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
+          <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
+              <button className="close-button" onClick={() => setShowTextureSelector(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-content texture-selector-content">
+              <TextureGrid 
+                onSelectTexture={handleTextureSelect}
+                onClose={() => setShowTextureSelector(false)}
+                mode={textureMode}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
+
+      {/* 装饰选择器弹窗 */}
+      {showDecorationModal && (
+        <ChooseDecoration
+          isOpen={showDecorationModal}
+          onClose={() => setShowDecorationModal(false)}
+          currentModelId={currentChess?.parts?.decoration?.modelId}
+          onSelect={handleDecorationSelect}
+          onSaveAndNavigate={handleSave}
+        />
+      )}
 
       {/* Toast 提示 */}
       {showToast && (

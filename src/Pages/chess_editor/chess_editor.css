@@ -1,3 +1,4 @@
+/* chess_editor.css */
 /* 主容器 */
 .chess-editor {
   display: flex;
@@ -1292,6 +1293,184 @@ input:checked+.toggle-label:before {
 
 .export-option-button:active {
   transform: translateY(0);
+}
+
+/* 自定义纹理配置弹窗样式 */
+.custom-texture-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.texture-mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.texture-mode-button {
+  padding: 12px 24px;
+  border: 2px solid var(--fluent-border) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--fluent-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* 当只有一个按钮时，保持所有圆角 */
+.texture-mode-button:only-child {
+  border-radius: 12px;
+}
+
+/* 当有多个按钮时，调整圆角使它们紧密连接 */
+.texture-mode-buttons:not(:only-child) .texture-mode-button:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: -1px;
+}
+
+.texture-mode-buttons:not(:only-child) .texture-mode-button:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.texture-mode-button:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
+}
+
+.texture-mode-button.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+}
+
+.texture-mode-button.primary:hover {
+  background: linear-gradient(135deg, #5568d3, #6a4190);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.texture-mode-button.active {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.texture-mode-button.primary.active {
+  background: linear-gradient(135deg, #5568d3, #6a4190);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* 纹理选择器弹窗样式 */
+.texture-selector-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  width: 95%;
+  max-width: 900px;
+  height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.texture-selector-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.texture-selector-content .modal-content {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 纹理选择器弹窗头部 */
+.texture-selector-modal .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.texture-selector-modal .modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fluent-text);
+}
+
+.texture-selector-modal .close-button {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--fluent-text-secondary);
+  transition: color 0.2s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.texture-selector-modal .close-button:hover {
+  color: var(--fluent-text);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .export-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .modal-content {
+    padding: 20px 15px;
+  }
+
+  .export-option-button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
 }
 
 /* Toast 提示样式 */
