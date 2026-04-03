@@ -486,10 +486,24 @@ modelId 含义：
         throw new Error('AI 返回的数据格式不正确，请检查后端 API 配置');
       }
 
+      const normalizeAIGeneratedJson = (value) => {
+        if (typeof value !== 'string') {
+          return value;
+        }
+
+        const trimmedValue = value.trim();
+        return trimmedValue
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim();
+      };
+
       // 尝试解析 JSON
       let generatedData;
       try {
-        generatedData = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+        generatedData = typeof jsonString === 'string'
+          ? JSON.parse(normalizeAIGeneratedJson(jsonString))
+          : jsonString;
       } catch (parseError) {
         console.error('JSON 解析失败:', parseError);
         console.error('原始返回:', jsonString);
@@ -2444,7 +2458,7 @@ modelId 含义：
 
       {/* 右侧面板切换按钮 */}
       <button
-        className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
+        className={`chess-editor-toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
       >

@@ -86,22 +86,22 @@
 }
 
 .save-button {
-  background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 
 .save-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
 .export-button {
-  background-color: var(--fluent-primary);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 
 .export-button:hover:not(:disabled) {
-  background-color: var(--fluent-primary-hover);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
@@ -359,10 +359,14 @@
 }
 
 .data-panel.collapsed {
-  padding: 0;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
   overflow: hidden;
   border-left: none !important;
   border: none !important;
+  margin: 0 !important;
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -370,11 +374,10 @@
 }
 
 /* 右侧面板切换按钮 */
-.toggle-right-panel {
+.chess-editor-toggle-right-panel {
   position: absolute;
   right: 0;
   top: 50%;
-  transform: translateY(-50%);
   z-index: 30;
   width: 24px;
   height: 60px;
@@ -385,7 +388,6 @@
   border-radius: 8px 0 0 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
   align-items: center;
   justify-content: center;
   color: white;
@@ -393,16 +395,16 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-right-panel:hover {
+.chess-editor-toggle-right-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.toggle-right-panel.collapsed {
+.chess-editor-toggle-right-panel.collapsed {
   right: 0;
 }
 
-.toggle-right-panel.expanded {
+.chess-editor-toggle-right-panel.expanded {
   right: 450px;
   /* 与面板宽度匹配 */
 }
@@ -508,7 +510,7 @@
 }
 
 .resize-handle.dragging::before {
-  background-color: var(--fluent-primary);
+  background-color: #6080c0;
   opacity: 1;
 }
 
@@ -568,7 +570,7 @@
   padding: 12px 24px;
   border: 2px solid var(--fluent-border);
   border-radius: 12px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   font-size: 15px;
   font-weight: 600;
@@ -598,7 +600,7 @@
 }
 
 .editor-item .texture-mode-button:hover {
-  background: linear-gradient(135deg, #5568d3, #6a4190);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
 }
@@ -651,7 +653,7 @@
 }
 
 input:checked+.toggle-label {
-  background-color: var(--fluent-primary);
+  background-color: #6080c0;
 }
 
 input:checked+.toggle-label:before {
@@ -676,7 +678,7 @@ input:checked+.toggle-label:before {
 
 .editor-section.visible {
   opacity: 1;
-  max-height: 800px;
+  max-height: 1000px;
   margin-bottom: 25px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--fluent-border-light);
@@ -950,20 +952,20 @@ input:checked+.toggle-label:before {
 }
 
 .mode-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: #6080c0;
   border-color: #0078d4;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  border-color: #6080c0;
+  box-shadow: 0 2px 6px rgba(96, 128, 192, 0.4);
 
-.mode-btn.active {
-  background: var(--fluent-primary);
-  color: #fff;
-  border-color: var(--fluent-primary);
-  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
-}
+  .mode-btn.active {
+    background: var(--fluent-primary);
+    background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+    border-color: #6080c0;
+    box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
+  }
 
-.mode-btn.free-mode.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(96, 128, 192, 0.1);
+  border-left: 3px solid #6080c0;
   border-color: #667eea;
 }
 
@@ -1140,7 +1142,6 @@ input:checked+.toggle-label:before {
 
   .preview-area {
     flex: 1;
-    min-height: 400px;
   }
 
   .data-panel {
@@ -1361,33 +1362,33 @@ input:checked+.toggle-label:before {
 }
 
 .texture-mode-button:hover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
+  border-color: #6080c0;
+  background: rgba(96, 128, 192, 0.05);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 6px 16px rgba(96, 128, 192, 0.2);
 }
 
 .texture-mode-button.primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   border-color: transparent;
 }
 
 .texture-mode-button.primary:hover {
-  background: linear-gradient(135deg, #5568d3, #6a4190);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(96, 128, 192, 0.4);
 }
 
 .texture-mode-button.active {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  border-color: #6080c0;
+  background: rgba(96, 128, 192, 0.1);
+  box-shadow: 0 0 0 3px rgba(96, 128, 192, 0.2);
 }
 
 .texture-mode-button.primary.active {
-  background: linear-gradient(135deg, #5568d3, #6a4190);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
+  box-shadow: 0 0 0 3px rgba(96, 128, 192, 0.3);
 }
 
 /* 纹理选择器弹窗样式 */
@@ -1730,12 +1731,12 @@ input:checked+.toggle-label:before {
 
 .ai-generator-panel textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #6080c0;
+  box-shadow: 0 0 0 3px rgba(96, 128, 192, 0.1);
 }
 
 .ai-generator-panel .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%) !important;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -1747,9 +1748,9 @@ input:checked+.toggle-label:before {
 }
 
 .ai-generator-panel .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5568d3, #6a4190) !important;
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(96, 128, 192, 0.4);
 }
 
 .ai-generator-panel .btn-primary:active:not(:disabled) {
@@ -1765,28 +1766,33 @@ input:checked+.toggle-label:before {
 /* ==================== 异形生成器新增样式 ==================== */
 
 /* 小窗口预览容器 */
-.preview-canvas-container {
-  background: rgba(255, 255, 255, 0.95);
+.data-panel .preview-canvas-container {
+  background: rgba(255, 255, 255, 0.95) !important;
   border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  flex: 0 0 auto !important;
+  align-self: flex-start !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: auto !important;
 }
 
-.preview-canvas-container .canvas-header {
+.data-panel .preview-canvas-container .canvas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.preview-canvas-container .canvas-header h4 {
+.data-panel .preview-canvas-container .canvas-header h4 {
   margin: 0;
   color: #333;
   font-size: 14px;
   font-weight: 600;
 }
 
-.preview-canvas-container .points-count {
+.data-panel .preview-canvas-container .points-count {
   font-size: 12px;
   color: #666;
   background: rgba(78, 205, 196, 0.1);
@@ -2139,7 +2145,6 @@ input:checked+.toggle-label:before {
 
   .preview-area {
     flex: 1;
-    min-height: 400px;
   }
 
   .data-panel {

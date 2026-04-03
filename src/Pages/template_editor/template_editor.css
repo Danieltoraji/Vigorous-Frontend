@@ -395,6 +395,7 @@
 }
 
 .data-panel.collapsed {
+  width: 0;
   padding: 0;
   overflow: hidden;
   border-left: none !important;
@@ -824,13 +825,13 @@ input:checked+.toggle-label:before {
 /* 当形状容器包含异形生成器时，应用特殊高度 */
 .editor-section:has(.custom-revolution-wrapper) {
   min-height: 650px;
-  max-height: 800px;
+  max-height: 1000px;
   overflow: visible;
 }
 
 .editor-section:has(.custom-revolution-wrapper).visible {
   min-height: 650px;
-  max-height: 800px;
+  max-height: 1000px;
 }
 
 /* 异形生成器可滚动容器 */

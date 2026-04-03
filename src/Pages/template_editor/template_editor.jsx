@@ -58,7 +58,7 @@ function TemplateEditor() {
       const fetchedData = await fetchTemplate(pieceId);
       if (fetchedData) {
         console.log('获取成功：', fetchedData);
-        
+
         // 确保 parts 结构存在，如果不存在则初始化
         const templateWithParts = {
           ...fetchedData,
@@ -85,7 +85,7 @@ function TemplateEditor() {
             }
           }
         };
-        
+
         setCurrentTemplate(templateWithParts);
       }
     } catch (error) {
@@ -412,10 +412,24 @@ modelId 含义：
         throw new Error('AI 返回的数据格式不正确，请检查后端 API 配置');
       }
 
+      const normalizeAIGeneratedJson = (value) => {
+        if (typeof value !== 'string') {
+          return value;
+        }
+
+        const trimmedValue = value.trim();
+        return trimmedValue
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim();
+      };
+
       // 尝试解析 JSON
       let generatedData;
       try {
-        generatedData = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+        generatedData = typeof jsonString === 'string'
+          ? JSON.parse(normalizeAIGeneratedJson(jsonString))
+          : jsonString;
       } catch (parseError) {
         console.error('JSON 解析失败:', parseError);
         console.error('原始返回:', jsonString);
@@ -2018,7 +2032,7 @@ modelId 含义：
         className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
-        style={{ 
+        style={{
           position: 'absolute',
           right: isRightPanelCollapsed ? '20px' : `${rightWidth + 10}px`,
           top: '50%',
@@ -2030,7 +2044,7 @@ modelId 含义：
       </button>
 
       {/* 右侧数据调节面板 */}
-      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{ 
+      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{
         position: 'absolute',
         right: 0,
         top: 0,
