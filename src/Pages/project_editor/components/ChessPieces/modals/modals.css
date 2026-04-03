@@ -239,7 +239,7 @@
 .save-button {
   padding: 8px 16px;
   border: none;
-  background-color: #107C10;
+  background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
   color: white;
   border-radius: var(--fluent-radius);
   cursor: pointer;
@@ -253,7 +253,7 @@
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #0D6E0D;
+  background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
@@ -476,7 +476,7 @@
 }
 
 .view-button.active {
-  background: var(--fluent-primary);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   border-color: var(--fluent-primary);
 }

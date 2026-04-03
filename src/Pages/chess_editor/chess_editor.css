@@ -86,12 +86,12 @@
 }
 
 .save-button {
-  background-color: #5c3100;
+  background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
   color: white;
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #510205;
+  background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
@@ -1313,6 +1313,7 @@ input:checked+.toggle-label:before {
     opacity: 0;
     transform: translateY(-30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);

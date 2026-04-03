@@ -123,6 +123,16 @@
   background: transparent;
 }
 
+.project-modal-footer .btn-primary {
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+  color: white;
+}
+
+.project-modal-footer .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f6fa8 0%, #456294 100%);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
 /* 动画效果 */
 @keyframes fadeIn {
   from {

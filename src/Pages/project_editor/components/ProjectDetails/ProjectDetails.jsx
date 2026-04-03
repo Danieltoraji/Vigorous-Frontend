@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './ProjectDetails.css';
 
 const ProjectDetails = ({ project, onUpdate, onSave }) => {
@@ -10,12 +10,34 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
   });
   const [newTag, setNewTag] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const detailsRef = useRef(null);
+  const toggleRef = useRef(null);
 
   useEffect(() => {
     if (project) {
       setLocalProject(project);
     }
   }, [project]);
+
+  useEffect(() => {
+    if (isCollapsed) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (
+        detailsRef.current &&
+        !detailsRef.current.contains(event.target) &&
+        toggleRef.current &&
+        !toggleRef.current.contains(event.target)
+      ) {
+        setIsCollapsed(true);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCollapsed]);
 
   const handleInputChange = (field, value) => {
     const updated = { ...localProject, [field]: value };
@@ -43,6 +65,7 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
   return (
     <>
       <button
+        ref={toggleRef}
         type="button"
         className={`project-details-edge-toggle ${isCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={() => setIsCollapsed((prev) => !prev)}
@@ -52,7 +75,7 @@ const ProjectDetails = ({ project, onUpdate, onSave }) => {
         <span className="sr-only">{isCollapsed ? '展开项目详情' : '折叠项目详情'}</span>
       </button>
 
-      <div className={`project-details ${isCollapsed ? 'collapsed' : ''}`}>
+      <div ref={detailsRef} className={`project-details ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="project-details-header">
           <h2>项目详情</h2>
         </div>

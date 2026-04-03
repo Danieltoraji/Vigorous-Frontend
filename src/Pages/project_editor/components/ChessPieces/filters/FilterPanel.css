@@ -151,35 +151,35 @@
   .filter-panel {
     padding: 12px;
   }
-  
+
   .filter-panel-header h3 {
     font-size: 14px;
   }
-  
+
   .tag-options {
     gap: 8px;
   }
-  
+
   .tag-checkbox {
     font-size: 13px;
   }
-  
+
   .add-tag-section input {
     padding: 4px 8px;
     font-size: 13px;
   }
-  
+
   .add-tag-btn {
     padding: 4px 8px;
     font-size: 13px;
   }
-  
+
   .filter-logic {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .filter-logic select {
     width: 100%;
     padding: 4px 8px;

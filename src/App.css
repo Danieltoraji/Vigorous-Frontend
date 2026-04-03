@@ -193,7 +193,7 @@
 }
 
 .btn-primary {
-  background-color: var(--fluent-primary);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 

@@ -94,6 +94,7 @@
 .chess-card-actions {
   display: flex;
   gap: 8px;
+  font-size: 14px;
   transition: var(--fluent-transition);
   margin: auto -16px 0 -16px;
   padding: 16px;
@@ -108,11 +109,11 @@
 
 .action-button {
   flex: 1;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   transition: var(--fluent-transition);
   min-height: 28px;
   display: flex;
@@ -189,7 +190,7 @@
 }
 
 .open-button {
-  background-color: #107C10;
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 

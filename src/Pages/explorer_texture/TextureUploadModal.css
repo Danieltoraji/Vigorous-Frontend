@@ -287,11 +287,11 @@
 }
 
 .texture-modal-btn-primary {
-  background-color: var(--fluent-primary);
+  background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
   color: white;
 }
 
 .texture-modal-btn-primary:hover {
-  background-color: var(--fluent-primary-hover);
+  background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
