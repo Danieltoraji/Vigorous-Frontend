@@ -89,7 +89,7 @@
 }
 
 .decoration-form {
-  background: url("/static/decorationExplorer/sticker.png") center / cover no-repeat !important;
+  background: url("/static/decorationExplorer/decoration_sticker.png") center / cover no-repeat !important;
   background-size: 100% 100% !important;
   padding-top: 100px !important;
   padding-right: 15% !important;

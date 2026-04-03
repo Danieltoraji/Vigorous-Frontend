@@ -64,7 +64,7 @@
 }
 
 .chess-modal-form {
-  background: url("/static/projectEditor/sticker.png") center / cover no-repeat !important;
+  background: url("/static/projectEditor/chess_sticker.png") center / cover no-repeat !important;
   background-size: 100% 100% !important;
   padding-top: 100px !important;
   padding-right: 15% !important;

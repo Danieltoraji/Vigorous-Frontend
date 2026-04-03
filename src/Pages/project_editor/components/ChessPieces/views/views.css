@@ -6,7 +6,7 @@
 }
 
 .chess-card {
-  background: url("/static/projectEditor/sticker.png") center / contain no-repeat !important;
+  background: url("/static/projectEditor/chess_sticker.png") center / contain no-repeat !important;
   background-size: 100% 70%;
   border: none;
   aspect-ratio: 783/821;

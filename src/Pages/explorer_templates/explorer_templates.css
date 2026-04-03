@@ -327,7 +327,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: url("/static/templateExplorer/sticker.png") center / cover no-repeat;
+  background: url("/static/templateExplorer/template_sticker.png") center / cover no-repeat;
   background-size: 100% 100%;
 }
 
