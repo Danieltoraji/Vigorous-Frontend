@@ -11,6 +11,7 @@ import ExplorerDecoration from './Pages/explorer_decoration/explorer_decoration.
 import ExplorerTemplates from './Pages/explorer_templates/explorer_templates.jsx'
 import ChessEditor from './Pages/chess_editor/chess_editor.jsx'
 import ProjectEditor from './Pages/project_editor/ProjectEditor.jsx'
+import TemplateEditor from './Pages/template_editor/template_editor.jsx'
 import Test from './Pages/test.jsx'
 
 import AppBottom from './Components/Appbottom/Appbottom.jsx'
@@ -39,6 +40,7 @@ function App() {
             <Route path="/explorer-templates" element={<ExplorerTemplates />} />
             <Route path="/chess-editor/:id" element={<ChessEditor />} />
             <Route path="/project-editor/:id" element={<ProjectEditor />} />
+            <Route path="/template-editor/:id" element={<TemplateEditor />} />
             <Route path="/test" element={<Test />} />
           </Routes>
         </div>

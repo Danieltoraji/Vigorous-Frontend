@@ -2,9 +2,9 @@
   padding: 16px;
   text-align: center;
   font-size: 14px;
-  color: var(--fluent-text-secondary);
+  color: white;
   border-top: 1px solid var(--fluent-border);
-  background: var(--fluent-acrylic);
+  background: linear-gradient(135deg, #202020 0%, #393939 100%);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   margin-top: auto;

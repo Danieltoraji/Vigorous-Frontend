@@ -8,7 +8,6 @@ import { useUser } from '../../hooks/useUser.jsx'
 import { useProject } from '../../hooks/useProject.jsx'
 import ProjectList from './ProjectList.jsx'
 import ProjectEditModal from './ProjectEditModal.jsx'
-import ExplorerBottom from './ExplorerBottom.jsx'
 import './explorer_project.css'
 
 function ExplorerProject() {
@@ -68,6 +67,7 @@ function ExplorerProject() {
 
   return (
     <div className="explorer-project">
+      <div className="explorer-project-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
@@ -92,7 +92,6 @@ function ExplorerProject() {
         />
       )}
 
-      <ExplorerBottom />
     </div>
   )
 }

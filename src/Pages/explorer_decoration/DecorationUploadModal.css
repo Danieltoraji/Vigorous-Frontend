@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,14 +22,15 @@
 }
 
 .modal-content {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #fafaf8 100%);
   border-radius: 12px;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideUp {
@@ -48,7 +49,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal-header h2 {
@@ -73,8 +74,8 @@
 }
 
 .close-button:hover {
-  background: #f5f5f5;
-  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
 }
 
 .decoration-form {
@@ -88,7 +89,7 @@
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  color: #333;
+  color: #555;
   font-weight: 600;
   font-size: 14px;
 }
@@ -96,30 +97,48 @@
 .form-group input[type="text"] {
   width: 100%;
   padding: 10px 15px;
-  border: 2px solid #e9ecef;
+  border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  background: #fff;
+  color: #333;
 }
 
 .form-group input[type="text"]:focus {
   outline: none;
-  border-color: #f093fb;
+  border-color: #6080c0;
+}
+
+.form-group input[type="text"]::placeholder {
+  color: #aaa;
 }
 
 .form-group input[type="file"] {
   width: 100%;
   padding: 10px;
-  border: 2px dashed #e9ecef;
+  border: 2px dashed rgba(0, 0, 0, 0.15);
   border-radius: 6px;
   cursor: pointer;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  background: #fafaf8;
+  color: #666;
 }
 
 .form-group input[type="file"]:hover {
-  border-color: #f093fb;
+  border-color: #6080c0;
+}
+
+.form-group input[type="file"]::file-selector-button {
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
 }
 
 .form-group small {
@@ -134,9 +153,9 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  background: #f8f9fa;
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .file-info-display .file-icon {
@@ -145,7 +164,7 @@
 
 .file-info-display .file-name {
   font-size: 14px;
-  color: #333;
+  color: #555;
   word-break: break-all;
 }
 
@@ -159,8 +178,8 @@
 }
 
 .tag-input-container .btn-secondary {
-  background: #6c757d;
-  color: white;
+  background: #e8e8e5;
+  color: #555;
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -170,7 +189,7 @@
 }
 
 .tag-input-container .btn-secondary:hover {
-  background: #5a6268;
+  background: #d8d8d5;
 }
 
 .tags-container {
@@ -181,8 +200,8 @@
 }
 
 .tag {
-  background: #f093fb;
-  color: white;
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+  color: #fff;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -193,7 +212,7 @@
 }
 
 .tag .remove-tag {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
   width: 18px;
@@ -209,7 +228,7 @@
 }
 
 .tag .remove-tag:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .form-actions {
@@ -230,20 +249,22 @@
 }
 
 .form-actions .btn-secondary {
-  background: #e9ecef;
-  color: #495057;
+  background: #e8e8e5;
+  color: #555;
 }
 
 .form-actions .btn-secondary:hover {
-  background: #dee2e6;
+  background: #d8d8d5;
+  color: #333;
 }
 
 .form-actions .btn-primary {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 
 .form-actions .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(240, 147, 251, 0.4);
+  box-shadow: 0 4px 15px rgba(80, 112, 176, 0.3);
+  background: linear-gradient(135deg, #7090d0 0%, #6080c0 100%);
 }

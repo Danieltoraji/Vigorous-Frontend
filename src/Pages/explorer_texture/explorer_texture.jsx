@@ -8,7 +8,6 @@ import { useTexture } from '../../hooks/useTexture.jsx'
 import csrfapi from '../../utils/csrfapi.js'
 import TextureList from './TextureList.jsx'
 import TextureUploadModal from './TextureUploadModal.jsx'
-import ExplorerBottom from '../explorer_project/ExplorerBottom.jsx'
 import './explorer_texture.css'
 
 function ExplorerTexture() {
@@ -60,14 +59,14 @@ function ExplorerTexture() {
         // 从当前纹理获取 ID
         const textureId = currentTexture.id;
         console.log('使用 FormData 更新纹理 ID:', textureId)
-        
+
         // 使用 csrfapi 发送 PATCH 请求（自动携带认证信息）
         // 注意：axios 处理 FormData 时会自动设置正确的 Content-Type（包括 boundary）
         const response = await csrfapi.patch(`/textures/${textureId}/`, formData);
-        
+
         console.log('响应状态:', response.status)
         console.log('更新成功，返回数据:', response.data)
-        
+
         // 更新本地状态
         setTextureData(prev => ({
           ...prev,
@@ -77,7 +76,7 @@ function ExplorerTexture() {
         // 如果是普通对象（向后兼容）
         await updateTexture(formData.id, formData);
       }
-      
+
       setIsUploadModalOpen(false)
       setCurrentTexture(null)
     } catch (error) {
@@ -99,6 +98,7 @@ function ExplorerTexture() {
 
   return (
     <div className="explorer-texture">
+      <div className="explorer-texture-bg-layer"></div>
       <div className="explorer-header">
         {/* <button className="back-button" onClick={onBack}>
           ← 返回
@@ -124,7 +124,6 @@ function ExplorerTexture() {
         />
       )}
 
-      <ExplorerBottom />
     </div>
   )
 }
