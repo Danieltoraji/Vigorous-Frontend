@@ -1,9 +1,22 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import './modals.css';
 
 const DeleteConfirmModal = ({ piece, onConfirm, onCancel }) => {
-  return (
-    <div className="modal-overlay">
+  const overlayStyle = {
+    position: 'fixed',
+    inset: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+  };
+
+  return createPortal(
+    <div className="modal-overlay" style={overlayStyle}>
       <div className="modal-content">
         <div className="modal-header">
           <h3>确认删除</h3>
@@ -24,7 +37,8 @@ const DeleteConfirmModal = ({ piece, onConfirm, onCancel }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
