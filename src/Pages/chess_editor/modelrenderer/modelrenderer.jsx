@@ -231,7 +231,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
 
   if (!geometry) return null;
 
-  return <primitive object={geometry} />;
+  return <primitive object={geometry} />;}
 // 根据文件扩展名判断模型类型
 function getModelType(url) {
     const extension = url.split('.').pop().toLowerCase();
@@ -1477,5 +1477,5 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
         </div>
     )
 }
-}
+
 export default ModelRenderer;

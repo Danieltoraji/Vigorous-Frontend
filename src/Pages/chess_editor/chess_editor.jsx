@@ -2514,17 +2514,18 @@ modelId 含义：
           </div>
         </div>
       )}
-    </div>
-  );
-}
+      
 
-      <ChooseDecoration
-        isOpen={showDecorationModal}
-        onClose={() => setShowDecorationModal(false)}
-        currentModelId={currentChess?.parts?.decoration?.modelId}
-        onSelect={handleDecorationSelect}
-        onSaveAndNavigate={handleSave}
-      />
+      {/* 装饰选择器弹窗 */}
+      {showDecorationModal && (
+        <ChooseDecoration
+          isOpen={showDecorationModal}
+          onClose={() => setShowDecorationModal(false)}
+          currentModelId={currentChess?.parts?.decoration?.modelId}
+          onSelect={handleDecorationSelect}
+          onSaveAndNavigate={handleSave}
+        />
+      )}
 
       {/* Toast 提示 */}
       {showToast && (
@@ -2532,6 +2533,8 @@ modelId 含义：
           {toastMessage}
         </div>
       )}
-
+    </div>
+  );
+}
 
 export default ChessEditor;

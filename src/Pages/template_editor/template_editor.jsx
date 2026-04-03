@@ -58,7 +58,35 @@ function TemplateEditor() {
       const fetchedData = await fetchTemplate(pieceId);
       if (fetchedData) {
         console.log('获取成功：', fetchedData);
-        setCurrentTemplate(fetchedData);
+        
+        // 确保 parts 结构存在，如果不存在则初始化
+        const templateWithParts = {
+          ...fetchedData,
+          parts: fetchedData.parts || {
+            base: {
+              shape: { type: 'cycle', size1: 15, size2: 15, height: 3 },
+              pattern: { shape: 'none' },
+              edge: { type: 'none', depth: 0, segments: 4 },
+              material: { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 }
+            },
+            column: {
+              shape: { type: 'cycle', size1: 10, size2: 10, height: 20 },
+              pattern: { shape: 'none' },
+              edge: { type: 'none', depth: 0.2, segments: 4 },
+              material: { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 },
+              position: { x: 0, y: 1, z: 0 }
+            },
+            decoration: {
+              modelId: '0',
+              size: { size1: 5, size2: 5, size3: 5 },
+              position: { x: 0, y: 21, z: 0 },
+              rotation: { x: 0, y: 0, z: 0 },
+              material: { metalness: 0.5, roughness: 0.3, clearcoat: 0, clearcoatRoughness: 0 }
+            }
+          }
+        };
+        
+        setCurrentTemplate(templateWithParts);
       }
     } catch (error) {
       console.error('获取失败:', error);
@@ -1985,19 +2013,34 @@ modelId 含义：
 
       </div>
 
-
-
       {/* 右侧面板切换按钮 */}
       <button
         className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
+        style={{ 
+          position: 'absolute',
+          right: isRightPanelCollapsed ? '20px' : `${rightWidth + 10}px`,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 100
+        }}
       >
         {isRightPanelCollapsed ? '◀' : '▶'}
       </button>
 
       {/* 右侧数据调节面板 */}
-      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{ width: `${isRightPanelCollapsed ? 0 : rightWidth}px` }}>
+      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{ 
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        bottom: 0,
+        width: `${isRightPanelCollapsed ? 0 : rightWidth}px`,
+        zIndex: 99
+      }}>
+        {console.log('currentTemplate:', currentTemplate)}
+        {console.log('selectedComponent:', selectedComponent)}
+        {console.log('parts.base:', currentTemplate?.parts?.base)}
         {selectedComponent === 'base' && renderBasePanel()}
         {selectedComponent === 'column' && renderColumnPanel()}
         {selectedComponent === 'decoration' && renderDecorationPanel()}
