@@ -8,6 +8,7 @@ import csrfapi from '../../utils/csrfapi.js';
 import ChooseDecoration from './choose_decoration.jsx';
 import TextureGrid from './TextureGrid.jsx';
 
+
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function ChessEditor() {
   const { chessData, updateChess, setChessData, getChessById } = useChess();
@@ -2494,7 +2495,7 @@ modelId 含义：
         </div>
       )}
 
-{/* 纹理选择器弹窗 */}
+      {/* 纹理选择器弹窗 */}
       {showTextureSelector && (
         <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
           <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
@@ -2505,7 +2506,7 @@ modelId 含义：
               </button>
             </div>
             <div className="modal-content texture-selector-content">
-              <TextureGrid 
+              <TextureGrid
                 onSelectTexture={handleTextureSelect}
                 onClose={() => setShowTextureSelector(false)}
                 mode={textureMode}
@@ -2514,7 +2515,7 @@ modelId 含义：
           </div>
         </div>
       )}
-      
+
 
       {/* 装饰选择器弹窗 */}
       {showDecorationModal && (
