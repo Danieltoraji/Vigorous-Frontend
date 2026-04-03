@@ -28,16 +28,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 16px 0px;
   border-bottom: 1px solid #e8e8e8;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
 }
 
 .decoration-modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: #000000;
 }
 
 .decoration-modal-close {

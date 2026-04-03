@@ -74,11 +74,11 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
     try {
       // 如果是编辑模式且 file 为 null，需要先加载预览图
       let imageToProcess = previewUrl
-      
+
       const img = new Image()
       img.crossOrigin = 'anonymous'
       img.src = previewUrl
-      
+
       await new Promise((resolve, reject) => {
         img.onload = () => {
           console.log('图片加载成功，尺寸:', img.width, 'x', img.height)
@@ -89,21 +89,21 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           reject(error)
         }
       })
-      
+
       const canvas = document.createElement('canvas')
       canvas.width = img.width
       canvas.height = img.height
       const ctx = canvas.getContext('2d')
-      
+
       // 绘制原图
       ctx.drawImage(img, 0, 0)
-      
+
       // 获取像素数据
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const data = imageData.data
-      
+
       console.log('成功获取像素数据，开始处理...')
-      
+
       // 转换为灰度并反色
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i]
@@ -117,10 +117,10 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         data[i + 1] = inverted // G
         data[i + 2] = inverted // B
       }
-      
+
       // 放回画布
       ctx.putImageData(imageData, 0, 0)
-      
+
       // 生成处理后的 Blob
       canvas.toBlob((blob) => {
         if (!blob) {
@@ -128,20 +128,20 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           alert('图片处理失败，请重试')
           return
         }
-        
+
         console.log('成功生成 Blob:', blob.size, 'bytes, type:', blob.type)
-        
+
         // 创建新的 File 对象（编辑模式下 file 可能为 null）
         const fileName = file?.name || `processed_${Date.now()}.png`
-        const processedFile = new File([blob], fileName, { 
-          type: blob.type 
+        const processedFile = new File([blob], fileName, {
+          type: blob.type
         })
         setFile(processedFile)
-        
+
         // 更新预览为处理后的图片
         const processedUrl = URL.createObjectURL(blob)
         setPreviewUrl(processedUrl)
-        
+
         console.log('图片处理完成，已更新预览，file 对象已设置:', processedFile)
         // alert('✅ 色彩处理成功！图片已经反色（黑变白，白变黑），可以保存了')
       }, file?.type || 'image/png')
@@ -157,11 +157,11 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     const submitData = new FormData()
     submitData.append('name', formData.name)
     submitData.append('texture_tags', JSON.stringify(formData.texture_tags))
-    
+
     console.log('提交纹理数据:', {
       textureId: texture?.id,
       name: formData.name,
@@ -170,7 +170,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
       fileSize: file?.size,
       fileType: file?.type
     })
-    
+
     if (file) {
       submitData.append('file', file)
     }
@@ -191,15 +191,15 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{texture ? '编辑纹理' : '上传纹理'}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
-        </div>
-
+    <div className="texture-modal-overlay" onClick={onClose}>
+      <div className="texture-modal-content" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="texture-form">
-          <div className="form-group">
+          <div className="texture-modal-header">
+            <h2>{texture ? '编辑纹理' : '上传纹理'}</h2>
+            <button className="texture-close-button" onClick={onClose}>×</button>
+          </div>
+
+          <div className="texture-form-group">
             <label>纹理名称</label>
             <input
               type="text"
@@ -210,7 +210,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="texture-form-group">
             <label>选择文件</label>
             <input
               type="file"
@@ -222,25 +222,25 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           </div>
 
           {previewUrl && (
-            <div className="form-group">
+            <div className="texture-form-group">
               <label>预览，确认无误，点击下方按钮进行色彩处理（彩色变黑白，黑白变反色）</label>
-              <div className="preview-container">
-                <img src={previewUrl} alt="预览" className="preview-image" />
+              <div className="texture-preview-container">
+                <img src={previewUrl} alt="预览" className="texture-preview-image" />
               </div>
-              <button 
-                type="button" 
-                onClick={convertToGrayscale} 
-                className="btn btn-grayscale"
+              <button
+                type="button"
+                onClick={convertToGrayscale}
+                className="texture-modal-btn texture-modal-btn-grayscale"
                 style={{ width: '100%', marginTop: '10px' }}
               >
-                🎨 色彩处理🎨 
+                🎨 色彩处理🎨
               </button>
             </div>
           )}
 
-          <div className="form-group">
+          <div className="texture-form-group">
             <label>标签</label>
-            <div className="tag-input-container">
+            <div className="texture-tag-input-container">
               <input
                 type="text"
                 value={tagInput}
@@ -253,18 +253,18 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                   }
                 }}
               />
-              <button type="button" onClick={handleAddTag} className="btn btn-secondary">
+              <button type="button" onClick={handleAddTag} className="texture-modal-btn texture-modal-btn-secondary">
                 添加
               </button>
             </div>
-            <div className="tags-container">
+            <div className="texture-tags-container">
               {formData.texture_tags.map((tag, index) => (
-                <span key={index} className="tag">
+                <span key={index} className="texture-tag">
                   {tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="remove-tag"
+                    className="texture-remove-tag"
                   >
                     ×
                   </button>
@@ -273,11 +273,11 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+          <div className="texture-form-actions">
+            <button type="button" onClick={onClose} className="texture-modal-btn texture-modal-btn-secondary">
               取消
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="texture-modal-btn texture-modal-btn-primary">
               {texture ? '保存修改' : '上传'}
             </button>
           </div>

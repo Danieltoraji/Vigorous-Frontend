@@ -57,11 +57,11 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     const submitData = new FormData()
     submitData.append('name', formData.name)
     submitData.append('decoration_tags', JSON.stringify(formData.decoration_tags))
-    
+
     if (file) {
       submitData.append('file', file)
     }
@@ -83,15 +83,15 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{decoration ? '编辑装饰' : '上传装饰'}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
-        </div>
-
+    <div className="decoration-modal-overlay" onClick={onClose}>
+      <div className="decoration-modal-content" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="decoration-form">
-          <div className="form-group">
+          <div className="decoration-modal-header">
+            <h2>{decoration ? '编辑装饰' : '上传装饰'}</h2>
+            <button className="decoration-close-button" onClick={onClose}>×</button>
+          </div>
+
+          <div className="decoration-form-group">
             <label>装饰名称</label>
             <input
               type="text"
@@ -102,7 +102,7 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="decoration-form-group">
             <label>选择文件</label>
             <input
               type="file"
@@ -114,18 +114,18 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
           </div>
 
           {fileName && (
-            <div className="form-group">
+            <div className="decoration-form-group">
               <label>已选文件</label>
-              <div className="file-info-display">
-                <span className="file-icon">📦</span>
-                <span className="file-name">{fileName}</span>
+              <div className="decoration-file-info-display">
+                <span className="decoration-file-icon">📦</span>
+                <span className="decoration-file-name">{fileName}</span>
               </div>
             </div>
           )}
 
-          <div className="form-group">
+          <div className="decoration-form-group">
             <label>标签</label>
-            <div className="tag-input-container">
+            <div className="decoration-tag-input-container">
               <input
                 type="text"
                 value={tagInput}
@@ -138,18 +138,18 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
                   }
                 }}
               />
-              <button type="button" onClick={handleAddTag} className="btn btn-secondary">
+              <button type="button" onClick={handleAddTag} className="decoration-modal-btn decoration-modal-btn-secondary">
                 添加
               </button>
             </div>
-            <div className="tags-container">
+            <div className="decoration-tags-container">
               {formData.decoration_tags.map((tag, index) => (
-                <span key={index} className="tag">
+                <span key={index} className="decoration-tag">
                   {tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="remove-tag"
+                    className="decoration-remove-tag"
                   >
                     ×
                   </button>
@@ -158,11 +158,11 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+          <div className="decoration-form-actions">
+            <button type="button" onClick={onClose} className="decoration-modal-btn decoration-modal-btn-secondary">
               取消
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="decoration-modal-btn decoration-modal-btn-primary">
               {decoration ? '保存修改' : '上传'}
             </button>
           </div>
