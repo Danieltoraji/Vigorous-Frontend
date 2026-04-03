@@ -98,6 +98,12 @@
   margin: auto -16px 0 -16px;
   padding: 16px;
   border-top: 1px solid var(--fluent-border-light);
+  justify-content: flex-end;
+}
+
+.chess-card-actions .action-button {
+  flex: 0 0 auto;
+  width: fit-content;
 }
 
 .action-button {
@@ -114,6 +120,62 @@
   justify-content: center;
   gap: 8px;
   font-weight: 500;
+}
+
+.action-menu-button {
+  flex: none;
+  min-width: 44px;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fluent-text);
+}
+
+.more-actions {
+  position: relative;
+}
+
+.more-actions-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  min-width: 160px;
+  background: var(--fluent-acrylic);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  box-shadow: var(--fluent-shadow-hover);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--fluent-text);
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.menu-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.menu-item.delete {
+  color: #D13438;
+}
+
+.menu-item.delete:hover {
+  background: rgba(209, 52, 56, 0.1);
 }
 
 .edit-button {
@@ -221,6 +283,8 @@
   display: flex;
   gap: 6px;
   transition: var(--fluent-transition);
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .action-buttons .action-button {
@@ -228,6 +292,12 @@
   padding: 4px 8px;
   font-size: 12px;
   min-height: 24px;
+}
+
+.action-buttons .action-menu-button,
+.chess-card-actions .action-menu-button,
+.chess-card-actions .open-button {
+  min-height: 32px;
 }
 
 /* 响应式设计 */
@@ -267,16 +337,15 @@
   }
 
   .action-buttons {
-    flex-direction: column;
     gap: 4px;
-  }
-
-  .action-buttons .action-button {
-    width: 100%;
   }
 
   .chess-card-actions {
     padding: 12px;
     margin: -12px -12px 0 -12px;
+  }
+
+  .action-menu-button {
+    min-width: 40px;
   }
 }

@@ -524,6 +524,22 @@
   align-items: center;
   flex-wrap: wrap;
   margin-top: auto;
+  justify-content: flex-end;
+}
+
+.more-actions {
+  position: relative;
+}
+
+.more-actions-toggle {
+  min-width: 44px;
+  min-height: 32px;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fluent-text);
 }
 
 .btn {
@@ -584,88 +600,224 @@
   min-height: 28px;
 }
 
+.template-actions .btn {
+  flex: 0 0 auto;
+  width: fit-content;
+}
+
+.template-actions .btn.small {
+  min-height: 32px;
+}
+
+.template-actions .more-actions-toggle {
+  min-height: 32px;
+}
+
 .more-actions {
   position: relative;
-  z-index: 1001;
+  z-index: 1;
 }
 
 .more-actions-menu {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   right: 0;
-  margin-top: 8px;
+  margin-bottom: 8px;
   background: var(--fluent-acrylic);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   border-radius: var(--fluent-radius);
   box-shadow: var(--fluent-shadow-hover);
-  z-index: 9999;
+  z-index: 2;
   min-width: 160px;
   overflow: hidden;
   border: 1px solid var(--fluent-border);
 }
 
-.menu-item {
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  text-align: left;
-  border: none;
+/* 模板编辑模态框 */
+.template-edit-overlay {
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.template-edit-modal-content {
+  width: 75%;
+  max-width: 750px;
+  max-height: 90vh;
   background: transparent;
-  color: var(--fluent-text);
-  cursor: pointer;
-  transition: var(--fluent-transition);
-  font-size: 14px;
-  font-weight: 500;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.menu-item:hover {
-  background: rgba(0, 0, 0, 0.05);
+.template-edit-form {
+  background: url("/static/templateExplorer/template_sticker.png") center / cover no-repeat;
+  background-size: 100% 100%;
+  padding-top: 100px;
+  padding-right: 15%;
+  padding-bottom: 20px;
+  padding-left: 15%;
+  display: flex;
+  flex-direction: column;
 }
 
-.menu-item.delete {
-  color: #D13438;
-}
-
-.menu-item.delete:hover {
-  background: rgba(209, 52, 56, 0.1);
-}
-
-.template-list {
-  overflow-x: auto;
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-radius: var(--fluent-radius);
-  box-shadow: var(--fluent-shadow);
-  border: 1px solid var(--fluent-border);
-}
-
-.template-list table {
-  width: 100%;
-  border-collapse: collapse;
-  background: transparent;
-  border-radius: var(--fluent-radius);
-  overflow: hidden;
-}
-
-.template-list th,
-.template-list td {
-  padding: 16px;
-  text-align: left;
+.template-edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
   border-bottom: 1px solid var(--fluent-border-light);
+  background: transparent;
 }
 
-.template-list th {
-  background: rgba(255, 255, 255, 0.5);
+.template-edit-modal-header h2 {
+  margin: 0;
+  color: black;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.template-edit-close {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: var(--fluent-text-tertiary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--fluent-radius);
+  transition: var(--fluent-transition);
+}
+
+.template-edit-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--fluent-text-secondary);
+  box-shadow: var(--fluent-shadow);
+}
+
+.template-edit-form-group {
+  margin-bottom: 20px;
+}
+
+.template-edit-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--fluent-text-secondary);
   font-weight: 600;
-  color: var(--fluent-text);
   font-size: 14px;
 }
 
-.template-list tr {
+.template-edit-form-group input,
+.template-edit-form-group textarea {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  font-size: 14px;
   transition: var(--fluent-transition);
-  background: rgba(255, 255, 255, 0.3);
+  box-sizing: border-box;
+  background: white;
+  color: var(--fluent-text);
+}
+
+.template-edit-form-group input:focus,
+.template-edit-form-group textarea:focus {
+  outline: none;
+  border-color: var(--fluent-primary);
+  box-shadow: 0 0 0 1px var(--fluent-primary);
+}
+
+.template-edit-form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.template-edit-tag-input-container {
+  display: flex;
+  gap: 10px;
+}
+
+.template-edit-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.template-edit-tag-chip {
+  background: rgba(0, 120, 212, 0.1);
+  color: var(--fluent-primary);
+  padding: 6px 12px;
+  border-radius: var(--fluent-radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.template-remove-tag {
+  background: transparent;
+  border: none;
+  color: var(--fluent-primary);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: var(--fluent-transition);
+}
+
+.template-remove-tag:hover {
+  background: rgba(0, 120, 212, 0.2);
+}
+
+.template-edit-modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 20px;
+  border-top: 1px solid var(--fluent-border-light);
+  margin-top: 10px;
+  background: transparent;
+}
+
+.template-modal-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--fluent-radius);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: var(--fluent-transition);
+}
+
+.template-modal-btn-secondary {
+  background: #e8e8e5;
+  color: #555;
+}
+
+.template-modal-btn-secondary:hover {
+  background: #d8d8d5;
+}
+
+.template-modal-btn-primary {
+  background: var(--fluent-primary);
+  color: white;
+}
+
+.template-modal-btn-primary:hover {
+  background: var(--fluent-primary-hover);
 }
 
 .template-list tr:hover {

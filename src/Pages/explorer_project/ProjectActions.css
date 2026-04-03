@@ -5,11 +5,71 @@
   transition: var(--fluent-transition);
 }
 
+.more-actions {
+  position: relative;
+}
+
+.more-actions-toggle {
+  min-width: 44px;
+  justify-content: center;
+  padding: 6px 10px;
+  font-size: 18px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fluent-text);
+}
+
+.more-actions-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  min-width: 160px;
+  background: var(--fluent-acrylic);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius);
+  box-shadow: var(--fluent-shadow-hover);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: var(--fluent-text);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.menu-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.menu-item.delete {
+  color: #D13438;
+}
+
+.menu-item.delete:hover {
+  background: rgba(209, 52, 56, 0.1);
+}
+
 .btn-secondary {
   background: rgba(255, 255, 255, 0.7);
   color: var(--fluent-text);
   border: 1px solid var(--fluent-border);
   transition: var(--fluent-transition);
+}
+
+.project-actions .btn {
+  min-height: 32px;
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -38,5 +98,10 @@
   .project-actions .btn {
     width: 100%;
     text-align: center;
+  }
+
+  .more-actions-menu {
+    left: 0;
+    right: auto;
   }
 }

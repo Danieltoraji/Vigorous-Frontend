@@ -41,7 +41,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (max-width: 768px) {
