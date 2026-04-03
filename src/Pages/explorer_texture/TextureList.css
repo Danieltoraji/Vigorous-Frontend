@@ -1,5 +1,5 @@
 .texture-list {
-  max-width: 1400px;
+  max-width: 90%;
   margin: 0 auto;
 }
 
@@ -37,8 +37,15 @@
   box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
 }
 
-.texture-grid {
+.texture-explorer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .texture-explorer-grid {
+    grid-template-columns: 1fr;
+  }
 }

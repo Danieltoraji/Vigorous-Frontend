@@ -14,7 +14,7 @@ function TextureList({ textures, onEditTexture, onDeleteTexture, onUploadTexture
         </button>
       </div>
 
-      <div className="texture-grid">
+      <div className="texture-explorer-grid">
         {textures?.map(texture => (
           <TextureItem
             key={texture.id}

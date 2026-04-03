@@ -8,10 +8,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: auto;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: url("/static/textureExplorer/sticker.png") center / cover no-repeat;
   background-size: 100% 100%;
-  inset: -10%;
 }
 
 .texture-item:hover {

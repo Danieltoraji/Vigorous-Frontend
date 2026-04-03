@@ -72,34 +72,6 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
     console.log('当前 file 对象:', file)
 
     try {
-      // 如果是编辑模式且 file 为 null，需要先加载预览图
-      let imageToProcess = previewUrl
-
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.src = previewUrl
-
-      await new Promise((resolve, reject) => {
-        img.onload = () => {
-          console.log('图片加载成功，尺寸:', img.width, 'x', img.height)
-          resolve()
-        }
-        img.onerror = (error) => {
-          console.error('图片加载失败:', error)
-          reject(error)
-        }
-      })
-
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')
-
-      // 绘制原图
-      ctx.drawImage(img, 0, 0)
-
-      // 获取像素数据
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const data = imageData.data
 
       console.log('成功获取像素数据，开始处理...')
@@ -196,80 +168,86 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         <form onSubmit={handleSubmit} className="texture-form">
           <div className="texture-modal-header">
             <h2>{texture ? '编辑纹理' : '上传纹理'}</h2>
-            <button className="texture-close-button" onClick={onClose}>×</button>
+            <button type="button" className="texture-close-button" onClick={onClose}>×</button>
           </div>
 
-          <div className="texture-form-group">
-            <label>纹理名称</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="输入纹理名称"
-              required
-            />
-          </div>
-
-          <div className="texture-form-group">
-            <label>选择文件</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              required={!texture}
-            />
-            <small>支持格式：PNG, JPG, JPEG, WEBP</small>
-          </div>
-
-          {previewUrl && (
+          <div className="texture-form-body">
             <div className="texture-form-group">
-              <label>预览，确认无误，点击下方按钮进行色彩处理（彩色变黑白，黑白变反色）</label>
-              <div className="texture-preview-container">
-                <img src={previewUrl} alt="预览" className="texture-preview-image" />
-              </div>
-              <button
-                type="button"
-                onClick={convertToGrayscale}
-                className="texture-modal-btn texture-modal-btn-grayscale"
-                style={{ width: '100%', marginTop: '10px' }}
-              >
-                🎨 色彩处理🎨
-              </button>
-            </div>
-          )}
-
-          <div className="texture-form-group">
-            <label>标签</label>
-            <div className="texture-tag-input-container">
+              <label>纹理名称</label>
               <input
                 type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                placeholder="输入标签后按回车"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleAddTag()
-                  }
-                }}
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="输入纹理名称"
+                required
               />
-              <button type="button" onClick={handleAddTag} className="texture-modal-btn texture-modal-btn-secondary">
-                添加
-              </button>
             </div>
-            <div className="texture-tags-container">
-              {formData.texture_tags.map((tag, index) => (
-                <span key={index} className="texture-tag">
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="texture-remove-tag"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
+
+            <div className="texture-form-row texture-file-preview-row">
+              <div className="texture-form-group texture-file-group">
+                <label>选择文件</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  required={!texture}
+                />
+                <small>支持格式：PNG, JPG, JPEG, WEBP</small>
+              </div>
+
+              <div className="texture-form-group texture-preview-group">
+                <label>预览，确认无误，点击下方按钮进行色彩处理（彩色变黑白，黑白变反色）</label>
+                <div className="texture-preview-container">
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="预览" className="texture-preview-image" />
+                  ) : (
+                    <div className="texture-preview-empty">选择文件后显示预览</div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={convertToGrayscale}
+                  className="texture-modal-btn texture-modal-btn-grayscale"
+                  disabled={!previewUrl}
+                >
+                  🎨 色彩处理🎨
+                </button>
+              </div>
+            </div>
+
+            <div className="texture-form-group">
+              <label>标签</label>
+              <div className="texture-tag-input-container">
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  placeholder="输入标签后按回车"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddTag()
+                    }
+                  }}
+                />
+                <button type="button" onClick={handleAddTag} className="texture-modal-btn texture-modal-btn-secondary">
+                  添加
+                </button>
+              </div>
+              <div className="texture-tags-container">
+                {formData.texture_tags.map((tag, index) => (
+                  <span key={index} className="texture-tag">
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="texture-remove-tag"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
