@@ -1,0 +1,235 @@
+.vgr-atm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1400;
+    animation: vgr-atm-fade-in 0.15s ease-out;
+}
+
+.vgr-atm-container {
+    width: min(680px, 92vw);
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    border: 1px solid var(--fluent-border);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 18px 56px rgba(0, 0, 0, 0.22);
+    animation: vgr-atm-slide-in 0.16s ease-out;
+}
+
+.vgr-atm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--fluent-border-light);
+}
+
+.vgr-atm-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--fluent-text);
+}
+
+.vgr-atm-close {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--fluent-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--fluent-text-secondary);
+    cursor: pointer;
+}
+
+.vgr-atm-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.vgr-atm-body {
+    padding: 16px 18px;
+    overflow-y: auto;
+}
+
+.vgr-atm-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.vgr-atm-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fluent-text-secondary);
+}
+
+.vgr-atm-group input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid var(--fluent-border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--fluent-text);
+}
+
+.vgr-atm-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--fluent-primary);
+    box-shadow: 0 0 0 1px var(--fluent-primary);
+}
+
+.vgr-atm-char-count {
+    font-size: 12px;
+    color: var(--fluent-text-tertiary);
+}
+
+.vgr-atm-empty-hint {
+    padding: 14px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--fluent-text-secondary);
+    font-size: 14px;
+    text-align: center;
+}
+
+.vgr-atm-empty-hint p {
+    margin: 0;
+}
+
+.vgr-atm-select-all-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--fluent-border-light);
+}
+
+.vgr-atm-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.vgr-atm-project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.vgr-atm-project-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--fluent-transition);
+}
+
+.vgr-atm-project-item-selected {
+    background: rgba(0, 120, 212, 0.1);
+}
+
+.vgr-atm-project-title {
+    display: block;
+    color: var(--fluent-text);
+    font-size: 14px;
+}
+
+.vgr-atm-project-desc {
+    display: block;
+    margin-top: 2px;
+    color: var(--fluent-text-tertiary);
+    font-size: 12px;
+}
+
+.vgr-atm-selection-hint {
+    display: block;
+    margin-top: 10px;
+    color: var(--fluent-text-tertiary);
+    font-size: 12px;
+}
+
+.vgr-atm-error {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #d13438;
+    background: rgba(209, 52, 56, 0.12);
+    font-size: 14px;
+}
+
+.vgr-atm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--fluent-border-light);
+}
+
+.vgr-atm-cancel-btn,
+.vgr-atm-apply-btn {
+    min-height: 34px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.vgr-atm-cancel-btn {
+    border: 1px solid var(--fluent-border);
+    background: #fff;
+    color: var(--fluent-text);
+}
+
+.vgr-atm-cancel-btn:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.vgr-atm-apply-btn {
+    border: none;
+    background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+    color: #fff;
+}
+
+.vgr-atm-apply-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
+}
+
+.vgr-atm-cancel-btn:disabled,
+.vgr-atm-apply-btn:disabled,
+.vgr-atm-close:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+@keyframes vgr-atm-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes vgr-atm-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

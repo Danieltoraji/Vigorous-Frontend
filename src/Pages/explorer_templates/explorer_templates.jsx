@@ -767,6 +767,7 @@ function ExplorerTemplates() {
           presetName={templatesData[applyingTemplateId]?.name || ''}
           projects={projectData}
           onApplySuccess={handleApplySuccess}
+          onApply={applyPresetToProjects}
         />
       )}
 
