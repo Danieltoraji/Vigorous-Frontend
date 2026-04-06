@@ -8,7 +8,7 @@ import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/Cust
 import { useDecoration } from '../../../hooks/useDecoration.jsx';
 
 
-const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector3 } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector2, Vector3, LatheGeometry } = THREE;
 
 const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 const textureLoader = new TextureLoader();
@@ -444,6 +444,112 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         return shape;
     };
 
+    // 为台体（上下半径不一致）生成可倒角的圆滑几何体
+    const createRoundedFrustumGeometry = (radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments) => {
+        const safeTop = Math.max(radiusTop || 0, 0.001);
+        const safeBottom = Math.max(radiusBottom || 0, 0.001);
+        const halfHeight = Math.max(height || 0, 0.001) / 2;
+        const maxBevel = Math.min(
+            bevelSize || 0,
+            halfHeight - 0.001,
+            safeTop * 0.45,
+            safeBottom * 0.45
+        );
+
+        if (maxBevel <= 0.0001) {
+            return new THREE.CylinderGeometry(safeTop, safeBottom, Math.max(height || 0, 0.001), radialSegments);
+        }
+
+        const topFlat = Math.max(safeTop - maxBevel, 0.001);
+        const bottomFlat = Math.max(safeBottom - maxBevel, 0.001);
+        const yTop = halfHeight;
+        const yBottom = -halfHeight;
+        const bSeg = Math.max(2, bevelSegments || 4);
+        const bodySeg = 24;
+        const points = [];
+
+        // 顶面中心到顶面边
+        points.push(new Vector2(0, yTop));
+        points.push(new Vector2(topFlat, yTop));
+
+        // 顶部圆角过渡（顶面 -> 侧面）
+        for (let i = 1; i <= bSeg; i++) {
+            const t = i / bSeg;
+            const theta = t * Math.PI * 0.5;
+            const r = topFlat + (safeTop - topFlat) * Math.sin(theta);
+            const y = yTop - maxBevel * (1 - Math.cos(theta));
+            points.push(new Vector2(r, y));
+        }
+
+        // 侧面（台体斜面）
+        for (let i = 1; i <= bodySeg; i++) {
+            const t = i / bodySeg;
+            const yStart = yTop - maxBevel;
+            const yEnd = yBottom + maxBevel;
+            const y = yStart + (yEnd - yStart) * t;
+            const r = safeTop + (safeBottom - safeTop) * t;
+            points.push(new Vector2(r, y));
+        }
+
+        // 底部圆角过渡（侧面 -> 底面）
+        for (let i = 1; i <= bSeg; i++) {
+            const t = i / bSeg;
+            const theta = t * Math.PI * 0.5;
+            const r = safeBottom - (safeBottom - bottomFlat) * Math.sin(theta);
+            const y = yBottom + maxBevel * Math.cos(theta);
+            points.push(new Vector2(r, y));
+        }
+
+        // 底面边到底面中心
+        points.push(new Vector2(bottomFlat, yBottom));
+        points.push(new Vector2(0, yBottom));
+
+        const geometry = new LatheGeometry(points.reverse(), Math.max(16, radialSegments || 64));
+        geometry.computeVertexNormals();
+        return geometry;
+    };
+
+    // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体
+    const createRoundedPolygonFrustumGeometry = (radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments) => {
+        const safeTop = Math.max(radiusTop || 0, 0.001);
+        const safeBottom = Math.max(radiusBottom || 0, 0.001);
+        const safeHeight = Math.max(height || 0, 0.001);
+        const safeSides = Math.max(3, sides || 6);
+        const baseRadius = Math.max(safeTop, safeBottom, 0.001);
+        const maxBevel = Math.min(bevelSize || 0, safeHeight * 0.45, baseRadius * 0.35);
+
+        const shape = generateShapeOutline('cylinder', baseRadius, baseRadius, safeSides);
+        const extrudeSettings = {
+            depth: safeHeight,
+            bevelEnabled: maxBevel > 0.0001,
+            bevelThickness: maxBevel,
+            bevelSize: maxBevel,
+            bevelSegments: Math.max(2, bevelSegments || 4),
+            curveSegments: 8,
+            steps: 1
+        };
+
+        const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+        geometry.rotateX(Math.PI / 2);
+        geometry.translate(0, safeHeight / 2, 0);
+
+        // 按 y 位置将截面半径从底部线性过渡到顶部，形成多棱柱台体
+        const position = geometry.attributes.position;
+        for (let i = 0; i < position.count; i++) {
+            const x = position.getX(i);
+            const y = position.getY(i);
+            const z = position.getZ(i);
+            const t = Math.max(0, Math.min(1, y / safeHeight));
+            const targetRadius = safeBottom + (safeTop - safeBottom) * t;
+            const scale = targetRadius / baseRadius;
+            position.setXYZ(i, x * scale, y, z * scale);
+        }
+
+        position.needsUpdate = true;
+        geometry.computeVertexNormals();
+        return geometry;
+    };
+
     // 渲染底座组件（带边缘处理）
     const renderBaseShape = () => {
         if (!hasBase) return null;
@@ -470,6 +576,44 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     return <boxGeometry args={args} />;
                 }
             } else {
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
+
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    const geometry = createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                    return <primitive object={geometry} />;
+                }
+
                 // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
                 const shape = generateShapeOutline(geoType, size1, size2, sides);
 
@@ -760,6 +904,44 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     return <boxGeometry args={args} />;
                 }
             } else {
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
+
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    const geometry = createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                    return <primitive object={geometry} />;
+                }
+
                 // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
                 const shape = generateShapeOutline(geoType, size1, size2, sides);
 
