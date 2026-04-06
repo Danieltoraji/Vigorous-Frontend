@@ -1790,26 +1790,21 @@ modelId 含义：
       <div className="template-data-editor">
         <h3>装饰参数</h3>
 
-        {/* 模型导入按钮 */}
+        {/* 模型选择按钮 */}
         <div className="template-editor-section">
           <h4>模型</h4>
           <div className="template-editor-item">
-            <label>模型类型：</label>
-            <select
-              value={getSafeValue(component.modelId, '0')}
-              onChange={(e) => handleDataUpdate('parts.decoration.modelId', e.target.value)}
-            >
-              <option value="0">无装饰</option>
-              <option value="1">小旗子</option>
-              <option value="2">五角星</option>
-              <option value="3">圆球</option>
-              <option value="4">四棱锥</option>
-              <option value="0">未来会支持更多预设和用户导入...</option>
-            </select>
+            <label>当前模型：</label>
+            <span className="template-current-model-name">
+              {getDecorationName(getSafeValue(component.modelId, '0'))}
+            </span>
           </div>
           <div className="template-editor-item">
-            <button className="template-import-model-button">
-              导入模型
+            <button
+              className="template-select-decoration-button"
+              onClick={() => setShowDecorationModal(true)}
+            >
+              选择模型
             </button>
           </div>
           <div className="template-editor-item">
@@ -2242,7 +2237,7 @@ modelId 含义：
                   {hdrPresets.map(preset => (
                     <button
                       key={preset.id}
-                      className={`hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
+                      className={`template-hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedHdrPreset(preset.id);
                         setShowHdrSelector(false);
@@ -2339,7 +2334,7 @@ modelId 含义：
                 ×
               </button>
             </div>
-            <div className="modal-content texture-selector-content">
+            <div className="template-modal-content template-texture-selector-content">
               <TextureGrid
                 onSelectTexture={handleTextureSelect}
                 onClose={() => setShowTextureSelector(false)}

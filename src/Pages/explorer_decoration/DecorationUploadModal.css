@@ -1,4 +1,4 @@
-.decoration-modal-overlay {
+.upload-decoration-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -24,7 +24,7 @@
   }
 }
 
-.decoration-modal-content {
+.upload-decoration-modal-content {
   width: 75%;
   max-width: 750px;
   max-height: 90vh;
@@ -50,7 +50,7 @@
   }
 }
 
-.decoration-modal-header {
+.upload-decoration-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -59,7 +59,7 @@
   background: transparent !important;
 }
 
-.decoration-modal-header h2 {
+.upload-decoration-modal-header h2 {
   margin: 0;
   color: black;
   font-size: 24px !important;
@@ -196,7 +196,7 @@
   flex: 1;
 }
 
-.decoration-modal-btn {
+.upload-decoration-modal-btn {
   padding: 12px 24px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -206,12 +206,12 @@
   transition: var(--fluent-transition);
 }
 
-.decoration-modal-btn-secondary {
+.upload-decoration-modal-btn-secondary {
   background: #e8e8e5;
   color: #555;
 }
 
-.decoration-modal-btn-secondary:hover {
+.upload-decoration-modal-btn-secondary:hover {
   background: #d8d8d5;
 }
 
@@ -274,12 +274,12 @@
   color: #333;
 }
 
-.decoration-modal-btn-primary {
+.upload-decoration-modal-btn-primary {
   background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
   color: white;
 }
 
-.decoration-modal-btn-primary:hover {
+.upload-decoration-modal-btn-primary:hover {
   background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }

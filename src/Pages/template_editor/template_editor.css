@@ -358,7 +358,7 @@
   transition: var(--fluent-transition);
   min-height: 0;
   max-width: 90vw;
-  /* 在小屏幕上限制最大宽度 */
+
 }
 
 .template-data-panel.collapsed {
@@ -1536,7 +1536,7 @@ input:checked+.toggle-label:before {
   }
 }
 
-.current-model-name {
+.template-current-model-name {
   font-size: 14px;
   font-weight: 500;
   color: #1890ff;
@@ -1546,7 +1546,7 @@ input:checked+.toggle-label:before {
   border: 1px solid #91d5ff;
 }
 
-.select-decoration-button {
+.template-select-decoration-button {
   padding: 8px 20px;
   background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
   color: white;
@@ -1559,13 +1559,13 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
 }
 
-.select-decoration-button:hover {
+.template-select-decoration-button:hover {
   background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
   box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
   transform: translateY(-1px);
 }
 
-.select-decoration-button:active {
+.template-select-decoration-button:active {
   transform: translateY(0);
 }
 
@@ -1652,7 +1652,7 @@ input:checked+.toggle-label:before {
   gap: 6px;
 }
 
-.hdr-preset-item {
+.template-hdr-preset-item {
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -1664,12 +1664,12 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.hdr-preset-item:hover {
+.template-hdr-preset-item:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: var(--fluent-primary);
 }
 
-.hdr-preset-item.active {
+.template-hdr-preset-item.active {
   background: var(--fluent-primary);
   color: white;
   border-color: var(--fluent-primary);

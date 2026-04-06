@@ -71,16 +71,16 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect, onSaveAnd
   const customDecorations = Object.values(decorationData || {});
 
   return (
-    <div className="decoration-modal-overlay" onClick={handleOverlayClick}>
-      <div className="decoration-modal">
-        <div className="decoration-modal-header">
+    <div className="chess-decoration-modal-overlay" onClick={handleOverlayClick}>
+      <div className="chess-decoration-modal">
+        <div className="chess-decoration-modal-header">
           <h2>选择模型</h2>
-          <button className="decoration-modal-close" onClick={onClose}>
+          <button className="chess-decoration-modal-close" onClick={onClose}>
             ×
           </button>
         </div>
 
-        <div className="decoration-modal-content">
+        <div className="chess-decoration-modal-content">
           <div className="decoration-section">
             <h3 className="decoration-section-title">预设</h3>
             <div className="decoration-cards-grid">
@@ -154,12 +154,12 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect, onSaveAnd
           </div>
         </div>
 
-        <div className="decoration-modal-footer">
+        <div className="chess-decoration-modal-footer">
           <button className="decoration-btn decoration-btn-cancel" onClick={onClose}>
             取消
           </button>
-          <button 
-            className="decoration-btn decoration-btn-explorer" 
+          <button
+            className="decoration-btn decoration-btn-explorer"
             onClick={handleNavigateToExplorer}
           >
             前往模型资源管理器

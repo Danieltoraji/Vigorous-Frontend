@@ -71,16 +71,16 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect, onSaveAnd
     const customDecorations = Object.values(decorationData || {});
 
     return (
-        <div className="decoration-modal-overlay" onClick={handleOverlayClick}>
-            <div className="decoration-modal">
-                <div className="decoration-modal-header">
+        <div className="template-decoration-modal-overlay" onClick={handleOverlayClick}>
+            <div className="template-decoration-modal">
+                <div className="template-decoration-modal-header">
                     <h2>选择模型</h2>
-                    <button className="decoration-modal-close" onClick={onClose}>
+                    <button className="template-decoration-modal-close" onClick={onClose}>
                         ×
                     </button>
                 </div>
 
-                <div className="decoration-modal-content">
+                <div className="template-decoration-modal-content">
                     <div className="decoration-section">
                         <h3 className="decoration-section-title">预设</h3>
                         <div className="decoration-cards-grid">
@@ -154,7 +154,7 @@ function ChooseDecoration({ isOpen, onClose, currentModelId, onSelect, onSaveAnd
                     </div>
                 </div>
 
-                <div className="decoration-modal-footer">
+                <div className="template-decoration-modal-footer">
                     <button className="decoration-btn decoration-btn-cancel" onClick={onClose}>
                         取消
                     </button>

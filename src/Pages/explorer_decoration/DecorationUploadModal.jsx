@@ -83,10 +83,10 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
   }
 
   return (
-    <div className="decoration-modal-overlay" onClick={onClose}>
-      <div className="decoration-modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="upload-decoration-modal-overlay" onClick={onClose}>
+      <div className="upload-decoration-modal-content" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="decoration-form">
-          <div className="decoration-modal-header">
+          <div className="upload-decoration-modal-header">
             <h2>{decoration ? '编辑装饰' : '上传装饰'}</h2>
             <button className="decoration-close-button" onClick={onClose}>×</button>
           </div>
@@ -138,7 +138,7 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
                   }
                 }}
               />
-              <button type="button" onClick={handleAddTag} className="decoration-modal-btn decoration-modal-btn-secondary">
+              <button type="button" onClick={handleAddTag} className="upload-decoration-modal-btn upload-decoration-modal-btn-secondary">
                 添加
               </button>
             </div>
@@ -159,10 +159,10 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
           </div>
 
           <div className="decoration-form-actions">
-            <button type="button" onClick={onClose} className="decoration-modal-btn decoration-modal-btn-secondary">
+            <button type="button" onClick={onClose} className="upload-decoration-modal-btn upload-decoration-modal-btn-secondary">
               取消
             </button>
-            <button type="submit" className="decoration-modal-btn decoration-modal-btn-primary">
+            <button type="submit" className="upload-decoration-modal-btn upload-decoration-modal-btn-primary">
               {decoration ? '保存修改' : '上传'}
             </button>
           </div>
