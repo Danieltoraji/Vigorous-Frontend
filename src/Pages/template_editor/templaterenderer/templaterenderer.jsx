@@ -6,6 +6,7 @@ import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/Cust
 
 // 从 THREE 命名空间获取常用几何体和工具
 const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
+const DEFAULT_TEXT_FONT_JSON = '/static/fonts/STZhongsong_Regular.json';
 
 /**
  * SceneContent component - contains all scene objects and model rendering logic
@@ -227,7 +228,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 patternelement = (
                     <mesh position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0), pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
                         <Text3D
-                            font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
+                            font={pattern.font || DEFAULT_TEXT_FONT_JSON}
                             size={pattern.size || 5}
                             height={pattern.depth || 1}
                             curveSegments={12}
@@ -475,7 +476,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 patternelement = (
                     <mesh position={[pattern.position?.x || 0, baseheight + height + position.y + pattern.position?.y || 0, pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
                         <Text3D
-                            font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
+                            font={pattern.font || DEFAULT_TEXT_FONT_JSON}
                             size={pattern.size || 5}
                             height={pattern.depth || 1}
                             curveSegments={12}

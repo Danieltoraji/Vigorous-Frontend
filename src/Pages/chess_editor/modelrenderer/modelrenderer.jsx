@@ -9,6 +9,7 @@ import { useDecoration } from '../../../hooks/useDecoration.jsx';
 
 
 const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector2, Vector3, LatheGeometry } = THREE;
+const DEFAULT_TEXT_FONT_JSON = '/static/fonts/STZhongsong_Regular.json';
 
 const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 const textureLoader = new TextureLoader();
@@ -46,7 +47,7 @@ function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position =
         <group position={position} rotation={rotation} scale={transform}>
             <mesh castShadow receiveShadow>
                 <Text3D
-                    font={'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json'}
+                    font={pattern.font || DEFAULT_TEXT_FONT_JSON}
                     size={pattern.size || 5}
                     height={pattern.depth || 1}
                     curveSegments={12}

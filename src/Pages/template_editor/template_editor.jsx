@@ -40,6 +40,11 @@ function TemplateEditor() {
   // HDR 预设相关状态
   const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
   const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
+  const FONT_OPTIONS = [
+    { value: '/static/fonts/STZhongsong_Regular.json', label: '华文中宋' },
+    { value: '/static/fonts/Minecraft_Regular.json', label: 'Minecraft' },
+    { value: '/static/fonts/Times New Roman_Bold.json', label: 'Times New Roman Bold' },
+  ];
 
   // HDR 预设列表
   const hdrPresets = [
@@ -739,25 +744,15 @@ modelId 含义：
                 />
               </div>
               <div className="template-editor-item">
-                <label>文字样式：</label>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.bold, false)}
-                      onChange={(e) => handleDataUpdate('parts.base.pattern.bold', e.target.checked)}
-                    />
-                    粗体
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.underline, false)}
-                      onChange={(e) => handleDataUpdate('parts.base.pattern.underline', e.target.checked)}
-                    />
-                    下划线
-                  </label>
-                </div>
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
               </div>
               <div className="template-editor-item">
                 <label>尺寸拉伸：</label>
@@ -1343,25 +1338,15 @@ modelId 含义：
                 />
               </div>
               <div className="template-editor-item">
-                <label>文字样式：</label>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.bold, false)}
-                      onChange={(e) => handleDataUpdate('parts.column.pattern.bold', e.target.checked)}
-                    />
-                    粗体
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.underline, false)}
-                      onChange={(e) => handleDataUpdate('parts.column.pattern.underline', e.target.checked)}
-                    />
-                    下划线
-                  </label>
-                </div>
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
               </div>
               <div className="template-editor-item">
                 <label>尺寸拉伸：</label>

@@ -50,6 +50,11 @@ function ChessEditor() {
     { id: '3', name: '圆球' },
     { id: '4', name: '四棱锥' },
   ];
+  const FONT_OPTIONS = [
+    { value: '/static/fonts/STZhongsong_Regular.json', label: '华文中宋' },
+    { value: '/static/fonts/Minecraft_Regular.json', label: 'Minecraft' },
+    { value: '/static/fonts/Times New Roman_Bold.json', label: 'Times New Roman Bold' },
+  ];
 
   const getDecorationName = (modelId) => {
     const preset = PRESET_DECORATIONS.find(d => d.id === modelId);
@@ -1042,25 +1047,15 @@ modelId 含义：
                 />
               </div>
               <div className="editor-item">
-                <label>文字样式：</label>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.bold, false)}
-                      onChange={(e) => handleDataUpdate('parts.base.pattern.bold', e.target.checked)}
-                    />
-                    粗体
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.underline, false)}
-                      onChange={(e) => handleDataUpdate('parts.base.pattern.underline', e.target.checked)}
-                    />
-                    下划线
-                  </label>
-                </div>
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
               </div>
             </>
           )}
@@ -1835,25 +1830,15 @@ modelId 含义：
                 />
               </div>
               <div className="editor-item">
-                <label>文字样式：</label>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.bold, false)}
-                      onChange={(e) => handleDataUpdate('parts.column.pattern.bold', e.target.checked)}
-                    />
-                    粗体
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!getSafeValue(pattern.underline, false)}
-                      onChange={(e) => handleDataUpdate('parts.column.pattern.underline', e.target.checked)}
-                    />
-                    下划线
-                  </label>
-                </div>
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
               </div>
             </>
           )}
