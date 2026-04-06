@@ -399,6 +399,51 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
     const baseShape = hasBase ? base.shape : null;
     const columnShape = hasColumn ? column.shape : null;
 
+    // 根据形状类型生成 Shape 轮廓（支持圆形、多边形、正方形）
+    const generateShapeOutline = (geoType, size1, size2, sides = 0) => {
+        const shape = new Shape();
+        const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
+
+        if (geoType === 'box') {
+            // 正方形轮廓
+            const halfWidth = size1 / 2;
+            const halfDepth = size2 / 2;
+            shape.moveTo(-halfWidth, -halfDepth);
+            shape.lineTo(halfWidth, -halfDepth);
+            shape.lineTo(halfWidth, halfDepth);
+            shape.lineTo(-halfWidth, halfDepth);
+            shape.lineTo(-halfWidth, -halfDepth);
+        } else if (geoType === 'cylinder' && sides >= 3) {
+            // 多边形轮廓
+            const angleStep = (Math.PI * 2) / sides;
+            for (let i = 0; i < sides; i++) {
+                const angle = i * angleStep;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                if (i === 0) {
+                    shape.moveTo(x, y);
+                } else {
+                    shape.lineTo(x, y);
+                }
+            }
+            shape.lineTo(Math.cos(0) * radius, Math.sin(0) * radius);
+        } else {
+            // 默认圆形轮廓
+            for (let i = 0; i <= 1024; i++) {
+                const angle = (i / 1024) * Math.PI * 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                if (i === 0) {
+                    shape.moveTo(x, y);
+                } else {
+                    shape.lineTo(x, y);
+                }
+            }
+        }
+        shape.closePath();
+        return shape;
+    };
+
     // 渲染底座组件（带边缘处理）
     const renderBaseShape = () => {
         if (!hasBase) return null;
@@ -416,7 +461,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         let bodyelement = null;
 
         // 根据边缘处理类型创建几何体
-        const createGeometry = (geoType, args) => {
+        const createGeometry = (geoType, args, sides = 0) => {
             if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
                 // 无边缘处理，直接创建标准几何体
                 if (geoType === 'cylinder') {
@@ -426,67 +471,21 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 }
             } else {
                 // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
-                const shape = new Shape();
-                const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
-                const halfWidth = geoType === 'box' ? size1 / 2 : radius;
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
 
-                if (edge.type === 'smooth') {
-                    // 平滑：创建带倒角的圆形
-                    const segments = edge.segments || 4;
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
                     const bevelSize = edge.depth || 0.1;
-
-                    // 绘制圆形路径，在顶部和底部添加倒角
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
 
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
                         bevelThickness: bevelSize,
                         bevelSize: bevelSize,
-                        bevelSegments: segments,
+                        bevelSegments: bevelSegments,
                         curveSegments: 16
                     };
 
-                    shape.closePath();
-                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-                    geometry.rotateX(Math.PI / 2);
-                    geometry.translate(0, height / 2, 0);
-                    return <primitive object={geometry} />;
-                } else if (edge.type === 'round') {
-                    // 圆滑：创建带圆角的形状，使用固定的高分段数
-                    const bevelSize = edge.depth || 0.1;
-                    const segments = 256; // 固定使用 256 分段数，实现极致圆滑
-
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
-
-                    const extrudeSettings = {
-                        depth: height,
-                        bevelEnabled: true,
-                        bevelThickness: bevelSize,
-                        bevelSize: bevelSize,
-                        bevelSegments: segments,
-                        curveSegments: 16
-                    };
-
-                    shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
                     geometry.translate(0, height / 2, 0);
@@ -520,7 +519,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 const baseSides = baseShape.sides || 6;
                 bodyelement = (
                     <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
-                        {createGeometry('cylinder', [size1, size2, height, baseSides])}
+                        {createGeometry('cylinder', [size1, size2, height, baseSides], baseSides)}
                         <meshStandardMaterial
                             color="#8B4513"
                             metalness={material.metalness}
@@ -752,7 +751,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         let bodyelement = null;
 
         // 根据边缘处理类型创建几何体
-        const createGeometry = (geoType, args) => {
+        const createGeometry = (geoType, args, sides = 0) => {
             if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
                 // 无边缘处理，直接创建标准几何体
                 if (geoType === 'cylinder') {
@@ -762,67 +761,21 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 }
             } else {
                 // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
-                const shape = new Shape();
-                const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
 
-                if (edge.type === 'smooth') {
-                    // 平滑：创建带倒角的圆形
-                    const segments = edge.segments || 4;
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
                     const bevelSize = edge.depth || 0.1;
-
-                    // 绘制圆形路径
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
 
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
                         bevelThickness: bevelSize,
                         bevelSize: bevelSize,
-                        bevelSegments: segments,
+                        bevelSegments: bevelSegments,
                         curveSegments: 16
                     };
 
-                    shape.closePath();
-                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-                    geometry.rotateX(Math.PI / 2);
-                    geometry.translate(0, height / 2, 0);
-                    return <primitive object={geometry} />;
-                } else if (edge.type === 'round') {
-                    // 圆滑：创建带圆角的形状，使用固定的高分段数
-                    const bevelSize = edge.depth || 0.1;
-                    const segments = 256; // 固定使用 256 分段数，实现极致圆滑
-
-                    // 绘制带圆角的圆形
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
-
-                    const extrudeSettings = {
-                        depth: height,
-                        bevelEnabled: true,
-                        bevelThickness: bevelSize,
-                        bevelSize: bevelSize,
-                        bevelSegments: segments,
-                        curveSegments: 16
-                    };
-
-                    shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
                     geometry.translate(0, height / 2, 0);
@@ -858,7 +811,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 const columnSides = columnShape.sides || 6;
                 bodyelement = (
                     <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
-                        {createGeometry('cylinder', [size1, size2, height, columnSides])}
+                        {createGeometry('cylinder', [size1, size2, height, columnSides], columnSides)}
                         <meshStandardMaterial
                             color="#CD853F"
                             metalness={material.metalness}
