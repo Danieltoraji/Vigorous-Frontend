@@ -362,6 +362,42 @@ export function ChessProvider({ children }) {
     }
   };
 
+  // B6.5 方法：将棋子保存为预设（模板）
+  const savePieceAsPreset = async (chessId, presetName, presetDescription = '') => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await csrfapi.post(
+        `/pieces/${chessId}/save_as_preset/`,
+        {
+          name: presetName,
+          description: presetDescription
+        }
+      );
+
+      const newPreset = response.data;
+      setLastUpdated(new Date().toISOString());
+
+      return {
+        success: true,
+        preset: newPreset,
+        message: `成功创建预设 "${newPreset.name}"`
+      };
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.message || '保存预设失败';
+      setError(errorMessage);
+
+      return {
+        success: false,
+        error: errorMessage,
+        statusCode: err.response?.status
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // B7. 总结：提供给组件的数据和方法
   const value = {
     // 数据
@@ -381,6 +417,7 @@ export function ChessProvider({ children }) {
     createChessFromJson,
     updateChess,
     deleteChess,
+    savePieceAsPreset,
 
     // 如果你还想保留原始的 setChessData（用于特殊情况）
     setChessData

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './views.css';
+import { useUser } from '../../../../../hooks/useUser';
 // 格式化日期
 const formatDate = (dateString) => {
   if (!dateString || dateString === '无数据') return '无数据';
@@ -22,7 +23,7 @@ const formatDate = (dateString) => {
     return dateString;
   }
 };
-const CardView = ({ pieces, onEdit, onOpen, onDelete }) => {
+const CardView = ({ pieces, onEdit, onOpen, onDelete, onSaveAsTemplate }) => {
   return (
     <div className="card-view">
       {pieces.map((piece) => (
@@ -32,15 +33,18 @@ const CardView = ({ pieces, onEdit, onOpen, onDelete }) => {
           onEdit={onEdit}
           onOpen={onOpen}
           onDelete={onDelete}
+          onSaveAsTemplate={onSaveAsTemplate}
         />
       ))}
     </div>
   );
 };
 
-const ChessCard = ({ piece, onEdit, onOpen, onDelete }) => {
+const ChessCard = ({ piece, onEdit, onOpen, onDelete, onSaveAsTemplate }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const { userData } = useUser()
+  const isOwnedByCurrentUser = piece.user === userData?.id
 
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -95,12 +99,24 @@ const ChessCard = ({ piece, onEdit, onOpen, onDelete }) => {
               <button
                 type="button"
                 className="menu-item"
+                disabled={!isOwnedByCurrentUser}
+                title={isOwnedByCurrentUser ? '' : '只能保存自己的棋子为模板'}
                 onClick={() => {
                   setMenuOpen(false)
                   onEdit(piece)
                 }}
               >
                 编辑
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onSaveAsTemplate(piece)
+                }}
+              >
+                保存为模板
               </button>
               <button
                 type="button"

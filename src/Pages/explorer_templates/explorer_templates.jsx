@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useUser } from '../../hooks/useUser.jsx'
 import { useTemplates } from '../../hooks/useTemplates.jsx'
+import { useProject } from '../../hooks/useProject.jsx'
 import './explorer_templates.css'
 import { useNavigate } from 'react-router-dom'
 import ImportFromProject from './import_from_project/import_from_project.jsx'
+import { ApplyTemplateModal } from './modals/ApplyTemplateModal.jsx'
 
 // 格式化日期时间
 function formatDateTime(dateString) {
@@ -19,7 +21,8 @@ function formatDateTime(dateString) {
 }
 
 function ExplorerTemplates() {
-  const { templatesData, loading, error, deleteTemplate, createTemplate, createTemplateFromJson, updateTemplate } = useTemplates()
+  const { templatesData, loading, error, deleteTemplate, createTemplate, createTemplateFromJson, updateTemplate, applyPresetToProjects } = useTemplates()
+  const { projectData } = useProject()
   const [viewMode, setViewMode] = useState('card') // 'card' or 'list'
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
@@ -34,6 +37,7 @@ function ExplorerTemplates() {
   const [moreActionsOpen, setMoreActionsOpen] = useState(null)
   const moreActionsRefs = useRef({})
   const navigate = useNavigate()
+  const [applyingTemplateId, setApplyingTemplateId] = useState(null)
 
   useEffect(() => {
     if (moreActionsOpen === null) return undefined
@@ -99,8 +103,16 @@ function ExplorerTemplates() {
 
   // 处理应用到项目
   const handleApplyToProject = (template) => {
-    alert("apply");
-    // TODO: 实现应用模板逻辑
+    setApplyingTemplateId(template.id);
+  }
+
+  // 处理应用模板成功
+  const handleApplySuccess = (result) => {
+    const message = result.created_project
+      ? `成功创建项目 "${result.created_project.name}" 并添加棋子`
+      : `成功在 ${result.created_pieces.length} 个项目中添加棋子`;
+    alert(message);
+    setApplyingTemplateId(null);
   }
 
   // 处理编辑信息
@@ -745,6 +757,18 @@ function ExplorerTemplates() {
         onClose={handleCloseImportFromProjectModal}
         onConfirm={handleConfirmImportFromProject}
       />
+
+      {/* 应用模板到项目模态框 */}
+      {applyingTemplateId && (
+        <ApplyTemplateModal
+          isOpen={!!applyingTemplateId}
+          onClose={() => setApplyingTemplateId(null)}
+          presetId={applyingTemplateId}
+          presetName={templatesData[applyingTemplateId]?.name || ''}
+          projects={projectData}
+          onApplySuccess={handleApplySuccess}
+        />
+      )}
 
     </div>
   )

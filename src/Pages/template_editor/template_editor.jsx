@@ -5,6 +5,8 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './templaterenderer/templaterenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import csrfapi from '../../utils/csrfapi.js';
+import ChooseDecoration from './choose_decoration.jsx';
+import TextureGrid from './TextureGrid.jsx';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function TemplateEditor() {
@@ -27,6 +29,9 @@ function TemplateEditor() {
   const [rightWidth, setRightWidth] = useState(400); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
+  const [showDecorationModal, setShowDecorationModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   // AI 生成相关状态
   const [showAIGenerator, setShowAIGenerator] = useState(false); // AI 生成器显示状态
@@ -34,12 +39,38 @@ function TemplateEditor() {
   const [isGenerating, setIsGenerating] = useState(false); // AI 生成中状态
   const [aiError, setAiError] = useState(''); // AI 生成错误信息
 
+  // 显示 toast 提示
+  const showSuccessToast = useCallback((message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
+
   // 引用
   const editorContentRef = useRef(null);
 
   // HDR 预设相关状态
   const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
   const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
+
+  // 装饰预设列表
+  const PRESET_DECORATIONS = [
+    { id: '0', name: '无装饰' },
+    { id: '1', name: '小旗子' },
+    { id: '2', name: '五角星' },
+    { id: '3', name: '圆球' },
+    { id: '4', name: '四棱锥' },
+  ];
+
+  // 自定义纹理相关状态
+  const [showCustomTextureModal, setShowCustomTextureModal] = useState(false); // 自定义纹理弹窗显示状态
+  const [showTextureSelector, setShowTextureSelector] = useState(false); // 纹理选择器显示状态
+  const [selectedTexture, setSelectedTexture] = useState(null); // 选中的纹理
+  const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
+  const [smoothTexture, setSmoothTexture] = useState(false); // 是否启用平滑纹理
+
   const FONT_OPTIONS = [
     { value: '/static/fonts/STZhongsong_Regular.json', label: '华文中宋' },
     { value: '/static/fonts/Minecraft_Regular.json', label: 'Minecraft' },
@@ -155,6 +186,59 @@ function TemplateEditor() {
       alert('保存失败：' + (error.message || '未知错误'));
     }
   }, [currentTemplate, updateTemplate]);
+
+  // 装饰相关函数
+  const getDecorationName = (modelId) => {
+    const preset = PRESET_DECORATIONS.find(d => d.id === modelId);
+    if (preset) return preset.name;
+    return modelId || '无装饰';
+  };
+
+  const handleDecorationSelect = (selectedId, selectedType) => {
+    handleDataUpdate('parts.decoration.modelId', selectedId);
+  };
+
+  // 纹理相关函数
+  const handleTextureSelect = (texture) => {
+    setSelectedTexture(texture);
+    if (!currentTemplate || !selectedComponent) return;
+
+    const componentPath = selectedComponent === 'base'
+      ? 'parts.base.pattern'
+      : 'parts.column.pattern';
+
+    const patternData = {
+      textureFile: texture.file,
+      shape: 'custom',
+      size: 10,
+      depth: 1,
+      position: { x: 0, y: 0, z: 0 },
+      smooth: smoothTexture
+    };
+
+    handleDataUpdate(componentPath, patternData);
+  };
+
+  const toggleSmoothTexture = useCallback(() => {
+    const newValue = !smoothTexture;
+    setSmoothTexture(newValue);
+
+    if (currentTemplate && selectedComponent) {
+      const componentPath = selectedComponent === 'base'
+        ? 'parts.base.pattern'
+        : 'parts.column.pattern';
+      const currentPattern = selectedComponent === 'base'
+        ? currentTemplate.parts?.base?.pattern
+        : currentTemplate.parts?.column?.pattern;
+
+      if (currentPattern && currentPattern.shape === 'custom') {
+        handleDataUpdate(componentPath, {
+          ...currentPattern,
+          smooth: newValue
+        });
+      }
+    }
+  }, [smoothTexture, currentTemplate, selectedComponent, handleDataUpdate]);
 
   // AI 生成模型 - 根据提示词生成 JSON 格式的模型数据
   const handleAIGenerate = useCallback(async () => {
@@ -2241,6 +2325,38 @@ modelId 含义：
             </div>
           </div>
         </div>
+      )}
+
+      {/* 纹理选择器弹窗 */}
+      {showTextureSelector && (
+        <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
+          <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
+              <button className="close-button" onClick={() => setShowTextureSelector(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-content texture-selector-content">
+              <TextureGrid
+                onSelectTexture={handleTextureSelect}
+                onClose={() => setShowTextureSelector(false)}
+                mode={textureMode}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 装饰选择器弹窗 */}
+      {showDecorationModal && (
+        <ChooseDecoration
+          isOpen={showDecorationModal}
+          onClose={() => setShowDecorationModal(false)}
+          currentModelId={currentTemplate?.parts?.decoration?.modelId}
+          onSelect={handleDecorationSelect}
+          onSaveAndNavigate={handleSave}
+        />
       )}
     </div>
   );

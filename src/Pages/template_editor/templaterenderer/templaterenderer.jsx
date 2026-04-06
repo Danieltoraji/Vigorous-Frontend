@@ -8,6 +8,44 @@ import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/Cust
 const { AxesHelper, ExtrudeGeometry, Shape } = THREE;
 const DEFAULT_TEXT_FONT_JSON = '/static/fonts/STZhongsong_Regular.json';
 
+function getPatternTransform(pattern = {}) {
+    const flipX = pattern.flipX ? -1 : 1;
+    const flipY = pattern.flipY ? -1 : 1;
+    const flipZ = pattern.flipZ ? -1 : 1;
+
+    return [
+        (pattern.scaleX !== undefined ? pattern.scaleX : 1) * flipX,
+        (pattern.scaleY !== undefined ? pattern.scaleY : -1) * flipY,
+        (pattern.scaleZ !== undefined ? pattern.scaleZ : 1) * flipZ
+    ];
+}
+
+function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
+    const transform = getPatternTransform(pattern);
+
+    return (
+        <group position={position} rotation={rotation} scale={transform}>
+            <mesh castShadow receiveShadow>
+                <Text3D
+                    font={pattern.font || DEFAULT_TEXT_FONT_JSON}
+                    size={pattern.size || 5}
+                    height={pattern.depth || 1}
+                    curveSegments={12}
+                >
+                    {(pattern.content ?? '').toString()}
+                </Text3D>
+                <meshStandardMaterial
+                    color={color}
+                    metalness={material?.metalness ?? 0.2}
+                    roughness={material?.roughness ?? 0.6}
+                    clearcoat={material?.clearcoat ?? 0}
+                    clearcoatRoughness={material?.clearcoatRoughness ?? 0}
+                />
+            </mesh>
+        </group>
+    );
+}
+
 /**
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
@@ -58,6 +96,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
         const position = base.position || { x: 0, y: 0, z: 0 };
         const material = base.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = base.pattern || { shape: 'none', position: { x: 0, y: 0, z: 0 } };
+        const patternScale = getPatternTransform(pattern);
         const edge = base.edge || { type: 'none', depth: 0, segments: 4 };
 
         // 渲染主体元素 
@@ -226,30 +265,19 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 break;
             case 'text':
                 patternelement = (
-                    <mesh position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0), pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                        <Text3D
-                            font={pattern.font || DEFAULT_TEXT_FONT_JSON}
-                            size={pattern.size || 5}
-                            height={pattern.depth || 1}
-                            curveSegments={12}
-                        >
-                            {pattern.content}
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </Text3D>
-                    </mesh>
+                    <PatternTextMesh
+                        pattern={pattern}
+                        material={material}
+                        color="#CD853F"
+                        position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
+                    />
                 );
                 break;
             case 'geometry':
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} scale={patternScale} castShadow receiveShadow>
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
@@ -263,7 +291,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]} scale={patternScale} castShadow receiveShadow>
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
@@ -277,7 +305,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]} scale={patternScale} castShadow receiveShadow>
                                 <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
                                 <meshStandardMaterial
                                     color="#8B4513"
@@ -315,6 +343,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
         const position = column.position || { x: 0, y: 0, z: 0 };
         const material = column.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = column.pattern || { shape: 'none' };
+        const patternScale = getPatternTransform(pattern);
         const edge = column.edge || { type: 'none', depth: 0, segments: 4 };
         const baseheight = base.shape.height || 0;
         let bodyelement = null;
@@ -474,30 +503,19 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 break;
             case 'text':
                 patternelement = (
-                    <mesh position={[pattern.position?.x || 0, baseheight + height + position.y + pattern.position?.y || 0, pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                        <Text3D
-                            font={pattern.font || DEFAULT_TEXT_FONT_JSON}
-                            size={pattern.size || 5}
-                            height={pattern.depth || 1}
-                            curveSegments={12}
-                        >
-                            {pattern.content}
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </Text3D>
-                    </mesh>
+                    <PatternTextMesh
+                        pattern={pattern}
+                        material={material}
+                        color="#CD853F"
+                        position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
+                    />
                 );
                 break;
             case 'geometry':
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} scale={patternScale} castShadow receiveShadow>
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
                                 <meshStandardMaterial
                                     color="#CD853F"
@@ -511,7 +529,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} scale={patternScale} castShadow receiveShadow>
                                 <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
                                 <meshStandardMaterial
                                     color="#CD853F"
@@ -525,7 +543,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} castShadow receiveShadow>
+                            <mesh position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]} scale={patternScale} castShadow receiveShadow>
                                 <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
                                 <meshStandardMaterial
                                     color="#CD853F"
