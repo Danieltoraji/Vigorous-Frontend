@@ -556,7 +556,7 @@
   color: var(--fluent-text);
 }
 
-.editor-section {
+.template-editor-section {
   margin-bottom: 20px;
   padding: 15px;
   background: rgba(255, 255, 255, 0.5);
@@ -564,34 +564,34 @@
   border: 1px solid var(--fluent-border);
 }
 
-.editor-section h4 {
+.template-editor-section h4 {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 15px;
   color: var(--fluent-text);
 }
 
-.editor-subsection {
+.template-editor-subsection {
   margin-top: 15px;
   padding-left: 15px;
   border-left: 2px solid var(--fluent-border-light);
 }
 
-.editor-subsection h5 {
+.template-editor-subsection h5 {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 10px;
   color: var(--fluent-text-secondary);
 }
 
-.editor-item {
+.template-editor-item {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
 }
 
-.editor-item label {
+.template-editor-item label {
   font-size: 13px;
   color: var(--fluent-text-secondary);
   width: 60px;
@@ -647,14 +647,14 @@ input:checked+.toggle-label:before {
 }
 
 /* 过渡动画效果 */
-.editor-section {
+.template-editor-section {
   opacity: 1;
   max-height: 500px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.editor-section.hidden {
+.template-editor-section.hidden {
   opacity: 0;
   max-height: 0;
   margin-bottom: 0;
@@ -662,7 +662,7 @@ input:checked+.toggle-label:before {
   border-bottom: none;
 }
 
-.editor-section.visible {
+.template-template-editor-section.visible {
   opacity: 1;
   max-height: 500px;
   margin-bottom: 25px;
@@ -670,8 +670,8 @@ input:checked+.toggle-label:before {
   border-bottom: 1px solid var(--fluent-border-light);
 }
 
-.editor-item input[type="text"],
-.editor-item select {
+.template-editor-item input[type="text"],
+.template-editor-item select {
   flex: 1;
   padding: 6px 12px;
   border: 1px solid var(--fluent-border);
@@ -682,19 +682,19 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.editor-item input[type="text"]:hover,
-.editor-item select:hover {
+.template-editor-item input[type="text"]:hover,
+.template-editor-item select:hover {
   border-color: rgba(0, 0, 0, 0.16);
 }
 
-.editor-item input[type="text"]:focus,
-.editor-item select:focus {
+.template-editor-item input[type="text"]:focus,
+.template-editor-item select:focus {
   outline: none;
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.editor-item input[type="range"] {
+.template-editor-item input[type="range"] {
   flex: 1;
   height: 6px;
   background: var(--fluent-border);
@@ -704,7 +704,7 @@ input:checked+.toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.editor-item input[type="range"]::-webkit-slider-thumb {
+.template-editor-item input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 16px;
@@ -716,12 +716,12 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(21, 6, 189, 0.1);
 }
 
-.editor-item input[type="range"]::-webkit-slider-thumb:hover {
+.template-editor-item input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 42, 212, 0.3);
   transform: scale(1.1);
 }
 
-.editor-item input[type="range"]::-moz-range-thumb {
+.template-editor-item input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: #2e0cf0;
@@ -732,13 +732,13 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.editor-item input[type="range"]::-moz-range-thumb:hover {
+.template-editor-item input[type="range"]::-moz-range-thumb:hover {
   box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
   transform: scale(1.1);
 }
 
 /* 边缘处理按钮样式 */
-.edge-toggle-button {
+.template-edge-toggle-button {
   padding: 8px 16px;
   border: 1px solid var(--fluent-border);
   border-radius: var(--fluent-radius);
@@ -751,28 +751,28 @@ input:checked+.toggle-label:before {
   font-weight: 500;
 }
 
-.edge-toggle-button:hover {
+.template-edge-toggle-button:hover {
   background: rgba(55, 0, 255, 0.5);
   border-color: var(--fluent-primary);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.edge-toggle-button.active {
+.template-template-edge-toggle-button.active {
   background: #4648b2;
   color: white;
   border-color: #4648b2;
 }
 
-.edge-toggle-button.active:hover {
+.template-edge-toggle-button.active:hover {
   background: #0a118591;
 }
 
-.number-input {
+.template-number-input {
   width: 60px !important;
   text-align: center;
 }
 
-.color-picker {
+.template-color-picker {
   width: 40px;
   height: 30px;
   border: 1px solid var(--fluent-border);
@@ -782,25 +782,25 @@ input:checked+.toggle-label:before {
   transition: var(--fluent-transition);
 }
 
-.color-picker:hover {
+.template-color-picker:hover {
   border-color: var(--fluent-primary);
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
-.color-input {
+.template-color-input {
   width: 80px !important;
   text-transform: uppercase;
 }
 
 /* 禁用输入框样式 */
-.disabled-input {
+.template-disabled-input {
   background-color: #f5f5f5;
   color: #999;
   cursor: not-allowed;
 }
 
 /* 模型导入按钮样式 */
-.import-model-button {
+.template-import-model-button {
   background: linear-gradient(45deg, #4CAF50, #45a049);
   color: white;
   border: none;
@@ -812,26 +812,26 @@ input:checked+.toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.import-model-button:hover {
+.template-import-model-button:hover {
   background: linear-gradient(45deg, #45a049, #3d8b40);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.import-model-button:active {
+.template-import-model-button:active {
   transform: translateY(0);
 }
 
 /* 当形状容器包含异形生成器时，应用特殊高度 */
-.editor-section:has(.custom-revolution-wrapper) {
+.template-editor-section:has(.custom-revolution-wrapper) {
   min-height: 650px;
-  max-height: 1000px;
+  max-height: 1600px;
   overflow: visible;
 }
 
-.editor-section:has(.custom-revolution-wrapper).visible {
+.template-editor-section:has(.custom-revolution-wrapper).visible {
   min-height: 650px;
-  max-height: 1000px;
+  max-height: 1600px;
 }
 
 /* 异形生成器可滚动容器 */

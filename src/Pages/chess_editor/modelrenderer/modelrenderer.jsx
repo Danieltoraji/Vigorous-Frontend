@@ -15,6 +15,18 @@ const textureLoader = new TextureLoader();
 // 基础几何图形 ID 列表
 const BASIC_GEOMETRY_IDS = ['geo_sphere', 'geo_cube', 'geo_cylinder', 'geo_cone'];
 
+function toRadians(value = 0) {
+    return (value * Math.PI) / 180;
+}
+
+function toRotation(rotation = {}) {
+    return [
+        toRadians(rotation.x || 0),
+        toRadians(rotation.y || 0),
+        toRadians(rotation.z || 0)
+    ];
+}
+
 function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smooth = false }) {
     const [geometry, setGeometry] = useState(null);
 
@@ -393,6 +405,9 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
 
         const { type, size1, size2, height } = baseShape;
         const position = base.position || { x: 0, y: 0, z: 0 };
+        const rotation = baseShape.rotation || { x: 0, y: 0, z: 0 };
+        const specialScale = baseShape.specialScale || { x: 1, y: 1, z: 1 };
+        const specialRotation = baseShape.specialRotation || { x: 0, y: 0, z: 0 };
         const material = base.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = base.pattern || { shape: 'none', position: { x: 0, y: 0, z: 0 } };
         const edge = base.edge || { type: 'none', depth: 0, segments: 4 };
@@ -490,7 +505,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         switch (type) {
             case 'cycle':
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('cylinder', [size1, size2, height, 64])}
                         <meshStandardMaterial
                             color="#8B4513"
@@ -504,7 +519,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'polygon':
                 const baseSides = baseShape.sides || 6;
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('cylinder', [size1, size2, height, baseSides])}
                         <meshStandardMaterial
                             color="#8B4513"
@@ -517,7 +532,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 ); break;
             case 'cube':
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('box', [size1, height, size2])}
                         <meshStandardMaterial
                             color="#8B4513"
@@ -531,7 +546,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'special': // 异形类型
                 const baseCustomShape = base.customShape || { profilePoints: [], pathPoints: [], generated: false };
                 bodyelement = (
-                    <group position={[position.x, position.y, position.z]}>
+                    <group position={[0, 0, 0]}>
                         <ModelPreview
                             profilePoints={baseCustomShape.profilePoints}
                             pathPoints={baseCustomShape.pathPoints}
@@ -541,7 +556,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 ); break;
             default:
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, 64]} />
                         <meshStandardMaterial
                             color="#8B4513"
@@ -714,7 +729,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 break;
         }
         return (
-            <group>
+            <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
                 {bodyelement}
                 {patternelement}
             </group>
@@ -727,6 +742,9 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
 
         const { type, size1, size2, height } = columnShape;
         const position = column.position || { x: 0, y: 0, z: 0 };
+        const rotation = columnShape.rotation || { x: 0, y: 0, z: 0 };
+        const specialScale = columnShape.specialScale || { x: 1, y: 1, z: 1 };
+        const specialRotation = columnShape.specialRotation || { x: 0, y: 0, z: 0 };
         const material = column.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = column.pattern || { shape: 'none' };
         const edge = column.edge || { type: 'none', depth: 0, segments: 4 };
@@ -824,7 +842,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         switch (type) {
             case 'cycle':
                 bodyelement = (
-                    <mesh position={[position.x, baseheight + height / 2 + position.y, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('cylinder', [size1, size2, height, 64])}
                         <meshStandardMaterial
                             color="#CD853F"
@@ -839,7 +857,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'polygon':
                 const columnSides = columnShape.sides || 6;
                 bodyelement = (
-                    <mesh position={[position.x, baseheight + height / 2 + position.y, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('cylinder', [size1, size2, height, columnSides])}
                         <meshStandardMaterial
                             color="#CD853F"
@@ -852,7 +870,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 ); break;
             case 'cube':
                 bodyelement = (
-                    <mesh position={[position.x, baseheight + height / 2 + position.y, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('box', [size1, height, size2])}
                         <meshStandardMaterial
                             color="#CD853F"
@@ -868,7 +886,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'special': // 异形类型
                 const columnCustomShape = column.customShape || { profilePoints: [], pathPoints: [], generated: false };
                 bodyelement = (
-                    <group position={[position.x, baseheight + height / 2 + position.y, position.z]}>
+                    <group position={[0, baseheight + height / 2, 0]}>
                         <ModelPreview
                             profilePoints={columnCustomShape.profilePoints}
                             pathPoints={columnCustomShape.pathPoints}
@@ -1040,7 +1058,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         }
 
         return (
-            <group>
+            <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
                 {bodyelement}
                 {patternelement}
             </group>
