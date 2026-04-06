@@ -634,6 +634,35 @@ modelId 含义：
 
   }, [handleMouseMove, handleMouseUp]);
 
+  const renderFlipControls = useCallback((patternPath, pattern, getSafeValue) => (
+    <div className="template-editor-item">
+      <label>翻转：</label>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {['X', 'Y', 'Z'].map((axis) => {
+          const key = `flip${axis}`;
+          const active = !!getSafeValue(pattern?.[key], false);
+          return (
+            <button
+              key={axis}
+              type="button"
+              onClick={() => handleDataUpdate(`${patternPath}.${key}`, !active)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: active ? '1px solid #667eea' : '1px solid #ccc',
+                background: active ? '#e8ecff' : '#f5f5f5',
+                color: '#333',
+                cursor: 'pointer'
+              }}
+            >
+              {axis} 轴{active ? '已翻转' : '翻转'}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ), [handleDataUpdate]);
+
   // 渲染底座组件参数面板 - 使用 useMemo 缓存
   const renderBasePanel = useMemo(() => () => {
     if (!currentTemplate || !currentTemplate.parts?.base) return null;
@@ -646,35 +675,6 @@ modelId 含义：
     const getSafeValue = (value, defaultValue) => {
       return value !== undefined && value !== null ? value : defaultValue;
     };
-
-    const renderFlipControls = (patternPath, pattern) => (
-      <div className="template-editor-item">
-        <label>翻转：</label>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['X', 'Y', 'Z'].map((axis) => {
-            const key = `flip${axis}`;
-            const active = !!getSafeValue(pattern?.[key], false);
-            return (
-              <button
-                key={axis}
-                type="button"
-                onClick={() => handleDataUpdate(`${patternPath}.${key}`, !active)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: active ? '1px solid #667eea' : '1px solid #ccc',
-                  background: active ? '#e8ecff' : '#f5f5f5',
-                  color: '#333',
-                  cursor: 'pointer'
-                }}
-              >
-                {axis} 轴{active ? '已翻转' : '翻转'}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
 
     return (
       <div className="template-data-editor">
@@ -815,7 +815,7 @@ modelId 含义：
             </select>
           </div>
 
-          {renderFlipControls('parts.base.pattern', pattern)}
+          {renderFlipControls('parts.base.pattern', pattern, getSafeValue)}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
             <>
@@ -1177,7 +1177,7 @@ modelId 含义：
         </div>
       </div>
     );
-  }, [currentTemplate, handleDataUpdate, selectedComponent]);
+  }, [currentTemplate, handleDataUpdate, renderFlipControls, selectedComponent]);
 
   // 渲染柱体组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderColumnPanel = () => {
@@ -1409,7 +1409,7 @@ modelId 含义：
             </select>
           </div>
 
-          {renderFlipControls('parts.column.pattern', pattern)}
+          {renderFlipControls('parts.column.pattern', pattern, getSafeValue)}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
             <>
@@ -2177,10 +2177,11 @@ modelId 含义：
   return (
     <div className="template-editor">
       {/* 顶部标题栏 */}
-      <header className="editor-header">
+      <header className="template-editor-header">
         <div className="header-left">
-          <button className="back-button" onClick={handleBack}>← 返回</button>
-          <h1 className="template-name">{currentTemplate?.name || '棋子编辑器'}</h1>
+          <h1 className="template-name-header" onClick={handleBack}>
+            ❮  {currentTemplate?.name || '棋子编辑器'}
+          </h1>
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
@@ -2189,44 +2190,45 @@ modelId 含义：
         </div>
       </header>
 
-      <div className="editor-content" ref={editorContentRef}>
+      <div className="template-editor-content" ref={editorContentRef}>
         {/* 左侧组件选择 - 三个半透明小方块 */}
-        <div className="component-squares">
+        <div className="template-component-squares">
           <div
-            className={`square ${selectedComponent === 'base' ? 'active' : ''}`}
+            className={`template-square ${selectedComponent === 'base' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('base')}
             title="底座"
           >
-            <span className="square-label">底座</span>
+            <span className="template-square-label">底座</span>
           </div>
           <div
-            className={`square ${selectedComponent === 'column' ? 'active' : ''}`}
+            className={`template-square ${selectedComponent === 'column' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('column')}
             title="柱体"
           >
-            <span className="square-label">柱体</span>
+            <span className="template-square-label">柱体</span>
           </div>
           <div
-            className={`square ${selectedComponent === 'decoration' ? 'active' : ''}`}
+            className={`template-square ${selectedComponent === 'decoration' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('decoration')}
             title="装饰"
           >
-            <span className="square-label">装饰</span>
+            <span className="template-square-label">装饰</span>
           </div>
         </div>
 
         {/* 中间预览区域 */}
-        <main className="preview-area">
+        <main className="template-preview-area">
           <ModelRenderer
             template={currentTemplate}
             onModelReady={handleModelReady}
             hdrFile={hdrPresets.find(p => p.id === selectedHdrPreset)?.file || '/stage.hdr'}
+            smoothTexture={smoothTexture}
           />
 
           {/* HDR 预设选择器 */}
-          <div className="hdr-selector-container">
+          <div className="template-hdr-selector-container">
             <button
-              className="hdr-selector-toggle"
+              className="template-hdr-selector-toggle"
               onClick={() => setShowHdrSelector(!showHdrSelector)}
               title="选择环境贴图"
             >
@@ -2234,9 +2236,9 @@ modelId 含义：
             </button>
 
             {showHdrSelector && (
-              <div className="hdr-presets-dropdown">
+              <div className="template-hdr-presets-dropdown">
                 <h4>环境贴图预设</h4>
-                <div className="hdr-presets-list">
+                <div className="template-hdr-presets-list">
                   {hdrPresets.map(preset => (
                     <button
                       key={preset.id}
@@ -2259,7 +2261,7 @@ modelId 含义：
 
       {/* 右侧面板切换按钮 */}
       <button
-        className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
+        className={`template-toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
         style={{
@@ -2274,7 +2276,7 @@ modelId 含义：
       </button>
 
       {/* 右侧数据调节面板 */}
-      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{
+      <aside className={`template-data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{
         position: 'absolute',
         right: 0,
         top: 0,
@@ -2292,31 +2294,31 @@ modelId 含义：
 
       {/* 导出窗口 */}
       {showExportModal && (
-        <div className="modal-overlay">
-          <div className="export-modal">
-            <div className="modal-header">
+        <div className="template-modal-overlay">
+          <div className="template-export-modal">
+            <div className="template-modal-header">
               <h2>导出模型</h2>
-              <button className="close-button" onClick={() => setShowExportModal(false)}>
+              <button className="template-close-button" onClick={() => setShowExportModal(false)}>
                 ×
               </button>
             </div>
-            <div className="modal-content">
+            <div className="template-modal-content">
               <p>请选择导出方式：</p>
-              <div className="export-buttons">
+              <div className="template-export-buttons">
                 <button
-                  className="export-option-button"
+                  className="template-export-option-button"
                   onClick={() => handleExportAction('json')}
                 >
                   JSON数据
                 </button>
                 <button
-                  className="export-option-button"
+                  className="template-export-option-button"
                   onClick={() => handleExportAction('stl')}
                 >
                   STL（适合3D打印）
                 </button>
                 <button
-                  className="export-option-button"
+                  className="template-export-option-button"
                   onClick={() => handleExportAction('obj')}
                 >
                   OBJ（适合3D建模软件）
@@ -2329,11 +2331,11 @@ modelId 含义：
 
       {/* 纹理选择器弹窗 */}
       {showTextureSelector && (
-        <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
-          <div className="texture-selector-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="template-modal-overlay" onClick={() => setShowTextureSelector(false)}>
+          <div className="template-texture-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="template-modal-header">
               <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
-              <button className="close-button" onClick={() => setShowTextureSelector(false)}>
+              <button className="template-close-button" onClick={() => setShowTextureSelector(false)}>
                 ×
               </button>
             </div>
