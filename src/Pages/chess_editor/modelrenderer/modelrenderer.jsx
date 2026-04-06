@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, Suspense, useMemo } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
+import { OrbitControls, Text as DreiText, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
 import { OBJLoader } from 'three-stdlib';
@@ -25,6 +25,44 @@ function toRotation(rotation = {}) {
         toRadians(rotation.y || 0),
         toRadians(rotation.z || 0)
     ];
+}
+
+function getPatternTransform(pattern = {}) {
+    const flipX = pattern.flipX ? -1 : 1;
+    const flipY = pattern.flipY ? -1 : 1;
+    const flipZ = pattern.flipZ ? -1 : 1;
+
+    return [
+        (pattern.scaleX !== undefined ? pattern.scaleX : 1) * flipX,
+        (pattern.scaleY !== undefined ? pattern.scaleY : -1) * flipY,
+        (pattern.scaleZ !== undefined ? pattern.scaleZ : 1) * flipZ
+    ];
+}
+
+function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
+    const transform = getPatternTransform(pattern);
+
+    return (
+        <group position={position} rotation={rotation} scale={transform}>
+            <mesh castShadow receiveShadow>
+                <Text3D
+                    font={'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json'}
+                    size={pattern.size || 5}
+                    height={pattern.depth || 1}
+                    curveSegments={12}
+                >
+                    {(pattern.content ?? '').toString()}
+                </Text3D>
+                <meshStandardMaterial
+                    color={color}
+                    metalness={material?.metalness ?? 0.2}
+                    roughness={material?.roughness ?? 0.6}
+                    clearcoat={material?.clearcoat ?? 0}
+                    clearcoatRoughness={material?.clearcoatRoughness ?? 0}
+                />
+            </mesh>
+        </group>
+    );
 }
 
 function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smooth = false }) {
@@ -378,9 +416,9 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 <OrbitControls />
                 <ambientLight intensity={2.5} />
                 <pointLight position={[10, 10, 10]} />
-                <Text position={[0, 0, 0]} fontSize={1} color="red">
+                <DreiText position={[0, 0, 0]} fontSize={1} color="red">
                     Invalid chess data
-                </Text>
+                </DreiText>
             </>
         );
     }
@@ -561,6 +599,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         const specialRotation = baseShape.specialRotation || { x: 0, y: 0, z: 0 };
         const material = base.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = base.pattern || { shape: 'none', position: { x: 0, y: 0, z: 0 } };
+        const patternScale = getPatternTransform(pattern);
         const edge = base.edge || { type: 'none', depth: 0, segments: 4 };
 
         // 渲染主体元素 
@@ -721,23 +760,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 break;
             case 'text':
                 patternelement = (
-                    <mesh position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0), pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                        <Text3D
-                            font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
-                            size={pattern.size || 5}
-                            height={pattern.depth || 1}
-                            curveSegments={12}
-                        >
-                            {pattern.content}
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </Text3D>
-                    </mesh>
+                    <PatternTextMesh
+                        pattern={pattern}
+                        material={material}
+                        color="#CD853F"
+                        position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
+                    />
                 );
                 break;
             case 'geometry':
@@ -746,11 +774,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -769,11 +793,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -792,11 +812,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -839,11 +855,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     patternelement = (
                         <mesh
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                            scale={[
-                                pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                            ]}
+                            scale={patternScale}
                             castShadow
                             receiveShadow
                         >
@@ -890,6 +902,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         const specialRotation = columnShape.specialRotation || { x: 0, y: 0, z: 0 };
         const material = column.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = column.pattern || { shape: 'none' };
+        const patternScale = getPatternTransform(pattern);
         const edge = column.edge || { type: 'none', depth: 0, segments: 4 };
         const baseheight = base.shape.height || 0;
         let bodyelement = null;
@@ -1041,23 +1054,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 break;
             case 'text':
                 patternelement = (
-                    <mesh position={[pattern.position?.x || 0, baseheight + height + position.y + pattern.position?.y || 0, pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                        <Text3D
-                            font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
-                            size={pattern.size || 5}
-                            height={pattern.depth || 1}
-                            curveSegments={12}
-                        >
-                            {pattern.content}
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </Text3D>
-                    </mesh>
+                    <PatternTextMesh
+                        pattern={pattern}
+                        material={material}
+                        color="#CD853F"
+                        position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
+                    />
                 );
                 break;
             case 'geometry':
@@ -1066,11 +1068,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -1089,11 +1087,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -1112,11 +1106,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -1159,11 +1149,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     patternelement = (
                         <mesh
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                            scale={[
-                                pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                            ]}
+                            scale={patternScale}
                             castShadow
                             receiveShadow
                         >
@@ -1527,9 +1513,9 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />
 
             {/* 坐标轴标签 */}
-            <Text position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</Text>
-            <Text position={[0, 50, 0]} fontSize={3} color="green" anchorX="center">Y</Text>
-            <Text position={[0, 0, 50]} fontSize={3} color="blue" anchorX="left">Z</Text>
+            <DreiText position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</DreiText>
+            <DreiText position={[0, 50, 0]} fontSize={3} color="green" anchorX="center">Y</DreiText>
+            <DreiText position={[0, 0, 50]} fontSize={3} color="blue" anchorX="left">Z</DreiText>
 
             {/* Model root group - contains only the chess model meshes */}
             <group ref={modelRootRef}>

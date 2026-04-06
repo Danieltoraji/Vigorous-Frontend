@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
+import { OrbitControls, Text as DreiText, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 
@@ -28,9 +28,9 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 <OrbitControls />
                 <ambientLight intensity={2.5} />
                 <pointLight position={[10, 10, 10]} />
-                <Text position={[0, 0, 0]} fontSize={1} color="red">
+                <DreiText position={[0, 0, 0]} fontSize={1} color="red">
                     Invalid template data
-                </Text>
+                </DreiText>
             </>
         );
     }
@@ -58,10 +58,10 @@ function SceneContent({ template, onModelReady, hdrFile }) {
         const material = base.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = base.pattern || { shape: 'none', position: { x: 0, y: 0, z: 0 } };
         const edge = base.edge || { type: 'none', depth: 0, segments: 4 };
-        
+
         // 渲染主体元素 
         let bodyelement = null;
-        
+
         // 根据边缘处理类型创建几何体
         const createGeometry = (geoType, args) => {
             if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
@@ -76,12 +76,12 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 const shape = new Shape();
                 const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
                 const halfWidth = geoType === 'box' ? size1 / 2 : radius;
-                
+
                 if (edge.type === 'smooth') {
                     // 平滑：创建带倒角的圆形
                     const segments = edge.segments || 4;
                     const bevelSize = edge.depth || 0.1;
-                    
+
                     // 绘制圆形路径，在顶部和底部添加倒角
                     for (let i = 0; i <= 1024; i++) {
                         const angle = (i / 1024) * Math.PI * 2;
@@ -93,7 +93,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                             shape.lineTo(x, y);
                         }
                     }
-                    
+
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
@@ -102,7 +102,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         bevelSegments: segments,
                         curveSegments: 16
                     };
-                    
+
                     shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
@@ -112,7 +112,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                     // 圆滑：创建带圆角的形状，使用固定的高分段数
                     const bevelSize = edge.depth || 0.1;
                     const segments = 256; // 固定使用 256 分段数，实现极致圆滑
-                                    
+
                     for (let i = 0; i <= 1024; i++) {
                         const angle = (i / 1024) * Math.PI * 2;
                         const x = Math.cos(angle) * radius;
@@ -123,7 +123,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                             shape.lineTo(x, y);
                         }
                     }
-                                    
+
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
@@ -132,7 +132,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         bevelSegments: segments,
                         curveSegments: 16
                     };
-                                    
+
                     shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
@@ -140,7 +140,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                     return <primitive object={geometry} />;
                 }
             }
-            
+
             // 默认返回标准几何体
             if (geoType === 'cylinder') {
                 return <cylinderGeometry args={args} />;
@@ -148,7 +148,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 return <boxGeometry args={args} />;
             }
         };
-        
+
         switch (type) {
             case 'cycle':
                 bodyelement = (
@@ -317,7 +317,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
         const edge = column.edge || { type: 'none', depth: 0, segments: 4 };
         const baseheight = base.shape.height || 0;
         let bodyelement = null;
-        
+
         // 根据边缘处理类型创建几何体
         const createGeometry = (geoType, args) => {
             if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
@@ -331,12 +331,12 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
                 const shape = new Shape();
                 const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
-                
+
                 if (edge.type === 'smooth') {
                     // 平滑：创建带倒角的圆形
                     const segments = edge.segments || 4;
                     const bevelSize = edge.depth || 0.1;
-                    
+
                     // 绘制圆形路径
                     for (let i = 0; i <= 1024; i++) {
                         const angle = (i / 1024) * Math.PI * 2;
@@ -348,7 +348,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                             shape.lineTo(x, y);
                         }
                     }
-                    
+
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
@@ -357,7 +357,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         bevelSegments: segments,
                         curveSegments: 16
                     };
-                    
+
                     shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
@@ -367,7 +367,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                     // 圆滑：创建带圆角的形状，使用固定的高分段数
                     const bevelSize = edge.depth || 0.1;
                     const segments = 256; // 固定使用 256 分段数，实现极致圆滑
-                    
+
                     // 绘制带圆角的圆形
                     for (let i = 0; i <= 1024; i++) {
                         const angle = (i / 1024) * Math.PI * 2;
@@ -379,7 +379,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                             shape.lineTo(x, y);
                         }
                     }
-                    
+
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
@@ -388,7 +388,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                         bevelSegments: segments,
                         curveSegments: 16
                     };
-                    
+
                     shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
@@ -396,7 +396,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                     return <primitive object={geometry} />;
                 }
             }
-            
+
             // 默认返回标准几何体
             if (geoType === 'cylinder') {
                 return <cylinderGeometry args={args} />;
@@ -404,7 +404,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
                 return <boxGeometry args={args} />;
             }
         };
-        
+
         console.log(type);
         switch (type) {
             case 'cycle':
@@ -713,9 +713,9 @@ function SceneContent({ template, onModelReady, hdrFile }) {
             />
 
             <primitive object={new AxesHelper(30)} />
-            <Text position={[30.5, 0, 0]} fontSize={0.8} color="red">X</Text>
-            <Text position={[0, 30.5, 0]} fontSize={0.8} color="green">Y</Text>
-            <Text position={[0, 0, 30.5]} fontSize={0.8} color="blue">Z</Text>
+            <DreiText position={[30.5, 0, 0]} fontSize={0.8} color="red">X</DreiText>
+            <DreiText position={[0, 30.5, 0]} fontSize={0.8} color="green">Y</DreiText>
+            <DreiText position={[0, 0, 30.5]} fontSize={0.8} color="blue">Z</DreiText>
 
             {/* Model root group - contains only the template model meshes */}
             <group ref={modelRootRef}>
@@ -733,7 +733,7 @@ function SceneContent({ template, onModelReady, hdrFile }) {
 }
 
 function ModelRenderer({ template, onModelReady, hdrFile }) {
-    console.log("准备渲染",template)
+    console.log("准备渲染", template)
     return (
         <Canvas
             camera={{ position: [40, 40, 40] }}

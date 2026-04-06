@@ -558,6 +558,35 @@ modelId 含义：
       return value !== undefined && value !== null ? value : defaultValue;
     };
 
+    const renderFlipControls = (patternPath, pattern) => (
+      <div className="template-editor-item">
+        <label>翻转：</label>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {['X', 'Y', 'Z'].map((axis) => {
+            const key = `flip${axis}`;
+            const active = !!getSafeValue(pattern?.[key], false);
+            return (
+              <button
+                key={axis}
+                type="button"
+                onClick={() => handleDataUpdate(`${patternPath}.${key}`, !active)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: active ? '1px solid #667eea' : '1px solid #ccc',
+                  background: active ? '#e8ecff' : '#f5f5f5',
+                  color: '#333',
+                  cursor: 'pointer'
+                }}
+              >
+                {axis} 轴{active ? '已翻转' : '翻转'}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
     return (
       <div className="template-data-editor">
         <h3>底座参数</h3>
@@ -697,15 +726,81 @@ modelId 含义：
             </select>
           </div>
 
+          {renderFlipControls('parts.base.pattern', pattern)}
+
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="template-editor-item">
-              <label>文本内容：</label>
-              <input
-                type="text"
-                value={getSafeValue(pattern.content, '')}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.content', e.target.value)}
-              />
-            </div>
+            <>
+              <div className="template-editor-item">
+                <label>文本内容：</label>
+                <input
+                  type="text"
+                  value={getSafeValue(pattern.content, '')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.content', e.target.value)}
+                />
+              </div>
+              <div className="template-editor-item">
+                <label>文字样式：</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!getSafeValue(pattern.bold, false)}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.bold', e.target.checked)}
+                    />
+                    粗体
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!getSafeValue(pattern.underline, false)}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.underline', e.target.checked)}
+                    />
+                    下划线
+                  </label>
+                </div>
+              </div>
+              <div className="template-editor-item">
+                <label>尺寸拉伸：</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label style={{ margin: 0 }}>
+                    X
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleX, 1)}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.scaleX', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Y
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={Math.abs(getSafeValue(pattern.scaleY, -1))}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Z
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleZ, 1)}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.scaleZ', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                </div>
+              </div>
+            </>
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
@@ -1235,15 +1330,81 @@ modelId 含义：
             </select>
           </div>
 
+          {renderFlipControls('parts.column.pattern', pattern)}
+
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="template-editor-item">
-              <label>文本内容：</label>
-              <input
-                type="text"
-                value={getSafeValue(pattern.content, '')}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.content', e.target.value)}
-              />
-            </div>
+            <>
+              <div className="template-editor-item">
+                <label>文本内容：</label>
+                <input
+                  type="text"
+                  value={getSafeValue(pattern.content, '')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.content', e.target.value)}
+                />
+              </div>
+              <div className="template-editor-item">
+                <label>文字样式：</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!getSafeValue(pattern.bold, false)}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.bold', e.target.checked)}
+                    />
+                    粗体
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!getSafeValue(pattern.underline, false)}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.underline', e.target.checked)}
+                    />
+                    下划线
+                  </label>
+                </div>
+              </div>
+              <div className="template-editor-item">
+                <label>尺寸拉伸：</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label style={{ margin: 0 }}>
+                    X
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleX, 1)}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.scaleX', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Y
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={Math.abs(getSafeValue(pattern.scaleY, -1))}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Z
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleZ, 1)}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.scaleZ', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                </div>
+              </div>
+            </>
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
