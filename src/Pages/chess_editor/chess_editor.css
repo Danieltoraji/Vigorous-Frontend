@@ -1569,7 +1569,7 @@ input:checked+.toggle-label:before {
 /* HDR 预设选择器样式 */
 .hdr-selector-container {
   position: absolute;
-  bottom: 80px;
+  bottom: 20px;
   left: 20px;
   z-index: 100;
 }

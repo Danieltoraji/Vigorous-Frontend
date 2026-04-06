@@ -121,7 +121,7 @@
 }
 
 /* 左侧组件选择面板 */
-.part-selector {
+.template-part-selector {
   position: absolute;
   left: 0;
   top: 0;
@@ -140,7 +140,7 @@
   overflow-y: auto;
 }
 
-.part-selector.collapsed {
+.template-part-selector.collapsed {
   padding: 0;
   overflow: hidden;
   border-right: none !important;
@@ -153,7 +153,7 @@
 }
 
 /* 确保左侧面板收起时，切换按钮仍然可见 */
-.toggle-left-panel {
+.template-toggle-left-panel {
   position: absolute;
   left: 200px;
   top: 50%;
@@ -176,21 +176,21 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-left-panel:hover {
+.template-toggle-left-panel:hover {
   background: rgba(167, 167, 167, 0.5);
   width: 28px;
 }
 
-.toggle-left-panel.collapsed {
+.template-toggle-left-panel.collapsed {
   left: 0;
   border-radius: 0 8px 8px 0;
 }
 
-.toggle-left-panel.expanded {
+.template-toggle-left-panel.expanded {
   left: 200px;
 }
 
-.part-selector h3 {
+.template-part-selector h3 {
   margin: 0 0 15px 0;
   color: var(--fluent-text);
   font-size: 16px;
@@ -227,7 +227,7 @@
 }
 
 /* 左侧面板切换按钮 */
-.toggle-left-panel {
+.template-toggle-left-panel {
   position: absolute;
   left: 200px;
   top: 50%;
@@ -250,16 +250,16 @@
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-left-panel:hover {
+.template-toggle-left-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.toggle-left-panel.collapsed {
+.template-toggle-left-panel.collapsed {
   left: 0;
 }
 
-.toggle-left-panel.expanded {
+.template-toggle-left-panel.expanded {
   left: 200px;
 }
 
@@ -1122,7 +1122,7 @@ input:checked+.toggle-label:before {
     flex-direction: column;
   }
 
-  .part-selector {
+  .template-part-selector {
     width: 100% !important;
     height: 120px;
     border-right: none;
