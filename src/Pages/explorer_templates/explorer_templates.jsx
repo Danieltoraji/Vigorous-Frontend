@@ -23,6 +23,7 @@ function ExplorerTemplates() {
   const [viewMode, setViewMode] = useState('card') // 'card' or 'list'
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
+  const [visibilityFilter, setVisibilityFilter] = useState('all') // 'all' | 'mine' | 'public'
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [editName, setEditName] = useState('')
@@ -63,10 +64,21 @@ function ExplorerTemplates() {
   })
 
   // 过滤模板并按id降序排序
+  const currentUserId = userData?.id
+  const mineCount = Object.values(templatesData).filter(template => template.user === currentUserId).length
+  const publicCount = Object.values(templatesData).filter(template => template.is_public).length
+
   const filteredTemplates = Object.values(templatesData).filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesTag = !selectedTag || (template.piece_tags && template.piece_tags.includes(selectedTag))
-    return matchesSearch && matchesTag
+    const matchesVisibility =
+      visibilityFilter === 'all'
+        ? true
+        : visibilityFilter === 'mine'
+          ? template.user === currentUserId
+          : template.is_public
+
+    return matchesSearch && matchesTag && matchesVisibility
   }).sort((a, b) => b.id - a.id)
 
   // 处理更多操作菜单
@@ -290,6 +302,30 @@ function ExplorerTemplates() {
       <div className="explorer-content">
         <div className="left-sidebar">
           <div className="filter-section">
+            <h2>可见性筛选</h2>
+            <div className="tag-filters">
+              <button
+                className={`tag-filter ${visibilityFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setVisibilityFilter('all')}
+              >
+                全部（{Object.keys(templatesData).length}）
+              </button>
+              <button
+                className={`tag-filter ${visibilityFilter === 'mine' ? 'active' : ''}`}
+                onClick={() => setVisibilityFilter('mine')}
+              >
+                仅我的（{mineCount}）
+              </button>
+              <button
+                className={`tag-filter ${visibilityFilter === 'public' ? 'active' : ''}`}
+                onClick={() => setVisibilityFilter('public')}
+              >
+                仅公开（{publicCount}）
+              </button>
+            </div>
+          </div>
+
+          <div className="filter-section">
             <h2>按标签筛选</h2>
             <div className="tag-filters">
               <button
@@ -369,6 +405,12 @@ function ExplorerTemplates() {
                     </p>
 
                     <div className="template-meta">
+                      <div className="template-meta-item">
+                        <span className="meta-label">可见性：</span>
+                        <span className={`visibility-badge ${template.is_public ? 'visibility-public' : 'visibility-private'}`}>
+                          {template.is_public ? '公开' : '私有'}
+                        </span>
+                      </div>
                       <div className="template-meta-item">
                         <span className="meta-label">ID：</span>
                         <span className="meta-value">{template.id}</span>
@@ -457,6 +499,7 @@ function ExplorerTemplates() {
                     <th>ID</th>
                     <th>创建时间</th>
                     <th>修改时间</th>
+                    <th>可见性</th>
                     <th>标签</th>
                     <th>操作</th>
                   </tr>
@@ -473,6 +516,11 @@ function ExplorerTemplates() {
                       <td>{template.id}</td>
                       <td>{formatDateTime(template.created_at)}</td>
                       <td>{formatDateTime(template.edited_at)}</td>
+                      <td>
+                        <span className={`visibility-badge ${template.is_public ? 'visibility-public' : 'visibility-private'}`}>
+                          {template.is_public ? '公开' : '私有'}
+                        </span>
+                      </td>
                       <td>
                         <div className="template-tags list-tags">
                           {template.piece_tags && template.piece_tags.length > 0 ? (

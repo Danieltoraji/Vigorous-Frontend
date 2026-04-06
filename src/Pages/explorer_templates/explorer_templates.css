@@ -491,6 +491,28 @@
   font-weight: 500;
 }
 
+.visibility-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.visibility-public {
+  color: #127848;
+  background: rgba(18, 120, 72, 0.12);
+}
+
+.visibility-private {
+  color: #8b5d00;
+  background: rgba(139, 93, 0, 0.14);
+}
+
 .template-tags {
   display: flex;
   flex-wrap: wrap;
