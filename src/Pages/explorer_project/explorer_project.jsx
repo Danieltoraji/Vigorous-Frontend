@@ -42,7 +42,7 @@ function ExplorerProject() {
       status: '无数据',
       project_tags: []
     }
-  })
+  }).sort((a, b) => b.id - a.id) // 按id降序排列，id大的在前面
 
   const handleEditProject = (project) => {
     setCurrentProject(project)

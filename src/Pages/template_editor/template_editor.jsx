@@ -146,7 +146,7 @@ function TemplateEditor() {
     if (!currentTemplate) return;
 
     // 深度克隆当前数据
-    const updatedTemplate = JSON.parse(JSON.stringify(currentTemplate));
+    const updatedTemplate = structuredClone(currentTemplate);
     console.log('正在更新棋子数据：', path, value);
     // 根据路径更新数据
     const keys = path.split('.');

@@ -346,8 +346,42 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
     return <primitive object={geometry} />;
 }
 
+// 辅助线单例 - 避免每次渲染都创建新几何体
+let gridLinesCache = null;
+let axisLinesCache = null;
+
+// 复杂几何体缓存 - 避免重复创建相同参数的几何体
+const geometryCache = new Map();
+const MAX_CACHE_SIZE = 50;
+
+const getCacheKey = (...args) => args.map(arg => 
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+).join('_');
+
+const getCachedGeometry = (key, createFn) => {
+    if (geometryCache.has(key)) {
+        return geometryCache.get(key);
+    }
+    
+    // 限制缓存大小，防止内存泄漏
+    if (geometryCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = geometryCache.keys().next().value;
+        const oldGeometry = geometryCache.get(firstKey);
+        if (oldGeometry && oldGeometry.dispose) {
+            oldGeometry.dispose();
+        }
+        geometryCache.delete(firstKey);
+    }
+    
+    const geometry = createFn();
+    geometryCache.set(key, geometry);
+    return geometry;
+};
+
 // 创建网格辅助线（LineSegments，不会被导出为模型网格）
 function createGridLines(size = 200, divisions = 100) {
+    if (gridLinesCache) return gridLinesCache;
+    
     const geometry = new THREE.BufferGeometry();
     const positions = [];
 
@@ -368,11 +402,14 @@ function createGridLines(size = 200, divisions = 100) {
 
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
     const material = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
-    return new THREE.LineSegments(geometry, material);
+    gridLinesCache = new THREE.LineSegments(geometry, material);
+    return gridLinesCache;
 }
 
 // 创建 XYZ 坐标轴辅助线（LineSegments，不会被导出为模型网格）
 function createAxisLines(length = 80, thickness = 2) {
+    if (axisLinesCache) return axisLinesCache;
+    
     const axes = [];
 
     const xGeometry = new THREE.BufferGeometry();
@@ -390,7 +427,8 @@ function createAxisLines(length = 80, thickness = 2) {
     const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: thickness });
     axes.push(new THREE.LineSegments(zGeometry, zMaterial));
 
-    return axes;
+    axisLinesCache = axes;
+    return axisLinesCache;
 }
 // 根据文件扩展名判断模型类型
 function getModelType(url) {
@@ -646,110 +684,118 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
         return shape;
     };
 
-    // 为台体（上下半径不一致）生成可倒角的圆滑几何体
+    // 为台体（上下半径不一致）生成可倒角的圆滑几何体（带缓存）
     const createRoundedFrustumGeometry = (radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments) => {
-        const safeTop = Math.max(radiusTop || 0, 0.001);
-        const safeBottom = Math.max(radiusBottom || 0, 0.001);
-        const halfHeight = Math.max(height || 0, 0.001) / 2;
-        const maxBevel = Math.min(
-            bevelSize || 0,
-            halfHeight - 0.001,
-            safeTop * 0.45,
-            safeBottom * 0.45
-        );
+        const cacheKey = getCacheKey('frustum', radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments);
+        
+        return getCachedGeometry(cacheKey, () => {
+            const safeTop = Math.max(radiusTop || 0, 0.001);
+            const safeBottom = Math.max(radiusBottom || 0, 0.001);
+            const halfHeight = Math.max(height || 0, 0.001) / 2;
+            const maxBevel = Math.min(
+                bevelSize || 0,
+                halfHeight - 0.001,
+                safeTop * 0.45,
+                safeBottom * 0.45
+            );
 
-        if (maxBevel <= 0.0001) {
-            return new THREE.CylinderGeometry(safeTop, safeBottom, Math.max(height || 0, 0.001), radialSegments);
-        }
+            if (maxBevel <= 0.0001) {
+                return new THREE.CylinderGeometry(safeTop, safeBottom, Math.max(height || 0, 0.001), radialSegments);
+            }
 
-        const topFlat = Math.max(safeTop - maxBevel, 0.001);
-        const bottomFlat = Math.max(safeBottom - maxBevel, 0.001);
-        const yTop = halfHeight;
-        const yBottom = -halfHeight;
-        const bSeg = Math.max(2, bevelSegments || 4);
-        const bodySeg = 24;
-        const points = [];
+            const topFlat = Math.max(safeTop - maxBevel, 0.001);
+            const bottomFlat = Math.max(safeBottom - maxBevel, 0.001);
+            const yTop = halfHeight;
+            const yBottom = -halfHeight;
+            const bSeg = Math.max(2, bevelSegments || 4);
+            const bodySeg = 24;
+            const points = [];
 
-        // 顶面中心到顶面边
-        points.push(new Vector2(0, yTop));
-        points.push(new Vector2(topFlat, yTop));
+            // 顶面中心到顶面边
+            points.push(new Vector2(0, yTop));
+            points.push(new Vector2(topFlat, yTop));
 
-        // 顶部圆角过渡（顶面 -> 侧面）
-        for (let i = 1; i <= bSeg; i++) {
-            const t = i / bSeg;
-            const theta = t * Math.PI * 0.5;
-            const r = topFlat + (safeTop - topFlat) * Math.sin(theta);
-            const y = yTop - maxBevel * (1 - Math.cos(theta));
-            points.push(new Vector2(r, y));
-        }
+            // 顶部圆角过渡（顶面 -> 侧面）
+            for (let i = 1; i <= bSeg; i++) {
+                const t = i / bSeg;
+                const theta = t * Math.PI * 0.5;
+                const r = topFlat + (safeTop - topFlat) * Math.sin(theta);
+                const y = yTop - maxBevel * (1 - Math.cos(theta));
+                points.push(new Vector2(r, y));
+            }
 
-        // 侧面（台体斜面）
-        for (let i = 1; i <= bodySeg; i++) {
-            const t = i / bodySeg;
-            const yStart = yTop - maxBevel;
-            const yEnd = yBottom + maxBevel;
-            const y = yStart + (yEnd - yStart) * t;
-            const r = safeTop + (safeBottom - safeTop) * t;
-            points.push(new Vector2(r, y));
-        }
+            // 侧面（台体斜面）
+            for (let i = 1; i <= bodySeg; i++) {
+                const t = i / bodySeg;
+                const yStart = yTop - maxBevel;
+                const yEnd = yBottom + maxBevel;
+                const y = yStart + (yEnd - yStart) * t;
+                const r = safeTop + (safeBottom - safeTop) * t;
+                points.push(new Vector2(r, y));
+            }
 
-        // 底部圆角过渡（侧面 -> 底面）
-        for (let i = 1; i <= bSeg; i++) {
-            const t = i / bSeg;
-            const theta = t * Math.PI * 0.5;
-            const r = safeBottom - (safeBottom - bottomFlat) * Math.sin(theta);
-            const y = yBottom + maxBevel * Math.cos(theta);
-            points.push(new Vector2(r, y));
-        }
+            // 底部圆角过渡（侧面 -> 底面）
+            for (let i = 1; i <= bSeg; i++) {
+                const t = i / bSeg;
+                const theta = t * Math.PI * 0.5;
+                const r = safeBottom - (safeBottom - bottomFlat) * Math.sin(theta);
+                const y = yBottom + maxBevel * Math.cos(theta);
+                points.push(new Vector2(r, y));
+            }
 
-        // 底面边到底面中心
-        points.push(new Vector2(bottomFlat, yBottom));
-        points.push(new Vector2(0, yBottom));
+            // 底面边到底面中心
+            points.push(new Vector2(bottomFlat, yBottom));
+            points.push(new Vector2(0, yBottom));
 
-        const geometry = new LatheGeometry(points.reverse(), Math.max(16, radialSegments || 64));
-        geometry.computeVertexNormals();
-        return geometry;
+            const geometry = new LatheGeometry(points.reverse(), Math.max(16, radialSegments || 64));
+            geometry.computeVertexNormals();
+            return geometry;
+        });
     };
 
-    // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体
+    // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体（带缓存）
     const createRoundedPolygonFrustumGeometry = (radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments) => {
-        const safeTop = Math.max(radiusTop || 0, 0.001);
-        const safeBottom = Math.max(radiusBottom || 0, 0.001);
-        const safeHeight = Math.max(height || 0, 0.001);
-        const safeSides = Math.max(3, sides || 6);
-        const baseRadius = Math.max(safeTop, safeBottom, 0.001);
-        const maxBevel = Math.min(bevelSize || 0, safeHeight * 0.45, baseRadius * 0.35);
+        const cacheKey = getCacheKey('polygonFrustum', radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments);
+        
+        return getCachedGeometry(cacheKey, () => {
+            const safeTop = Math.max(radiusTop || 0, 0.001);
+            const safeBottom = Math.max(radiusBottom || 0, 0.001);
+            const safeHeight = Math.max(height || 0, 0.001);
+            const safeSides = Math.max(3, sides || 6);
+            const baseRadius = Math.max(safeTop, safeBottom, 0.001);
+            const maxBevel = Math.min(bevelSize || 0, safeHeight * 0.45, baseRadius * 0.35);
 
-        const shape = generateShapeOutline('cylinder', baseRadius, baseRadius, safeSides);
-        const extrudeSettings = {
-            depth: safeHeight,
-            bevelEnabled: maxBevel > 0.0001,
-            bevelThickness: maxBevel,
-            bevelSize: maxBevel,
-            bevelSegments: Math.max(2, bevelSegments || 4),
-            curveSegments: 8,
-            steps: 1
-        };
+            const shape = generateShapeOutline('cylinder', baseRadius, baseRadius, safeSides);
+            const extrudeSettings = {
+                depth: safeHeight,
+                bevelEnabled: maxBevel > 0.0001,
+                bevelThickness: maxBevel,
+                bevelSize: maxBevel,
+                bevelSegments: Math.max(2, bevelSegments || 4),
+                curveSegments: 8,
+                steps: 1
+            };
 
-        const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-        geometry.rotateX(Math.PI / 2);
-        geometry.translate(0, safeHeight / 2, 0);
+            const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+            geometry.rotateX(Math.PI / 2);
+            geometry.translate(0, safeHeight / 2, 0);
 
-        // 按 y 位置将截面半径从底部线性过渡到顶部，形成多棱柱台体
-        const position = geometry.attributes.position;
-        for (let i = 0; i < position.count; i++) {
-            const x = position.getX(i);
-            const y = position.getY(i);
-            const z = position.getZ(i);
-            const t = Math.max(0, Math.min(1, y / safeHeight));
-            const targetRadius = safeBottom + (safeTop - safeBottom) * t;
-            const scale = targetRadius / baseRadius;
-            position.setXYZ(i, x * scale, y, z * scale);
-        }
+            // 按 y 位置将截面半径从底部线性过渡到顶部，形成多棱柱台体
+            const position = geometry.attributes.position;
+            for (let i = 0; i < position.count; i++) {
+                const x = position.getX(i);
+                const y = position.getY(i);
+                const z = position.getZ(i);
+                const t = Math.max(0, Math.min(1, y / safeHeight));
+                const targetRadius = safeBottom + (safeTop - safeBottom) * t;
+                const scale = targetRadius / baseRadius;
+                position.setXYZ(i, x * scale, y, z * scale);
+            }
 
-        position.needsUpdate = true;
-        geometry.computeVertexNormals();
-        return geometry;
+            position.needsUpdate = true;
+            geometry.computeVertexNormals();
+            return geometry;
+        });
     };
 
     // 渲染底座组件（带边缘处理）
