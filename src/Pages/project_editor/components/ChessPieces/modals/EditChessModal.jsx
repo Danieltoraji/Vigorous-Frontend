@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './modals.css';
 
 const EditChessModal = ({ piece, onSave, onCancel }) => {
@@ -37,8 +38,20 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
     onSave(localPiece);
   };
 
-  return (
-    <div className="modal-overlay">
+  const overlayStyle = {
+    position: 'fixed',
+    inset: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+  };
+
+  return createPortal(
+    <div className="modal-overlay" style={overlayStyle}>
       <div className="chess-modal-content">
         <form onSubmit={handleSubmit} className="chess-modal-form">
           <div className="chess-modal-header">
@@ -117,7 +130,8 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

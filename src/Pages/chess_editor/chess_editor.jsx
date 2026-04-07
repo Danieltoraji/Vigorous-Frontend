@@ -50,6 +50,11 @@ function ChessEditor() {
     { id: '3', name: '圆球' },
     { id: '4', name: '四棱锥' },
   ];
+  const FONT_OPTIONS = [
+    { value: '/static/fonts/STZhongsong_Regular.json', label: '华文中宋' },
+    { value: '/static/fonts/Minecraft_Regular.json', label: 'Minecraft' },
+    { value: '/static/fonts/Times New Roman_Bold.json', label: 'Times New Roman Bold' },
+  ];
 
   const getDecorationName = (modelId) => {
     const preset = PRESET_DECORATIONS.find(d => d.id === modelId);
@@ -64,6 +69,36 @@ function ChessEditor() {
   const getSafeValue = (value, defaultValue) => {
     return value !== undefined && value !== null ? value : defaultValue;
   };
+
+  const renderFlipControls = (patternPath, pattern) => (
+    <div className="editor-section">
+      <h4>旋转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `rotation${axis}`;
+        const rotationValue = getSafeValue(pattern?.[key], 0);
+        return (
+          <div className="editor-item" key={axis}>
+            <label>{axis} 轴：</label>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+              className="number-input"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 
   // AI 生成相关状态
   const [showAIGenerator, setShowAIGenerator] = useState(false); // AI 生成器显示状态
@@ -486,10 +521,24 @@ modelId 含义：
         throw new Error('AI 返回的数据格式不正确，请检查后端 API 配置');
       }
 
+      const normalizeAIGeneratedJson = (value) => {
+        if (typeof value !== 'string') {
+          return value;
+        }
+
+        const trimmedValue = value.trim();
+        return trimmedValue
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim();
+      };
+
       // 尝试解析 JSON
       let generatedData;
       try {
-        generatedData = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+        generatedData = typeof jsonString === 'string'
+          ? JSON.parse(normalizeAIGeneratedJson(jsonString))
+          : jsonString;
       } catch (parseError) {
         console.error('JSON 解析失败:', parseError);
         console.error('原始返回:', jsonString);
@@ -613,6 +662,9 @@ modelId 含义：
     const shape = component.shape || {};
     const pattern = component.pattern || {};
     const edge = component.edge || {};
+    const rotation = shape.rotation || {};
+    const specialScale = shape.specialScale || { x: 1, y: 1, z: 1 };
+    const specialRotation = shape.specialRotation || { x: 0, y: 0, z: 0 };
 
     const getSafeValue = (value, defaultValue) => {
       return value !== undefined && value !== null ? value : defaultValue;
@@ -663,13 +715,136 @@ modelId 含义：
 
           {/* 异形类型控制 */}
           {shape.type === 'special' && (
-            <div className="custom-revolution-wrapper">
-              <CustomRevolutionGenerator
-                currentChess={currentChess}
-                selectedComponent={selectedComponent}
-                handleDataUpdate={handleDataUpdate}
-              />
-            </div>
+            <>
+              <div className="custom-revolution-wrapper">
+                <CustomRevolutionGenerator
+                  currentChess={currentChess}
+                  selectedComponent={selectedComponent}
+                  handleDataUpdate={handleDataUpdate}
+                />
+              </div>
+
+              <div className="editor-item">
+                <label>异形尺寸 X：</label>
+                <input
+                  type="range"
+                  min="0.001"
+                  max="10"
+                  step="0.001"
+                  value={getSafeValue(specialScale.x, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialScale.x', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  min="0.001"
+                  max="10"
+                  step="0.001"
+                  value={getSafeValue(specialScale.x, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialScale.x', parseFloat(e.target.value))}
+                  className="number-input"
+                />
+              </div>
+              <div className="editor-item">
+                <label>异形尺寸 Y：</label>
+                <input
+                  type="range"
+                  min="0.001"
+                  max="10"
+                  step="0.001"
+                  value={getSafeValue(specialScale.y, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialScale.y', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  min="0.001"
+                  max="10"
+                  step="0.001"
+                  value={getSafeValue(specialScale.y, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialScale.y', parseFloat(e.target.value))}
+                  className="number-input"
+                />
+              </div>
+              <div className="editor-item">
+                <label>异形尺寸 Z：</label>
+                <input
+                  type="range"
+                  min="0.001"
+                  max="10"
+                  step="0.001"
+                  value={getSafeValue(specialScale.z, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialScale.z', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  min="0.001"
+                  max="10"
+                  step="0.001"
+                  value={getSafeValue(specialScale.z, 1)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialScale.z', parseFloat(e.target.value))}
+                  className="number-input"
+                />
+              </div>
+              <div className="editor-item">
+                <label>异形旋转 X：</label>
+                <input
+                  type="range"
+                  min="-360"
+                  max="360"
+                  step="0.001"
+                  value={getSafeValue(specialRotation.x, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialRotation.x', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  min="-360"
+                  max="360"
+                  step="0.001"
+                  value={getSafeValue(specialRotation.x, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialRotation.x', parseFloat(e.target.value))}
+                  className="number-input"
+                />
+              </div>
+              <div className="editor-item">
+                <label>异形旋转 Y：</label>
+                <input
+                  type="range"
+                  min="-360"
+                  max="360"
+                  step="0.001"
+                  value={getSafeValue(specialRotation.y, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialRotation.y', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  min="-360"
+                  max="360"
+                  step="0.001"
+                  value={getSafeValue(specialRotation.y, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialRotation.y', parseFloat(e.target.value))}
+                  className="number-input"
+                />
+              </div>
+              <div className="editor-item">
+                <label>异形旋转 Z：</label>
+                <input
+                  type="range"
+                  min="-360"
+                  max="360"
+                  step="0.001"
+                  value={getSafeValue(specialRotation.z, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialRotation.z', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  min="-360"
+                  max="360"
+                  step="0.001"
+                  value={getSafeValue(specialRotation.z, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.specialRotation.z', parseFloat(e.target.value))}
+                  className="number-input"
+                />
+              </div>
+            </>
           )}
 
           {/* 圆柱/多边形/矩形的尺寸控制 */}
@@ -681,15 +856,17 @@ modelId 含义：
                   type="range"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size1, 15)}
-                  onChange={(e) => handleDataUpdate('parts.base.shape.size1', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.size1', parseFloat(e.target.value))}
                 />
                 <input
                   type="number"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size1, 15)}
-                  onChange={(e) => handleDataUpdate('parts.base.shape.size1', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.size1', parseFloat(e.target.value))}
                   className="number-input"
                 />
               </div>
@@ -700,15 +877,17 @@ modelId 含义：
                   type="range"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size2, 15)}
-                  onChange={(e) => handleDataUpdate('parts.base.shape.size2', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.size2', parseFloat(e.target.value))}
                 />
                 <input
                   type="number"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size2, 15)}
-                  onChange={(e) => handleDataUpdate('parts.base.shape.size2', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.base.shape.size2', parseFloat(e.target.value))}
                   className="number-input"
                 />
               </div>
@@ -722,7 +901,7 @@ modelId 含义：
                 type="range"
                 min="0.1"
                 max="20"
-                step="0.1"
+                step="0.001"
                 value={getSafeValue(shape.height, 1)}
                 onChange={(e) => handleDataUpdate('parts.base.shape.height', parseFloat(e.target.value))}
               />
@@ -730,9 +909,80 @@ modelId 含义：
                 type="number"
                 min="0.1"
                 max="20"
-                step="0.1"
+                step="0.001"
                 value={getSafeValue(shape.height, 1)}
                 onChange={(e) => handleDataUpdate('parts.base.shape.height', parseFloat(e.target.value))}
+                className="number-input"
+              />
+            </div>
+          )}
+
+
+
+          {shape.type !== 'special' && (
+            <div className="editor-item">
+              <label>旋转 X：</label>
+              <input
+                type="range"
+                min="-360"
+                max="360"
+                step="0.001"
+                value={getSafeValue(rotation.x, 0)}
+                onChange={(e) => handleDataUpdate('parts.base.shape.rotation.x', parseFloat(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-360"
+                max="360"
+                step="0.001"
+                value={getSafeValue(rotation.x, 0)}
+                onChange={(e) => handleDataUpdate('parts.base.shape.rotation.x', parseFloat(e.target.value))}
+                className="number-input"
+              />
+            </div>
+          )}
+
+          {shape.type !== 'special' && (
+            <div className="editor-item">
+              <label>旋转 Y：</label>
+              <input
+                type="range"
+                min="-360"
+                max="360"
+                step="0.001"
+                value={getSafeValue(rotation.y, 0)}
+                onChange={(e) => handleDataUpdate('parts.base.shape.rotation.y', parseFloat(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-360"
+                max="360"
+                step="0.001"
+                value={getSafeValue(rotation.y, 0)}
+                onChange={(e) => handleDataUpdate('parts.base.shape.rotation.y', parseFloat(e.target.value))}
+                className="number-input"
+              />
+            </div>
+          )}
+
+          {shape.type !== 'special' && (
+            <div className="editor-item">
+              <label>旋转 Z：</label>
+              <input
+                type="range"
+                min="-360"
+                max="360"
+                step="0.001"
+                value={getSafeValue(rotation.z, 0)}
+                onChange={(e) => handleDataUpdate('parts.base.shape.rotation.z', parseFloat(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-360"
+                max="360"
+                step="0.001"
+                value={getSafeValue(rotation.z, 0)}
+                onChange={(e) => handleDataUpdate('parts.base.shape.rotation.z', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -756,6 +1006,8 @@ modelId 含义：
               <option value="custom">自定义纹理</option>
             </select>
           </div>
+
+          {renderFlipControls('parts.base.pattern', pattern)}
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
             <div className="editor-item">
@@ -786,14 +1038,27 @@ modelId 含义：
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="editor-item">
-              <label>文本内容：</label>
-              <input
-                type="text"
-                value={getSafeValue(pattern.content, '')}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.content', e.target.value)}
-              />
-            </div>
+            <>
+              <div className="editor-item">
+                <label>文本内容：</label>
+                <input
+                  type="text"
+                  value={getSafeValue(pattern.content, '')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.content', e.target.value)}
+                />
+              </div>
+              <div className="editor-item">
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
@@ -844,7 +1109,7 @@ modelId 含义：
                   type="number"
                   min="0.1"
                   max="5"
-                  step="0.1"
+                  step="0.001"
                   value={getSafeValue(pattern.scaleX, 1)}
                   onChange={(e) => handleDataUpdate('parts.base.pattern.scaleX', parseFloat(e.target.value))}
                   className="number-input"
@@ -853,7 +1118,7 @@ modelId 含义：
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -873,7 +1138,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -899,7 +1164,7 @@ modelId 含义：
                   type="number"
                   min="0.1"
                   max="5"
-                  step="0.1"
+                  step="0.001"
                   value={Math.abs(getSafeValue(pattern.scaleY, -1))}
                   onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
                   className="number-input"
@@ -908,7 +1173,7 @@ modelId 含义：
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -928,7 +1193,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -954,7 +1219,7 @@ modelId 含义：
                   type="number"
                   min="0.1"
                   max="5"
-                  step="0.1"
+                  step="0.001"
                   value={getSafeValue(pattern.scaleZ, 1)}
                   onChange={(e) => handleDataUpdate('parts.base.pattern.scaleZ', parseFloat(e.target.value))}
                   className="number-input"
@@ -963,7 +1228,7 @@ modelId 含义：
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -983,7 +1248,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.base.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1015,15 +1280,17 @@ modelId 含义：
                 type="range"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.x, 0)}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.position.x', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.base.pattern.position.x', parseFloat(e.target.value))}
               />
               <input
                 type="number"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.x, 0)}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.position.x', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.base.pattern.position.x', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -1033,15 +1300,17 @@ modelId 含义：
                 type="range"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.y, 0)}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.position.y', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.base.pattern.position.y', parseFloat(e.target.value))}
               />
               <input
                 type="number"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.y, 0)}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.position.y', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.base.pattern.position.y', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -1051,15 +1320,17 @@ modelId 含义：
                 type="range"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.z, 0)}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.position.z', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.base.pattern.position.z', parseFloat(e.target.value))}
               />
               <input
                 type="number"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.z, 0)}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.position.z', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.base.pattern.position.z', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -1093,8 +1364,8 @@ modelId 含义：
                 <input
                   type="range"
                   min="0"
-                  max="0.25"
-                  step="0.01"
+                  max="1"
+                  step="0.001"
                   value={getSafeValue(edge.depth, 0)}
                   onChange={(e) => handleDataUpdate('parts.base.edge.depth', parseFloat(e.target.value))}
                 />
@@ -1102,9 +1373,9 @@ modelId 含义：
                   type="number"
                   min="0"
                   max="1"
-                  step="0.04"
-                  value={(getSafeValue(edge.depth, 0) * 4).toFixed(2)}
-                  onChange={(e) => handleDataUpdate('parts.base.edge.depth', parseFloat(e.target.value) / 4)}
+                  step="0.001"
+                  value={getSafeValue(edge.depth, 0)}
+                  onChange={(e) => handleDataUpdate('parts.base.edge.depth', parseFloat(e.target.value))}
                   className="number-input"
                 />
               </div>
@@ -1144,7 +1415,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.base.material.metalness', parseFloat(e.target.value))}
             />
@@ -1152,7 +1423,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.base.material.metalness', parseFloat(e.target.value))}
               className="number-input"
@@ -1164,7 +1435,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.base.material.roughness', parseFloat(e.target.value))}
             />
@@ -1172,7 +1443,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.base.material.roughness', parseFloat(e.target.value))}
               className="number-input"
@@ -1184,7 +1455,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoat', parseFloat(e.target.value))}
             />
@@ -1192,7 +1463,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoat', parseFloat(e.target.value))}
               className="number-input"
@@ -1204,7 +1475,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoatRoughness', parseFloat(e.target.value))}
             />
@@ -1212,7 +1483,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.base?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoatRoughness', parseFloat(e.target.value))}
               className="number-input"
@@ -1232,6 +1503,9 @@ modelId 含义：
     const pattern = component.pattern || {};
     const edge = component.edge || {};
     const position = component.position || {};
+    const rotation = shape.rotation || {};
+    const specialScale = shape.specialScale || { x: 1, y: 1, z: 1 };
+    const specialRotation = shape.specialRotation || { x: 0, y: 0, z: 0 };
 
     const getSafeValue = (value, defaultValue) => {
       return value !== undefined && value !== null ? value : defaultValue;
@@ -1300,15 +1574,17 @@ modelId 含义：
                   type="range"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size1, 10)}
-                  onChange={(e) => handleDataUpdate('parts.column.shape.size1', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.column.shape.size1', parseFloat(e.target.value))}
                 />
                 <input
                   type="number"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size1, 10)}
-                  onChange={(e) => handleDataUpdate('parts.column.shape.size1', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.column.shape.size1', parseFloat(e.target.value))}
                   className="number-input"
                 />
               </div>
@@ -1319,15 +1595,17 @@ modelId 含义：
                   type="range"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size2, 10)}
-                  onChange={(e) => handleDataUpdate('parts.column.shape.size2', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.column.shape.size2', parseFloat(e.target.value))}
                 />
                 <input
                   type="number"
                   min="0"
                   max="30"
+                  step="0.001"
                   value={getSafeValue(shape.size2, 10)}
-                  onChange={(e) => handleDataUpdate('parts.column.shape.size2', parseInt(e.target.value))}
+                  onChange={(e) => handleDataUpdate('parts.column.shape.size2', parseFloat(e.target.value))}
                   className="number-input"
                 />
               </div>
@@ -1341,7 +1619,7 @@ modelId 含义：
                 type="range"
                 min="1"
                 max="100"
-                step="0.5"
+                step="0.001"
                 value={getSafeValue(shape.height, 20)}
                 onChange={(e) => handleDataUpdate('parts.column.shape.height', parseFloat(e.target.value))}
               />
@@ -1349,12 +1627,67 @@ modelId 含义：
                 type="number"
                 min="1"
                 max="100"
-                step="0.5"
+                step="0.001"
                 value={getSafeValue(shape.height, 20)}
                 onChange={(e) => handleDataUpdate('parts.column.shape.height', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
+          )}
+
+          {shape.type === 'special' && (
+            <>
+              <div className="editor-item">
+                <label>异形尺寸 X：</label>
+                <input type="range" min="0.001" max="10" step="0.001" value={getSafeValue(specialScale.x, 1)} onChange={(e) => handleDataUpdate('parts.column.shape.specialScale.x', parseFloat(e.target.value))} />
+                <input type="number" min="0.001" max="10" step="0.001" value={getSafeValue(specialScale.x, 1)} onChange={(e) => handleDataUpdate('parts.column.shape.specialScale.x', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>异形尺寸 Y：</label>
+                <input type="range" min="0.001" max="10" step="0.001" value={getSafeValue(specialScale.y, 1)} onChange={(e) => handleDataUpdate('parts.column.shape.specialScale.y', parseFloat(e.target.value))} />
+                <input type="number" min="0.001" max="10" step="0.001" value={getSafeValue(specialScale.y, 1)} onChange={(e) => handleDataUpdate('parts.column.shape.specialScale.y', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>异形尺寸 Z：</label>
+                <input type="range" min="0.001" max="10" step="0.001" value={getSafeValue(specialScale.z, 1)} onChange={(e) => handleDataUpdate('parts.column.shape.specialScale.z', parseFloat(e.target.value))} />
+                <input type="number" min="0.001" max="10" step="0.001" value={getSafeValue(specialScale.z, 1)} onChange={(e) => handleDataUpdate('parts.column.shape.specialScale.z', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>异形旋转 X：</label>
+                <input type="range" min="-360" max="360" step="0.001" value={getSafeValue(specialRotation.x, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.specialRotation.x', parseFloat(e.target.value))} />
+                <input type="number" min="-360" max="360" step="0.001" value={getSafeValue(specialRotation.x, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.specialRotation.x', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>异形旋转 Y：</label>
+                <input type="range" min="-360" max="360" step="0.001" value={getSafeValue(specialRotation.y, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.specialRotation.y', parseFloat(e.target.value))} />
+                <input type="number" min="-360" max="360" step="0.001" value={getSafeValue(specialRotation.y, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.specialRotation.y', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>异形旋转 Z：</label>
+                <input type="range" min="-360" max="360" step="0.001" value={getSafeValue(specialRotation.z, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.specialRotation.z', parseFloat(e.target.value))} />
+                <input type="number" min="-360" max="360" step="0.001" value={getSafeValue(specialRotation.z, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.specialRotation.z', parseFloat(e.target.value))} className="number-input" />
+              </div>
+            </>
+          )}
+
+          {shape.type !== 'special' && (
+            <>
+              <div className="editor-item">
+                <label>旋转 X：</label>
+                <input type="range" min="-360" max="360" step="0.001" value={getSafeValue(rotation.x, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.rotation.x', parseFloat(e.target.value))} />
+                <input type="number" min="-360" max="360" step="0.001" value={getSafeValue(rotation.x, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.rotation.x', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>旋转 Y：</label>
+                <input type="range" min="-360" max="360" step="0.001" value={getSafeValue(rotation.y, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.rotation.y', parseFloat(e.target.value))} />
+                <input type="number" min="-360" max="360" step="0.001" value={getSafeValue(rotation.y, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.rotation.y', parseFloat(e.target.value))} className="number-input" />
+              </div>
+              <div className="editor-item">
+                <label>旋转 Z：</label>
+                <input type="range" min="-360" max="360" step="0.001" value={getSafeValue(rotation.z, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.rotation.z', parseFloat(e.target.value))} />
+                <input type="number" min="-360" max="360" step="0.001" value={getSafeValue(rotation.z, 0)} onChange={(e) => handleDataUpdate('parts.column.shape.rotation.z', parseFloat(e.target.value))} className="number-input" />
+              </div>
+            </>
           )}
         </div>
 
@@ -1368,15 +1701,17 @@ modelId 含义：
               type="range"
               min="-30"
               max="30"
+              step="0.001"
               value={getSafeValue(position.x, 0)}
-              onChange={(e) => handleDataUpdate('parts.column.position.x', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.column.position.x', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="-30"
               max="30"
+              step="0.001"
               value={getSafeValue(position.x, 0)}
-              onChange={(e) => handleDataUpdate('parts.column.position.x', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.column.position.x', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -1387,15 +1722,17 @@ modelId 含义：
               type="range"
               min="-30"
               max="30"
+              step="0.001"
               value={getSafeValue(position.y, 1)}
-              onChange={(e) => handleDataUpdate('parts.column.position.y', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.column.position.y', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="-30"
               max="30"
+              step="0.001"
               value={getSafeValue(position.y, 1)}
-              onChange={(e) => handleDataUpdate('parts.column.position.y', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.column.position.y', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -1403,18 +1740,18 @@ modelId 含义：
           <div className="editor-item">
             <label>Z：</label>
             <input
+              step="0.001"
               type="range"
-              min="-30"
+              onChange={(e) => handleDataUpdate('parts.column.position.z', parseFloat(e.target.value))}
               max="30"
               value={getSafeValue(position.z, 0)}
-              onChange={(e) => handleDataUpdate('parts.column.position.z', parseInt(e.target.value))}
             />
             <input
+              step="0.001"
               type="number"
-              min="-30"
+              onChange={(e) => handleDataUpdate('parts.column.position.z', parseFloat(e.target.value))}
               max="30"
               value={getSafeValue(position.z, 0)}
-              onChange={(e) => handleDataUpdate('parts.column.position.z', parseInt(e.target.value))}
               className="number-input"
             />
           </div>
@@ -1453,6 +1790,8 @@ modelId 含义：
             </select>
           </div>
 
+          {renderFlipControls('parts.column.pattern', pattern)}
+
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
             <div className="editor-item">
               <div className="texture-mode-buttons">
@@ -1482,14 +1821,27 @@ modelId 含义：
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="editor-item">
-              <label>文本内容：</label>
-              <input
-                type="text"
-                value={getSafeValue(pattern.content, '')}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.content', e.target.value)}
-              />
-            </div>
+            <>
+              <div className="editor-item">
+                <label>文本内容：</label>
+                <input
+                  type="text"
+                  value={getSafeValue(pattern.content, '')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.content', e.target.value)}
+                />
+              </div>
+              <div className="editor-item">
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
@@ -1540,7 +1892,7 @@ modelId 含义：
                   type="number"
                   min="0.1"
                   max="5"
-                  step="0.1"
+                  step="0.001"
                   value={getSafeValue(pattern.scaleX, 1)}
                   onChange={(e) => handleDataUpdate('parts.column.pattern.scaleX', parseFloat(e.target.value))}
                   className="number-input"
@@ -1549,7 +1901,7 @@ modelId 含义：
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.min(5, getSafeValue(pattern.scaleX, 1) + 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1569,7 +1921,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleX', Math.max(0.1, getSafeValue(pattern.scaleX, 1) - 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1595,7 +1947,7 @@ modelId 含义：
                   type="number"
                   min="0.1"
                   max="5"
-                  step="0.1"
+                  step="0.001"
                   value={Math.abs(getSafeValue(pattern.scaleY, -1))}
                   onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
                   className="number-input"
@@ -1604,7 +1956,7 @@ modelId 含义：
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.min(5, Math.abs(getSafeValue(pattern.scaleY, -1)) + 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1624,7 +1976,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleY', -Math.max(0.1, Math.abs(getSafeValue(pattern.scaleY, -1)) - 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1650,7 +2002,7 @@ modelId 含义：
                   type="number"
                   min="0.1"
                   max="5"
-                  step="0.1"
+                  step="0.001"
                   value={getSafeValue(pattern.scaleZ, 1)}
                   onChange={(e) => handleDataUpdate('parts.column.pattern.scaleZ', parseFloat(e.target.value))}
                   className="number-input"
@@ -1659,7 +2011,7 @@ modelId 含义：
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.min(5, getSafeValue(pattern.scaleZ, 1) + 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1679,7 +2031,7 @@ modelId 含义：
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.1))}
+                    onClick={() => handleDataUpdate('parts.column.pattern.scaleZ', Math.max(0.1, getSafeValue(pattern.scaleZ, 1) - 0.001))}
                     style={{
                       width: '20px',
                       height: '14px',
@@ -1711,15 +2063,17 @@ modelId 含义：
                 type="range"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.x, 0)}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.position.x', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.column.pattern.position.x', parseFloat(e.target.value))}
               />
               <input
                 type="number"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.x, 0)}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.position.x', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.column.pattern.position.x', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -1729,15 +2083,17 @@ modelId 含义：
                 type="range"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.y, 0)}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.position.y', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.column.pattern.position.y', parseFloat(e.target.value))}
               />
               <input
                 type="number"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.y, 0)}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.position.y', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.column.pattern.position.y', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -1747,15 +2103,17 @@ modelId 含义：
                 type="range"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.z, 0)}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.position.z', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.column.pattern.position.z', parseFloat(e.target.value))}
               />
               <input
                 type="number"
                 min="-20"
                 max="20"
+                step="0.001"
                 value={getSafeValue(pattern.position?.z, 0)}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.position.z', parseInt(e.target.value))}
+                onChange={(e) => handleDataUpdate('parts.column.pattern.position.z', parseFloat(e.target.value))}
                 className="number-input"
               />
             </div>
@@ -1789,8 +2147,8 @@ modelId 含义：
                 <input
                   type="range"
                   min="0"
-                  max="0.25"
-                  step="0.01"
+                  max="1"
+                  step="0.001"
                   value={getSafeValue(edge.depth, 0.2)}
                   onChange={(e) => handleDataUpdate('parts.column.edge.depth', parseFloat(e.target.value))}
                 />
@@ -1798,9 +2156,9 @@ modelId 含义：
                   type="number"
                   min="0"
                   max="1"
-                  step="0.04"
-                  value={(getSafeValue(edge.depth, 0.2) * 4).toFixed(2)}
-                  onChange={(e) => handleDataUpdate('parts.column.edge.depth', parseFloat(e.target.value) / 4)}
+                  step="0.001"
+                  value={getSafeValue(edge.depth, 0.2)}
+                  onChange={(e) => handleDataUpdate('parts.column.edge.depth', parseFloat(e.target.value))}
                   className="number-input"
                 />
               </div>
@@ -1840,7 +2198,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.column.material.metalness', parseFloat(e.target.value))}
             />
@@ -1848,7 +2206,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.column.material.metalness', parseFloat(e.target.value))}
               className="number-input"
@@ -1860,7 +2218,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.column.material.roughness', parseFloat(e.target.value))}
             />
@@ -1868,7 +2226,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.column.material.roughness', parseFloat(e.target.value))}
               className="number-input"
@@ -1880,7 +2238,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoat', parseFloat(e.target.value))}
             />
@@ -1888,7 +2246,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoat', parseFloat(e.target.value))}
               className="number-input"
@@ -1900,7 +2258,7 @@ modelId 含义：
               type="range"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoatRoughness', parseFloat(e.target.value))}
             />
@@ -1908,7 +2266,7 @@ modelId 含义：
               type="number"
               min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.column?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoatRoughness', parseFloat(e.target.value))}
               className="number-input"
@@ -2050,9 +2408,9 @@ modelId 含义：
                   type="number"
                   min="0.01"
                   max="2"
-                  step="0.01"
+                  step="0.001"
                   value={fineTuneMin}
-                  onChange={(e) => setFineTuneMin(Math.max(0.01, parseFloat(e.target.value) || 0.01))}
+                  onChange={(e) => setFineTuneMin(Math.max(0.001, parseFloat(e.target.value) || 0.001))}
                   className="number-input"
                 />
                 <label>上限：</label>
@@ -2060,7 +2418,7 @@ modelId 含义：
                   type="number"
                   min="0.01"
                   max="2"
-                  step="0.01"
+                  step="0.001"
                   value={fineTuneMax}
                   onChange={(e) => setFineTuneMax(Math.min(2, parseFloat(e.target.value) || 0.5))}
                   className="number-input"
@@ -2143,15 +2501,17 @@ modelId 含义：
               type="range"
               min="-50"
               max="50"
+              step="0.001"
               value={getSafeValue(position.x, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.position.x', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.position.x', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="-50"
               max="50"
+              step="0.001"
               value={getSafeValue(position.x, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.position.x', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.position.x', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -2162,15 +2522,17 @@ modelId 含义：
               type="range"
               min="-50"
               max="50"
+              step="0.001"
               value={getSafeValue(position.y, 21)}
-              onChange={(e) => handleDataUpdate('parts.decoration.position.y', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.position.y', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="-50"
               max="50"
+              step="0.001"
               value={getSafeValue(position.y, 21)}
-              onChange={(e) => handleDataUpdate('parts.decoration.position.y', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.position.y', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -2181,15 +2543,17 @@ modelId 含义：
               type="range"
               min="-50"
               max="50"
+              step="0.001"
               value={getSafeValue(position.z, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.position.z', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.position.z', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="-50"
               max="50"
+              step="0.001"
               value={getSafeValue(position.z, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.position.z', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.position.z', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -2205,15 +2569,17 @@ modelId 含义：
               type="range"
               min="0"
               max="360"
+              step="0.001"
               value={getSafeValue(rotation.x, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.rotation.x', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.rotation.x', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="0"
               max="360"
+              step="0.001"
               value={getSafeValue(rotation.x, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.rotation.x', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.rotation.x', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -2224,15 +2590,17 @@ modelId 含义：
               type="range"
               min="0"
               max="360"
+              step="0.001"
               value={getSafeValue(rotation.y, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.rotation.y', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.rotation.y', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="0"
               max="360"
+              step="0.001"
               value={getSafeValue(rotation.y, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.rotation.y', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.rotation.y', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -2243,15 +2611,17 @@ modelId 含义：
               type="range"
               min="0"
               max="360"
+              step="0.001"
               value={getSafeValue(rotation.z, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.rotation.z', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.rotation.z', parseFloat(e.target.value))}
             />
             <input
               type="number"
               min="0"
               max="360"
+              step="0.001"
               value={getSafeValue(rotation.z, 0)}
-              onChange={(e) => handleDataUpdate('parts.decoration.rotation.z', parseInt(e.target.value))}
+              onChange={(e) => handleDataUpdate('parts.decoration.rotation.z', parseFloat(e.target.value))}
               className="number-input"
             />
           </div>
@@ -2264,17 +2634,15 @@ modelId 含义：
             <label>金属度：</label>
             <input
               type="range"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.metalness, 0.5)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.metalness', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.metalness, 0.5)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.metalness', parseFloat(e.target.value))}
               className="number-input"
@@ -2284,17 +2652,15 @@ modelId 含义：
             <label>粗糙度：</label>
             <input
               type="range"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.roughness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.roughness', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.roughness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.roughness', parseFloat(e.target.value))}
               className="number-input"
@@ -2304,17 +2670,15 @@ modelId 含义：
             <label>清漆层：</label>
             <input
               type="range"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoat', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoat', parseFloat(e.target.value))}
               className="number-input"
@@ -2324,17 +2688,15 @@ modelId 含义：
             <label>清漆粗糙度：</label>
             <input
               type="range"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoatRoughness', parseFloat(e.target.value))}
             />
             <input
               type="number"
-              min="0"
               max="1"
-              step="0.05"
+              step="0.001"
               value={getSafeValue(currentChess.parts?.decoration?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoatRoughness', parseFloat(e.target.value))}
               className="number-input"
@@ -2444,7 +2806,7 @@ modelId 含义：
 
       {/* 右侧面板切换按钮 */}
       <button
-        className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
+        className={`chess-editor-toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
       >
@@ -2494,6 +2856,7 @@ modelId 含义：
           </div>
         </div>
       )}
+
       {/* 纹理选择器弹窗 */}
       {showTextureSelector && (
         <div className="modal-overlay" onClick={() => setShowTextureSelector(false)}>
@@ -2505,7 +2868,7 @@ modelId 含义：
               </button>
             </div>
             <div className="modal-content texture-selector-content">
-              <TextureGrid 
+              <TextureGrid
                 onSelectTexture={handleTextureSelect}
                 onClose={() => setShowTextureSelector(false)}
                 mode={textureMode}
@@ -2514,13 +2877,18 @@ modelId 含义：
           </div>
         </div>
       )}
-      <ChooseDecoration
-        isOpen={showDecorationModal}
-        onClose={() => setShowDecorationModal(false)}
-        currentModelId={currentChess?.parts?.decoration?.modelId}
-        onSelect={handleDecorationSelect}
-        onSaveAndNavigate={handleSave}
-      />
+
+
+      {/* 装饰选择器弹窗 */}
+      {showDecorationModal && (
+        <ChooseDecoration
+          isOpen={showDecorationModal}
+          onClose={() => setShowDecorationModal(false)}
+          currentModelId={currentChess?.parts?.decoration?.modelId}
+          onSelect={handleDecorationSelect}
+          onSaveAndNavigate={handleSave}
+        />
+      )}
 
       {/* Toast 提示 */}
       {showToast && (

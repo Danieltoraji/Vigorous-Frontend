@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './views.css';
+import { useUser } from '../../../../../hooks/useUser';
 // 格式化日期
 const formatDate = (dateString) => {
   if (!dateString || dateString === '无数据') return '无数据';
@@ -22,7 +23,7 @@ const formatDate = (dateString) => {
     return dateString;
   }
 };
-const ListView = ({ pieces, onEdit, onOpen, onDelete }) => {
+const ListView = ({ pieces, onEdit, onOpen, onDelete, onSaveAsTemplate }) => {
   return (
     <div className="list-view">
       <table className="chess-table">
@@ -39,51 +40,120 @@ const ListView = ({ pieces, onEdit, onOpen, onDelete }) => {
         </thead>
         <tbody>
           {pieces.map((piece) => (
-            <tr key={piece.id}>
-              <td>{piece.name}</td>
-              <td>{piece.id}</td>
-              <td>{piece.type}</td>
-              <td>
-                <div className="table-tags">
-                  {piece.piece_tags && piece.piece_tags.length > 0 ? (
-                    piece.piece_tags.map((tag, index) => (
-                      <span key={index} className="table-tag">
-                        {tag}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="no-tags">无</span>
-                  )}
-                </div>
-              </td>
-              <td>{formatDate(piece.created_at)}</td>
-              <td>{formatDate(piece.edited_at)}</td>
-              <td className="action-buttons">
-                <button
-                  className="action-button edit-button"
-                  onClick={() => onEdit(piece)}
-                >
-                  编辑
-                </button>
-                <button
-                  className="action-button open-button"
-                  onClick={() => onOpen(piece)}
-                >
-                  打开
-                </button>
-                <button
-                  className="action-button delete-button"
-                  onClick={() => onDelete(piece)}
-                >
-                  删除
-                </button>
-              </td>
-            </tr>
+            <ChessRow
+              key={piece.id}
+              piece={piece}
+              onEdit={onEdit}
+              onOpen={onOpen}
+              onDelete={onDelete}
+              onSaveAsTemplate={onSaveAsTemplate}
+            />
           ))}
         </tbody>
       </table>
     </div>
   );
 };
+
+const ChessRow = ({ piece, onEdit, onOpen, onDelete, onSaveAsTemplate }) => {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+  const { userData } = useUser()
+  const isOwnedByCurrentUser = piece.user === userData?.id
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [menuOpen])
+
+  return (
+    <tr>
+      <td>{piece.name}</td>
+      <td>{piece.id}</td>
+      <td>{piece.type}</td>
+      <td>
+        <div className="table-tags">
+          {piece.piece_tags && piece.piece_tags.length > 0 ? (
+            piece.piece_tags.map((tag, index) => (
+              <span key={index} className="table-tag">
+                {tag}
+              </span>
+            ))
+          ) : (
+            <span className="no-tags">无</span>
+          )}
+        </div>
+      </td>
+      <td>{formatDate(piece.created_at)}</td>
+      <td>{formatDate(piece.edited_at)}</td>
+      <td className="action-buttons">
+        <div className="more-actions" ref={menuRef}>
+          <button
+            type="button"
+            className="action-button action-menu-button"
+            onClick={() => setMenuOpen(prev => !prev)}
+            aria-label="更多操作"
+            title="更多操作"
+          >
+            ...
+          </button>
+          {menuOpen && (
+            <div className="more-actions-menu">
+              <button
+                type="button"
+                className="menu-item"
+                disabled={!isOwnedByCurrentUser}
+                onClick={() => {
+                  setMenuOpen(false)
+                  onEdit(piece)
+                }}
+              >
+                编辑
+                disabled={!isOwnedByCurrentUser}
+                title={isOwnedByCurrentUser ? '' : '只能保存自己的棋子为模板'}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onSaveAsTemplate(piece)
+                }}
+              >
+                保存为模板
+              </button>
+              <button
+                type="button"
+                className="menu-item delete"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onDelete(piece)
+                }}
+              >
+                删除
+              </button>
+            </div>
+          )}
+        </div>
+        <button
+          className="action-button open-button"
+          onClick={() => onOpen(piece)}
+        >
+          打开
+        </button>
+      </td>
+    </tr>
+  )
+}
 
 export default ListView;

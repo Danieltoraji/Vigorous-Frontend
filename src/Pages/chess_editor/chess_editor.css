@@ -1,3 +1,4 @@
+/* chess_editor.css */
 /* 主容器 */
 .chess-editor {
   display: flex;
@@ -85,22 +86,22 @@
 }
 
 .save-button {
-  background-color: #5c3100;
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #510205;
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
 .export-button {
-  background-color: var(--fluent-primary);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
 }
 
 .export-button:hover:not(:disabled) {
-  background-color: var(--fluent-primary-hover);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
@@ -358,10 +359,14 @@
 }
 
 .data-panel.collapsed {
-  padding: 0;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  padding: 0 !important;
   overflow: hidden;
   border-left: none !important;
   border: none !important;
+  margin: 0 !important;
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -369,11 +374,10 @@
 }
 
 /* 右侧面板切换按钮 */
-.toggle-right-panel {
+.chess-editor-toggle-right-panel {
   position: absolute;
   right: 0;
   top: 50%;
-  transform: translateY(-50%);
   z-index: 30;
   width: 24px;
   height: 60px;
@@ -384,7 +388,6 @@
   border-radius: 8px 0 0 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
   align-items: center;
   justify-content: center;
   color: white;
@@ -392,16 +395,16 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-right-panel:hover {
+.chess-editor-toggle-right-panel:hover {
   background: rgba(167, 167, 167, 0.086);
   width: 28px;
 }
 
-.toggle-right-panel.collapsed {
+.chess-editor-toggle-right-panel.collapsed {
   right: 0;
 }
 
-.toggle-right-panel.expanded {
+.chess-editor-toggle-right-panel.expanded {
   right: 450px;
   /* 与面板宽度匹配 */
 }
@@ -507,7 +510,7 @@
 }
 
 .resize-handle.dragging::before {
-  background-color: var(--fluent-primary);
+  background-color: #6080c0;
   opacity: 1;
 }
 
@@ -567,7 +570,7 @@
   padding: 12px 24px;
   border: 2px solid var(--fluent-border);
   border-radius: 12px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   font-size: 15px;
   font-weight: 600;
@@ -597,7 +600,7 @@
 }
 
 .editor-item .texture-mode-button:hover {
-  background: linear-gradient(135deg, #5568d3, #6a4190);
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
 }
@@ -650,7 +653,7 @@
 }
 
 input:checked+.toggle-label {
-  background-color: var(--fluent-primary);
+  background-color: #6080c0;
 }
 
 input:checked+.toggle-label:before {
@@ -660,7 +663,7 @@ input:checked+.toggle-label:before {
 /* 过渡动画效果 */
 .editor-section {
   opacity: 1;
-  max-height: 1000px;
+  max-height: 1600px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -675,7 +678,7 @@ input:checked+.toggle-label:before {
 
 .editor-section.visible {
   opacity: 1;
-  max-height: 800px;
+  max-height: 1600px;
   margin-bottom: 25px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--fluent-border-light);
@@ -835,13 +838,13 @@ input:checked+.toggle-label:before {
 /* 当形状容器包含异形生成器时，应用特殊高度 */
 .editor-section:has(.custom-revolution-wrapper) {
   min-height: 650px;
-  max-height: 1000px;
+  max-height: 1600px;
   overflow: visible;
 }
 
 .editor-section:has(.custom-revolution-wrapper).visible {
   min-height: 650px;
-  max-height: 1000px;
+  max-height: 1600px;
 }
 
 /* 异形生成器可滚动容器 */
@@ -949,20 +952,20 @@ input:checked+.toggle-label:before {
 }
 
 .mode-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: #6080c0;
   border-color: #0078d4;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  border-color: #6080c0;
+  box-shadow: 0 2px 6px rgba(96, 128, 192, 0.4);
 
-.mode-btn.active {
-  background: var(--fluent-primary);
-  color: #fff;
-  border-color: var(--fluent-primary);
-  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
-}
+  .mode-btn.active {
+    background: var(--fluent-primary);
+    background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+    border-color: #6080c0;
+    box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
+  }
 
-.mode-btn.free-mode.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(96, 128, 192, 0.1);
+  border-left: 3px solid #6080c0;
   border-color: #667eea;
 }
 
@@ -1139,7 +1142,6 @@ input:checked+.toggle-label:before {
 
   .preview-area {
     flex: 1;
-    min-height: 400px;
   }
 
   .data-panel {
@@ -1294,6 +1296,185 @@ input:checked+.toggle-label:before {
   transform: translateY(0);
 }
 
+/* 自定义纹理配置弹窗样式 */
+.custom-texture-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.texture-mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.texture-mode-button {
+  padding: 12px 24px;
+  border: 2px solid var(--fluent-border) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--fluent-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* 当只有一个按钮时，保持所有圆角 */
+.texture-mode-button:only-child {
+  border-radius: 12px;
+}
+
+/* 当有多个按钮时，调整圆角使它们紧密连接 */
+.texture-mode-buttons:not(:only-child) .texture-mode-button:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: -1px;
+}
+
+.texture-mode-buttons:not(:only-child) .texture-mode-button:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.texture-mode-button:hover {
+  border-color: #6080c0;
+  background: rgba(96, 128, 192, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(96, 128, 192, 0.2);
+}
+
+.texture-mode-button.primary {
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.texture-mode-button.primary:hover {
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(96, 128, 192, 0.4);
+}
+
+.texture-mode-button.active {
+  border-color: #6080c0;
+  background: rgba(96, 128, 192, 0.1);
+  box-shadow: 0 0 0 3px rgba(96, 128, 192, 0.2);
+}
+
+.texture-mode-button.primary.active {
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
+  box-shadow: 0 0 0 3px rgba(96, 128, 192, 0.3);
+}
+
+/* 纹理选择器弹窗样式 */
+.texture-selector-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  width: 95%;
+  max-width: 900px;
+  height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.texture-selector-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.texture-selector-content .modal-content {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 纹理选择器弹窗头部 */
+.texture-selector-modal .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.texture-selector-modal .modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fluent-text);
+}
+
+.texture-selector-modal .close-button {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--fluent-text-secondary);
+  transition: color 0.2s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.texture-selector-modal .close-button:hover {
+  color: var(--fluent-text);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .export-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .modal-content {
+    padding: 20px 15px;
+  }
+
+  .export-option-button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
 /* Toast 提示样式 */
 .toast-success {
   position: fixed;
@@ -1388,7 +1569,7 @@ input:checked+.toggle-label:before {
 /* HDR 预设选择器样式 */
 .hdr-selector-container {
   position: absolute;
-  bottom: 80px;
+  bottom: 20px;
   left: 20px;
   z-index: 100;
 }
@@ -1550,12 +1731,12 @@ input:checked+.toggle-label:before {
 
 .ai-generator-panel textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #6080c0;
+  box-shadow: 0 0 0 3px rgba(96, 128, 192, 0.1);
 }
 
 .ai-generator-panel .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%) !important;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -1567,9 +1748,9 @@ input:checked+.toggle-label:before {
 }
 
 .ai-generator-panel .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5568d3, #6a4190) !important;
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(96, 128, 192, 0.4);
 }
 
 .ai-generator-panel .btn-primary:active:not(:disabled) {
@@ -1585,28 +1766,33 @@ input:checked+.toggle-label:before {
 /* ==================== 异形生成器新增样式 ==================== */
 
 /* 小窗口预览容器 */
-.preview-canvas-container {
-  background: rgba(255, 255, 255, 0.95);
+.data-panel .preview-canvas-container {
+  background: rgba(255, 255, 255, 0.95) !important;
   border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  flex: 0 0 auto !important;
+  align-self: flex-start !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: auto !important;
 }
 
-.preview-canvas-container .canvas-header {
+.data-panel .preview-canvas-container .canvas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.preview-canvas-container .canvas-header h4 {
+.data-panel .preview-canvas-container .canvas-header h4 {
   margin: 0;
   color: #333;
   font-size: 14px;
   font-weight: 600;
 }
 
-.preview-canvas-container .points-count {
+.data-panel .preview-canvas-container .points-count {
   font-size: 12px;
   color: #666;
   background: rgba(78, 205, 196, 0.1);
@@ -1959,7 +2145,6 @@ input:checked+.toggle-label:before {
 
   .preview-area {
     flex: 1;
-    min-height: 400px;
   }
 
   .data-panel {

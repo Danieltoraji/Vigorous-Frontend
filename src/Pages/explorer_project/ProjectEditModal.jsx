@@ -55,15 +55,15 @@ function ProjectEditModal({ project, onClose, onUpdate }) {
   if (!project) return null
 
   return (
-    <div className="modal-overlay">
-      <div className="project-modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="project-modal-content" onClick={(e) => e.stopPropagation()}>
 
 
         <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-header">
             <h2> </h2>
             <h2>项目信息编辑 </h2>
-            <button className="modal-close" onClick={onClose}>
+            <button type="button" className="modal-close" onClick={onClose}>
               ×
             </button>
           </div>

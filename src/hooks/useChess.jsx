@@ -9,6 +9,9 @@ export function ChessProvider({ children }) {
   // A 初始化棋子数据。现在是模拟数据。以后会设为空对象。
   const [chessData, setChessData] = useState({});
 
+  const defaultRotation = { x: 0, y: 0, z: 0 };
+  const defaultScale = { x: 1, y: 1, z: 1 };
+
   //B 这里要写逻辑和方法，从后端获取棋子数据，向后端同步数据。
   //B1 设置状态管理，包括加载中、错误、最后更新时间。默认：加载中、无错误、无最后更新时间
   const [loading, setLoading] = useState(true);
@@ -110,7 +113,10 @@ export function ChessProvider({ children }) {
               "type": "cycle",
               "size1": 15,
               "size2": 15,
-              "height": 1
+              "height": 1,
+              "rotation": { ...defaultRotation },
+              "specialScale": { ...defaultScale },
+              "specialRotation": { ...defaultRotation }
             },
             "customShape": {
               "profilePoints": [],
@@ -119,10 +125,15 @@ export function ChessProvider({ children }) {
             "material": null,
             "pattern": {
               "shape": "text",
-              "position": { "x": 0, "y":0, "z": 0 },
-              "textureFile":"000",
+              "position": { "x": 0, "y": 0, "z": 0 },
+              "textureFile": "000",
               "size": 10,
               "depth": 1,
+              "bold": false,
+              "underline": false,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false,
               "scaleX": 1,
               "scaleY": -1,
               "scaleZ": 1
@@ -135,7 +146,10 @@ export function ChessProvider({ children }) {
               "type": "cycle",
               "size1": 10,
               "size2": 10,
-              "height": 20
+              "height": 20,
+              "rotation": { ...defaultRotation },
+              "specialScale": { ...defaultScale },
+              "specialRotation": { ...defaultRotation }
             },
             "customShape": {
               "profilePoints": [],
@@ -146,11 +160,16 @@ export function ChessProvider({ children }) {
             "sideTreatment": "none",
             "pattern": {
               "shape": "geometry",
-              "geometryType":"Cube",
+              "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
-              "textureFile":"000",
+              "textureFile": "000",
               "size": 5,
               "depth": 0.5,
+              "bold": false,
+              "underline": false,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false,
               "scaleX": 1,
               "scaleY": -1,
               "scaleZ": 1
@@ -194,7 +213,10 @@ export function ChessProvider({ children }) {
               "type": "cycle",
               "size1": 15,
               "size2": 15,
-              "height": 1
+              "height": 1,
+              "rotation": { ...defaultRotation },
+              "specialScale": { ...defaultScale },
+              "specialRotation": { ...defaultRotation }
             },
             "customShape": {
               "profilePoints": [],
@@ -204,9 +226,14 @@ export function ChessProvider({ children }) {
             "pattern": {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
-              "textureFile":"00000",
+              "textureFile": "00000",
               "size": 10,
               "depth": 1,
+              "bold": false,
+              "underline": false,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false,
               "scaleX": 1,
               "scaleY": -1,
               "scaleZ": 1
@@ -219,7 +246,10 @@ export function ChessProvider({ children }) {
               "type": "cycle",
               "size1": 10,
               "size2": 10,
-              "height": 20
+              "height": 20,
+              "rotation": { ...defaultRotation },
+              "specialScale": { ...defaultScale },
+              "specialRotation": { ...defaultRotation }
             },
             "customShape": {
               "profilePoints": [],
@@ -232,9 +262,14 @@ export function ChessProvider({ children }) {
               "shape": "geometry",
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
-              "textureFile":"00000",
+              "textureFile": "00000",
               "size": 5,
               "depth": 0.5,
+              "bold": false,
+              "underline": false,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false,
               "scaleX": 1,
               "scaleY": -1,
               "scaleZ": 1
@@ -327,6 +362,42 @@ export function ChessProvider({ children }) {
     }
   };
 
+  // B6.5 方法：将棋子保存为预设（模板）
+  const savePieceAsPreset = async (chessId, presetName, presetDescription = '') => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await csrfapi.post(
+        `/pieces/${chessId}/save_as_preset/`,
+        {
+          name: presetName,
+          description: presetDescription
+        }
+      );
+
+      const newPreset = response.data;
+      setLastUpdated(new Date().toISOString());
+
+      return {
+        success: true,
+        preset: newPreset,
+        message: `成功创建预设 "${newPreset.name}"`
+      };
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.message || '保存预设失败';
+      setError(errorMessage);
+
+      return {
+        success: false,
+        error: errorMessage,
+        statusCode: err.response?.status
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // B7. 总结：提供给组件的数据和方法
   const value = {
     // 数据
@@ -346,6 +417,7 @@ export function ChessProvider({ children }) {
     createChessFromJson,
     updateChess,
     deleteChess,
+    savePieceAsPreset,
 
     // 如果你还想保留原始的 setChessData（用于特殊情况）
     setChessData

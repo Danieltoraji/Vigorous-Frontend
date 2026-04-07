@@ -207,7 +207,7 @@
 }
 
 .form-save-button {
-  background-color: #107C10;
+  background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -225,7 +225,7 @@
 }
 
 .form-save-button:hover:not(:disabled) {
-  background-color: #0D6E0D;
+  background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 

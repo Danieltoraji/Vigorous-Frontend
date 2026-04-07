@@ -5,6 +5,8 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './templaterenderer/templaterenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import csrfapi from '../../utils/csrfapi.js';
+import ChooseDecoration from './choose_decoration.jsx';
+import TextureGrid from './TextureGrid.jsx';
 
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function TemplateEditor() {
@@ -27,6 +29,9 @@ function TemplateEditor() {
   const [rightWidth, setRightWidth] = useState(400); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
   const [showExportModal, setShowExportModal] = useState(false); // 导出窗口显示状态
+  const [showDecorationModal, setShowDecorationModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   // AI 生成相关状态
   const [showAIGenerator, setShowAIGenerator] = useState(false); // AI 生成器显示状态
@@ -34,12 +39,43 @@ function TemplateEditor() {
   const [isGenerating, setIsGenerating] = useState(false); // AI 生成中状态
   const [aiError, setAiError] = useState(''); // AI 生成错误信息
 
+  // 显示 toast 提示
+  const showSuccessToast = useCallback((message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
+
   // 引用
   const editorContentRef = useRef(null);
 
   // HDR 预设相关状态
   const [selectedHdrPreset, setSelectedHdrPreset] = useState('syria'); // 默认选中 stage.hdr
   const [showHdrSelector, setShowHdrSelector] = useState(false); // HDR 选择器显示状态
+
+  // 装饰预设列表
+  const PRESET_DECORATIONS = [
+    { id: '0', name: '无装饰' },
+    { id: '1', name: '小旗子' },
+    { id: '2', name: '五角星' },
+    { id: '3', name: '圆球' },
+    { id: '4', name: '四棱锥' },
+  ];
+
+  // 自定义纹理相关状态
+  const [showCustomTextureModal, setShowCustomTextureModal] = useState(false); // 自定义纹理弹窗显示状态
+  const [showTextureSelector, setShowTextureSelector] = useState(false); // 纹理选择器显示状态
+  const [selectedTexture, setSelectedTexture] = useState(null); // 选中的纹理
+  const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
+  const [smoothTexture, setSmoothTexture] = useState(false); // 是否启用平滑纹理
+
+  const FONT_OPTIONS = [
+    { value: '/static/fonts/STZhongsong_Regular.json', label: '华文中宋' },
+    { value: '/static/fonts/Minecraft_Regular.json', label: 'Minecraft' },
+    { value: '/static/fonts/Times New Roman_Bold.json', label: 'Times New Roman Bold' },
+  ];
 
   // HDR 预设列表
   const hdrPresets = [
@@ -58,7 +94,35 @@ function TemplateEditor() {
       const fetchedData = await fetchTemplate(pieceId);
       if (fetchedData) {
         console.log('获取成功：', fetchedData);
-        setCurrentTemplate(fetchedData);
+
+        // 确保 parts 结构存在，如果不存在则初始化
+        const templateWithParts = {
+          ...fetchedData,
+          parts: fetchedData.parts || {
+            base: {
+              shape: { type: 'cycle', size1: 15, size2: 15, height: 3 },
+              pattern: { shape: 'none' },
+              edge: { type: 'none', depth: 0, segments: 4 },
+              material: { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 }
+            },
+            column: {
+              shape: { type: 'cycle', size1: 10, size2: 10, height: 20 },
+              pattern: { shape: 'none' },
+              edge: { type: 'none', depth: 0.2, segments: 4 },
+              material: { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 },
+              position: { x: 0, y: 1, z: 0 }
+            },
+            decoration: {
+              modelId: '0',
+              size: { size1: 5, size2: 5, size3: 5 },
+              position: { x: 0, y: 21, z: 0 },
+              rotation: { x: 0, y: 0, z: 0 },
+              material: { metalness: 0.5, roughness: 0.3, clearcoat: 0, clearcoatRoughness: 0 }
+            }
+          }
+        };
+
+        setCurrentTemplate(templateWithParts);
       }
     } catch (error) {
       console.error('获取失败:', error);
@@ -122,6 +186,59 @@ function TemplateEditor() {
       alert('保存失败：' + (error.message || '未知错误'));
     }
   }, [currentTemplate, updateTemplate]);
+
+  // 装饰相关函数
+  const getDecorationName = (modelId) => {
+    const preset = PRESET_DECORATIONS.find(d => d.id === modelId);
+    if (preset) return preset.name;
+    return modelId || '无装饰';
+  };
+
+  const handleDecorationSelect = (selectedId, selectedType) => {
+    handleDataUpdate('parts.decoration.modelId', selectedId);
+  };
+
+  // 纹理相关函数
+  const handleTextureSelect = (texture) => {
+    setSelectedTexture(texture);
+    if (!currentTemplate || !selectedComponent) return;
+
+    const componentPath = selectedComponent === 'base'
+      ? 'parts.base.pattern'
+      : 'parts.column.pattern';
+
+    const patternData = {
+      textureFile: texture.file,
+      shape: 'custom',
+      size: 10,
+      depth: 1,
+      position: { x: 0, y: 0, z: 0 },
+      smooth: smoothTexture
+    };
+
+    handleDataUpdate(componentPath, patternData);
+  };
+
+  const toggleSmoothTexture = useCallback(() => {
+    const newValue = !smoothTexture;
+    setSmoothTexture(newValue);
+
+    if (currentTemplate && selectedComponent) {
+      const componentPath = selectedComponent === 'base'
+        ? 'parts.base.pattern'
+        : 'parts.column.pattern';
+      const currentPattern = selectedComponent === 'base'
+        ? currentTemplate.parts?.base?.pattern
+        : currentTemplate.parts?.column?.pattern;
+
+      if (currentPattern && currentPattern.shape === 'custom') {
+        handleDataUpdate(componentPath, {
+          ...currentPattern,
+          smooth: newValue
+        });
+      }
+    }
+  }, [smoothTexture, currentTemplate, selectedComponent, handleDataUpdate]);
 
   // AI 生成模型 - 根据提示词生成 JSON 格式的模型数据
   const handleAIGenerate = useCallback(async () => {
@@ -384,10 +501,24 @@ modelId 含义：
         throw new Error('AI 返回的数据格式不正确，请检查后端 API 配置');
       }
 
+      const normalizeAIGeneratedJson = (value) => {
+        if (typeof value !== 'string') {
+          return value;
+        }
+
+        const trimmedValue = value.trim();
+        return trimmedValue
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim();
+      };
+
       // 尝试解析 JSON
       let generatedData;
       try {
-        generatedData = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+        generatedData = typeof jsonString === 'string'
+          ? JSON.parse(normalizeAIGeneratedJson(jsonString))
+          : jsonString;
       } catch (parseError) {
         console.error('JSON 解析失败:', parseError);
         console.error('原始返回:', jsonString);
@@ -503,6 +634,36 @@ modelId 含义：
 
   }, [handleMouseMove, handleMouseUp]);
 
+  const renderFlipControls = useCallback((patternPath, pattern, getSafeValue) => (
+    <div className="template-editor-section">
+      <h4>旋转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `rotation${axis}`;
+        const rotationValue = getSafeValue(pattern?.[key], 0);
+        return (
+          <div className="template-editor-item" key={axis}>
+            <label>{axis} 轴：</label>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+              className="template-number-input"
+            />
+          </div>
+        );
+      })}
+    </div>
+  ), [handleDataUpdate]);
+
   // 渲染底座组件参数面板 - 使用 useMemo 缓存
   const renderBasePanel = useMemo(() => () => {
     if (!currentTemplate || !currentTemplate.parts?.base) return null;
@@ -517,14 +678,14 @@ modelId 含义：
     };
 
     return (
-      <div className="data-editor">
+      <div className="template-data-editor">
         <h3>底座参数</h3>
 
         {/* Shape 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>形状</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>类型：</label>
             <select
               value={getSafeValue(shape.type, 'cylinder')}
@@ -539,7 +700,7 @@ modelId 含义：
 
           {/* 多边形边数控制 */}
           {shape.type === 'polygon' && (
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>边数：</label>
               <input
                 type="range"
@@ -554,7 +715,7 @@ modelId 含义：
                 max="32"
                 value={getSafeValue(shape.sides, 6)}
                 onChange={(e) => handleDataUpdate('parts.base.shape.sides', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
           )}
@@ -573,7 +734,7 @@ modelId 含义：
           {/* 圆柱/多边形/矩形的尺寸控制 */}
           {shape.type !== 'special' && (
             <>
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>尺寸 1：</label>
                 <input
                   type="range"
@@ -588,11 +749,11 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size1, 15)}
                   onChange={(e) => handleDataUpdate('parts.base.shape.size1', parseInt(e.target.value))}
-                  className="number-input"
+                  className="template-number-input"
                 />
               </div>
 
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>尺寸 2：</label>
                 <input
                   type="range"
@@ -607,14 +768,14 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size2, 15)}
                   onChange={(e) => handleDataUpdate('parts.base.shape.size2', parseInt(e.target.value))}
-                  className="number-input"
+                  className="template-number-input"
                 />
               </div>
             </>
           )}
 
           {shape.type === 'special' ? null : (
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>高度：</label>
               <input
                 type="range"
@@ -631,7 +792,7 @@ modelId 含义：
                 step="0.1"
                 value={getSafeValue(shape.height, 1)}
                 onChange={(e) => handleDataUpdate('parts.base.shape.height', parseFloat(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
           )}
@@ -639,10 +800,10 @@ modelId 含义：
         </div>
 
         {/* Pattern 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>图案</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>形状：</label>
             <select
               value={getSafeValue(pattern.shape, 'text')}
@@ -655,20 +816,76 @@ modelId 含义：
             </select>
           </div>
 
+          {renderFlipControls('parts.base.pattern', pattern, getSafeValue)}
+
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="editor-item">
-              <label>文本内容：</label>
-              <input
-                type="text"
-                value={getSafeValue(pattern.content, '')}
-                onChange={(e) => handleDataUpdate('parts.base.pattern.content', e.target.value)}
-              />
-            </div>
+            <>
+              <div className="template-editor-item">
+                <label>文本内容：</label>
+                <input
+                  type="text"
+                  value={getSafeValue(pattern.content, '')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.content', e.target.value)}
+                />
+              </div>
+              <div className="template-editor-item">
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.base.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="template-editor-item">
+                <label>尺寸拉伸：</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label style={{ margin: 0 }}>
+                    X
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleX, 1)}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.scaleX', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Y
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={Math.abs(getSafeValue(pattern.scaleY, -1))}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Z
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleZ, 1)}
+                      onChange={(e) => handleDataUpdate('parts.base.pattern.scaleZ', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                </div>
+              </div>
+            </>
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
             <>
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>几何形状：</label>
                 <select
                   value={getSafeValue(pattern.geometryType, 'square')}
@@ -682,7 +899,7 @@ modelId 含义：
               </div>
 
               {getSafeValue(pattern.geometryType, 'Cube') === 'Polygon' && (
-                <div className="editor-item">
+                <div className="template-editor-item">
                   <label>边数：</label>
                   <input
                     type="range"
@@ -697,14 +914,14 @@ modelId 含义：
                     max="12"
                     value={getSafeValue(pattern.sides, 6)}
                     onChange={(e) => handleDataUpdate('parts.base.pattern.sides', parseInt(e.target.value))}
-                    className="number-input"
+                    className="template-number-input"
                   />
                 </div>
               )}
             </>
           )}
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>尺寸：</label>
             <input
               type="range"
@@ -721,11 +938,11 @@ modelId 含义：
               step="0.1"
               value={getSafeValue(pattern.size, 10)}
               onChange={(e) => handleDataUpdate('parts.base.pattern.size', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>深度：</label>
             <input
               type="range"
@@ -742,14 +959,14 @@ modelId 含义：
               step="0.1"
               value={getSafeValue(pattern.depth, 1)}
               onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
           {/* 图案位置 */}
-          <div className="editor-subsection">
+          <div className="template-editor-subsection">
             <h5>位置</h5>
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>X：</label>
               <input
                 type="range"
@@ -764,10 +981,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.x, 0)}
                 onChange={(e) => handleDataUpdate('parts.base.pattern.position.x', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>Y修正：</label>
               <input
                 type="range"
@@ -782,10 +999,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.y, 0)}
                 onChange={(e) => handleDataUpdate('parts.base.pattern.position.y', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>Z：</label>
               <input
                 type="range"
@@ -800,25 +1017,25 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.z, 0)}
                 onChange={(e) => handleDataUpdate('parts.base.pattern.position.z', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
           </div>
         </div>
 
         {/* Edge 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>边缘处理</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <button
-              className={`edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
+              className={`template-edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.base.edge.type', edge.type === 'smooth' ? 'none' : 'smooth')}
             >
               {edge.type === 'smooth' ? '✓ 平滑已启用' : '启用平滑'}
             </button>
             <button
-              className={`edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
+              className={`template-edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.base.edge.type', edge.type === 'round' ? 'none' : 'round')}
               style={{ marginLeft: '10px' }}
             >
@@ -828,7 +1045,7 @@ modelId 含义：
 
           {(edge.type === 'smooth' || edge.type === 'round') && (
             <>
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>深度：</label>
                 <input
                   type="range"
@@ -845,12 +1062,12 @@ modelId 含义：
                   step="0.04"
                   value={(getSafeValue(edge.depth, 0) * 4).toFixed(2)}
                   onChange={(e) => handleDataUpdate('parts.base.edge.depth', parseFloat(e.target.value) / 4)}
-                  className="number-input"
+                  className="template-number-input"
                 />
               </div>
 
               {edge.type === 'smooth' && (
-                <div className="editor-item">
+                <div className="template-editor-item">
                   <label>分段数：</label>
                   <input
                     type="range"
@@ -867,7 +1084,7 @@ modelId 含义：
                     step="1"
                     value={getSafeValue(edge.segments, 4)}
                     onChange={(e) => handleDataUpdate('parts.base.edge.segments', parseInt(e.target.value))}
-                    className="number-input"
+                    className="template-number-input"
                   />
                 </div>
               )}
@@ -876,9 +1093,9 @@ modelId 含义：
         </div>
 
         {/* Material 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>材质</h4>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>金属度：</label>
             <input
               type="range"
@@ -895,10 +1112,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.base?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.base.material.metalness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>粗糙度：</label>
             <input
               type="range"
@@ -915,10 +1132,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.base?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.base.material.roughness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>清漆层：</label>
             <input
               type="range"
@@ -935,10 +1152,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.base?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoat', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>清漆粗糙度：</label>
             <input
               type="range"
@@ -955,13 +1172,13 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.base?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.base.material.clearcoatRoughness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
       </div>
     );
-  }, [currentTemplate, handleDataUpdate, selectedComponent]);
+  }, [currentTemplate, handleDataUpdate, renderFlipControls, selectedComponent]);
 
   // 渲染柱体组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderColumnPanel = () => {
@@ -978,14 +1195,14 @@ modelId 含义：
     };
 
     return (
-      <div className="data-editor">
+      <div className="template-data-editor">
         <h3>柱体参数</h3>
 
         {/* Shape 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>形状</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>类型：</label>
             <select
               value={getSafeValue(shape.type, 'cylinder')}
@@ -1000,7 +1217,7 @@ modelId 含义：
 
           {/* 多边形边数控制 */}
           {shape.type === 'polygon' && (
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>边数：</label>
               <input
                 type="range"
@@ -1015,7 +1232,7 @@ modelId 含义：
                 max="32"
                 value={getSafeValue(shape.sides, 6)}
                 onChange={(e) => handleDataUpdate('parts.column.shape.sides', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
           )}
@@ -1034,7 +1251,7 @@ modelId 含义：
           {/* 圆柱/多边形/矩形的尺寸控制 */}
           {shape.type !== 'special' && (
             <>
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>尺寸 1：</label>
                 <input
                   type="range"
@@ -1049,11 +1266,11 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size1, 10)}
                   onChange={(e) => handleDataUpdate('parts.column.shape.size1', parseInt(e.target.value))}
-                  className="number-input"
+                  className="template-number-input"
                 />
               </div>
 
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>尺寸 2：</label>
                 <input
                   type="range"
@@ -1068,14 +1285,14 @@ modelId 含义：
                   max="30"
                   value={getSafeValue(shape.size2, 10)}
                   onChange={(e) => handleDataUpdate('parts.column.shape.size2', parseInt(e.target.value))}
-                  className="number-input"
+                  className="template-number-input"
                 />
               </div>
             </>
           )}
 
           {shape.type === 'special' ? null : (
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>高度：</label>
               <input
                 type="range"
@@ -1092,17 +1309,17 @@ modelId 含义：
                 step="0.5"
                 value={getSafeValue(shape.height, 20)}
                 onChange={(e) => handleDataUpdate('parts.column.shape.height', parseFloat(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
           )}
         </div>
 
         {/* Position 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>位置</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>X：</label>
             <input
               type="range"
@@ -1117,11 +1334,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(position.x, 0)}
               onChange={(e) => handleDataUpdate('parts.column.position.x', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>Y修正：</label>
             <input
               type="range"
@@ -1136,11 +1353,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(position.y, 1)}
               onChange={(e) => handleDataUpdate('parts.column.position.y', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>Z：</label>
             <input
               type="range"
@@ -1155,16 +1372,16 @@ modelId 含义：
               max="30"
               value={getSafeValue(position.z, 0)}
               onChange={(e) => handleDataUpdate('parts.column.position.z', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
 
         {/* Side Treatment 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>侧面处理</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>类型：</label>
             <select
               value={getSafeValue(component.sideTreatment, 'none')}
@@ -1177,10 +1394,10 @@ modelId 含义：
         </div>
 
         {/* Pattern 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>图案</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>形状：</label>
             <select
               value={getSafeValue(pattern.shape, 'text')}
@@ -1193,20 +1410,76 @@ modelId 含义：
             </select>
           </div>
 
+          {renderFlipControls('parts.column.pattern', pattern, getSafeValue)}
+
           {getSafeValue(pattern.shape, 'text') === 'text' && (
-            <div className="editor-item">
-              <label>文本内容：</label>
-              <input
-                type="text"
-                value={getSafeValue(pattern.content, '')}
-                onChange={(e) => handleDataUpdate('parts.column.pattern.content', e.target.value)}
-              />
-            </div>
+            <>
+              <div className="template-editor-item">
+                <label>文本内容：</label>
+                <input
+                  type="text"
+                  value={getSafeValue(pattern.content, '')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.content', e.target.value)}
+                />
+              </div>
+              <div className="template-editor-item">
+                <label>字体：</label>
+                <select
+                  value={getSafeValue(pattern.font, '/static/fonts/STZhongsong_Regular.json')}
+                  onChange={(e) => handleDataUpdate('parts.column.pattern.font', e.target.value)}
+                >
+                  {FONT_OPTIONS.map((fontOption) => (
+                    <option key={fontOption.value} value={fontOption.value}>{fontOption.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="template-editor-item">
+                <label>尺寸拉伸：</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <label style={{ margin: 0 }}>
+                    X
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleX, 1)}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.scaleX', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Y
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={Math.abs(getSafeValue(pattern.scaleY, -1))}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.scaleY', -Math.abs(parseFloat(e.target.value)))}
+                      className="template-number-input"
+                    />
+                  </label>
+                  <label style={{ margin: 0 }}>
+                    Z
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="5"
+                      step="0.001"
+                      value={getSafeValue(pattern.scaleZ, 1)}
+                      onChange={(e) => handleDataUpdate('parts.column.pattern.scaleZ', parseFloat(e.target.value))}
+                      className="template-number-input"
+                    />
+                  </label>
+                </div>
+              </div>
+            </>
           )}
 
           {getSafeValue(pattern.shape, 'text') === 'geometry' && (
             <>
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>几何形状：</label>
                 <select
                   value={getSafeValue(pattern.geometryType, 'square')}
@@ -1220,7 +1493,7 @@ modelId 含义：
               </div>
 
               {getSafeValue(pattern.geometryType, 'Cube') === 'Polygon' && (
-                <div className="editor-item">
+                <div className="template-editor-item">
                   <label>边数：</label>
                   <input
                     type="range"
@@ -1235,14 +1508,14 @@ modelId 含义：
                     max="12"
                     value={getSafeValue(pattern.sides, 6)}
                     onChange={(e) => handleDataUpdate('parts.column.pattern.sides', parseInt(e.target.value))}
-                    className="number-input"
+                    className="template-number-input"
                   />
                 </div>
               )}
             </>
           )}
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>尺寸：</label>
             <input
               type="range"
@@ -1259,11 +1532,11 @@ modelId 含义：
               step="0.1"
               value={getSafeValue(pattern.size, 10)}
               onChange={(e) => handleDataUpdate('parts.column.pattern.size', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>深度：</label>
             <input
               type="range"
@@ -1280,14 +1553,14 @@ modelId 含义：
               step="0.1"
               value={getSafeValue(pattern.depth, 1)}
               onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
           {/* 图案位置 */}
-          <div className="editor-subsection">
+          <div className="template-editor-subsection">
             <h5>位置</h5>
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>X：</label>
               <input
                 type="range"
@@ -1302,10 +1575,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.x, 0)}
                 onChange={(e) => handleDataUpdate('parts.column.pattern.position.x', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>Y修正：</label>
               <input
                 type="range"
@@ -1320,10 +1593,10 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.y, 0)}
                 onChange={(e) => handleDataUpdate('parts.column.pattern.position.y', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
-            <div className="editor-item">
+            <div className="template-editor-item">
               <label>Z：</label>
               <input
                 type="range"
@@ -1338,25 +1611,25 @@ modelId 含义：
                 max="20"
                 value={getSafeValue(pattern.position?.z, 0)}
                 onChange={(e) => handleDataUpdate('parts.column.pattern.position.z', parseInt(e.target.value))}
-                className="number-input"
+                className="template-number-input"
               />
             </div>
           </div>
         </div>
 
         {/* Edge 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>边缘处理</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <button
-              className={`edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
+              className={`template-edge-toggle-button ${edge.type === 'smooth' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.column.edge.type', edge.type === 'smooth' ? 'none' : 'smooth')}
             >
               {edge.type === 'smooth' ? '✓ 平滑已启用' : '启用平滑'}
             </button>
             <button
-              className={`edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
+              className={`template-edge-toggle-button ${edge.type === 'round' ? 'active' : ''}`}
               onClick={() => handleDataUpdate('parts.column.edge.type', edge.type === 'round' ? 'none' : 'round')}
               style={{ marginLeft: '10px' }}
             >
@@ -1366,7 +1639,7 @@ modelId 含义：
 
           {(edge.type === 'smooth' || edge.type === 'round') && (
             <>
-              <div className="editor-item">
+              <div className="template-editor-item">
                 <label>深度：</label>
                 <input
                   type="range"
@@ -1383,12 +1656,12 @@ modelId 含义：
                   step="0.04"
                   value={(getSafeValue(edge.depth, 0.2) * 4).toFixed(2)}
                   onChange={(e) => handleDataUpdate('parts.column.edge.depth', parseFloat(e.target.value) / 4)}
-                  className="number-input"
+                  className="template-number-input"
                 />
               </div>
 
               {edge.type === 'smooth' && (
-                <div className="editor-item">
+                <div className="template-editor-item">
                   <label>分段数：</label>
                   <input
                     type="range"
@@ -1405,7 +1678,7 @@ modelId 含义：
                     step="1"
                     value={getSafeValue(edge.segments, 4)}
                     onChange={(e) => handleDataUpdate('parts.column.edge.segments', parseInt(e.target.value))}
-                    className="number-input"
+                    className="template-number-input"
                   />
                 </div>
               )}
@@ -1414,9 +1687,9 @@ modelId 含义：
         </div>
 
         {/* Material 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>材质</h4>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>金属度：</label>
             <input
               type="range"
@@ -1433,10 +1706,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.column?.material?.metalness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.column.material.metalness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>粗糙度：</label>
             <input
               type="range"
@@ -1453,10 +1726,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.column?.material?.roughness, 0.4)}
               onChange={(e) => handleDataUpdate('parts.column.material.roughness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>清漆层：</label>
             <input
               type="range"
@@ -1473,10 +1746,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.column?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoat', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>清漆粗糙度：</label>
             <input
               type="range"
@@ -1493,7 +1766,7 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.column?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.column.material.clearcoatRoughness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
@@ -1515,34 +1788,29 @@ modelId 含义：
     };
 
     return (
-      <div className="data-editor">
+      <div className="template-data-editor">
         <h3>装饰参数</h3>
 
-        {/* 模型导入按钮 */}
-        <div className="editor-section">
+        {/* 模型选择按钮 */}
+        <div className="template-editor-section">
           <h4>模型</h4>
-          <div className="editor-item">
-            <label>模型类型：</label>
-            <select
-              value={getSafeValue(component.modelId, '0')}
-              onChange={(e) => handleDataUpdate('parts.decoration.modelId', e.target.value)}
-            >
-              <option value="0">无装饰</option>
-              <option value="1">小旗子</option>
-              <option value="2">五角星</option>
-              <option value="3">圆球</option>
-              <option value="4">四棱锥</option>
-              <option value="0">未来会支持更多预设和用户导入...</option>
-            </select>
+          <div className="template-editor-item">
+            <label>当前模型：</label>
+            <span className="template-current-model-name">
+              {getDecorationName(getSafeValue(component.modelId, '0'))}
+            </span>
           </div>
-          <div className="editor-item">
-            <button className="import-model-button">
-              导入模型
+          <div className="template-editor-item">
+            <button
+              className="template-select-decoration-button"
+              onClick={() => setShowDecorationModal(true)}
+            >
+              选择模型
             </button>
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <button
-              className="btn btn-primary"
+              className="template-btn template-btn-primary"
               onClick={() => setShowAIGenerator(!showAIGenerator)}
               style={{ width: '100%', marginTop: '8px' }}
             >
@@ -1568,7 +1836,7 @@ modelId 含义：
                 </p>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '12px' }}>
+              <div className="template-form-group" style={{ marginBottom: '12px' }}>
                 <textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
@@ -1601,7 +1869,7 @@ modelId 含义：
               )}
 
               <button
-                className="btn btn-primary"
+                className="template-btn template-btn-primary"
                 onClick={handleAIGenerate}
                 disabled={isGenerating || !aiPrompt.trim()}
                 style={{
@@ -1617,10 +1885,10 @@ modelId 含义：
         </div>
 
         {/* Size 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>尺寸</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>尺寸 1：</label>
             <input
               type="range"
@@ -1635,11 +1903,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(size.size1, 5)}
               onChange={(e) => handleDataUpdate('parts.decoration.size.size1', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>尺寸 2：</label>
             <input
               type="range"
@@ -1654,11 +1922,11 @@ modelId 含义：
               max="30"
               value={getSafeValue(size.size2, 5)}
               onChange={(e) => handleDataUpdate('parts.decoration.size.size2', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>尺寸 3：</label>
             <input
               type="range"
@@ -1673,16 +1941,16 @@ modelId 含义：
               max="20"
               value={getSafeValue(size.size3, 5)}
               onChange={(e) => handleDataUpdate('parts.decoration.size.size3', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
 
         {/* Position 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>位置</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>X：</label>
             <input
               type="range"
@@ -1697,11 +1965,11 @@ modelId 含义：
               max="50"
               value={getSafeValue(position.x, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.position.x', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>Y：</label>
             <input
               type="range"
@@ -1716,11 +1984,11 @@ modelId 含义：
               max="50"
               value={getSafeValue(position.y, 21)}
               onChange={(e) => handleDataUpdate('parts.decoration.position.y', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>Z：</label>
             <input
               type="range"
@@ -1735,16 +2003,16 @@ modelId 含义：
               max="50"
               value={getSafeValue(position.z, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.position.z', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
 
         {/* Rotation 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>旋转</h4>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>X 轴：</label>
             <input
               type="range"
@@ -1759,11 +2027,11 @@ modelId 含义：
               max="360"
               value={getSafeValue(rotation.x, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.rotation.x', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>Y 轴：</label>
             <input
               type="range"
@@ -1778,11 +2046,11 @@ modelId 含义：
               max="360"
               value={getSafeValue(rotation.y, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.rotation.y', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
 
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>Z 轴：</label>
             <input
               type="range"
@@ -1797,15 +2065,15 @@ modelId 含义：
               max="360"
               value={getSafeValue(rotation.z, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.rotation.z', parseInt(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
 
         {/* Material 部分 */}
-        <div className="editor-section">
+        <div className="template-editor-section">
           <h4>材质</h4>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>金属度：</label>
             <input
               type="range"
@@ -1822,10 +2090,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.decoration?.material?.metalness, 0.5)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.metalness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>粗糙度：</label>
             <input
               type="range"
@@ -1842,10 +2110,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.decoration?.material?.roughness, 0.3)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.roughness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>清漆层：</label>
             <input
               type="range"
@@ -1862,10 +2130,10 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.decoration?.material?.clearcoat, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoat', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
-          <div className="editor-item">
+          <div className="template-editor-item">
             <label>清漆粗糙度：</label>
             <input
               type="range"
@@ -1882,7 +2150,7 @@ modelId 含义：
               step="0.05"
               value={getSafeValue(currentTemplate.parts?.decoration?.material?.clearcoatRoughness, 0)}
               onChange={(e) => handleDataUpdate('parts.decoration.material.clearcoatRoughness', parseFloat(e.target.value))}
-              className="number-input"
+              className="template-number-input"
             />
           </div>
         </div>
@@ -1905,10 +2173,11 @@ modelId 含义：
   return (
     <div className="template-editor">
       {/* 顶部标题栏 */}
-      <header className="editor-header">
+      <header className="template-editor-header">
         <div className="header-left">
-          <button className="back-button" onClick={handleBack}>← 返回</button>
-          <h1 className="template-name">{currentTemplate?.name || '棋子编辑器'}</h1>
+          <h1 className="template-name-header" onClick={handleBack}>
+            ❮  {currentTemplate?.name || '棋子编辑器'}
+          </h1>
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
@@ -1917,44 +2186,45 @@ modelId 含义：
         </div>
       </header>
 
-      <div className="editor-content" ref={editorContentRef}>
+      <div className="template-editor-content" ref={editorContentRef}>
         {/* 左侧组件选择 - 三个半透明小方块 */}
-        <div className="component-squares">
+        <div className="template-component-squares">
           <div
-            className={`square ${selectedComponent === 'base' ? 'active' : ''}`}
+            className={`template-square ${selectedComponent === 'base' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('base')}
             title="底座"
           >
-            <span className="square-label">底座</span>
+            <span className="template-square-label">底座</span>
           </div>
           <div
-            className={`square ${selectedComponent === 'column' ? 'active' : ''}`}
+            className={`template-square ${selectedComponent === 'column' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('column')}
             title="柱体"
           >
-            <span className="square-label">柱体</span>
+            <span className="template-square-label">柱体</span>
           </div>
           <div
-            className={`square ${selectedComponent === 'decoration' ? 'active' : ''}`}
+            className={`template-square ${selectedComponent === 'decoration' ? 'active' : ''}`}
             onClick={() => handleComponentSelect('decoration')}
             title="装饰"
           >
-            <span className="square-label">装饰</span>
+            <span className="template-square-label">装饰</span>
           </div>
         </div>
 
         {/* 中间预览区域 */}
-        <main className="preview-area">
+        <main className="template-preview-area">
           <ModelRenderer
             template={currentTemplate}
             onModelReady={handleModelReady}
             hdrFile={hdrPresets.find(p => p.id === selectedHdrPreset)?.file || '/stage.hdr'}
+            smoothTexture={smoothTexture}
           />
 
           {/* HDR 预设选择器 */}
-          <div className="hdr-selector-container">
+          <div className="template-hdr-selector-container">
             <button
-              className="hdr-selector-toggle"
+              className="template-hdr-selector-toggle"
               onClick={() => setShowHdrSelector(!showHdrSelector)}
               title="选择环境贴图"
             >
@@ -1962,13 +2232,13 @@ modelId 含义：
             </button>
 
             {showHdrSelector && (
-              <div className="hdr-presets-dropdown">
+              <div className="template-hdr-presets-dropdown">
                 <h4>环境贴图预设</h4>
-                <div className="hdr-presets-list">
+                <div className="template-hdr-presets-list">
                   {hdrPresets.map(preset => (
                     <button
                       key={preset.id}
-                      className={`hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
+                      className={`template-hdr-preset-item ${selectedHdrPreset === preset.id ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedHdrPreset(preset.id);
                         setShowHdrSelector(false);
@@ -1985,19 +2255,34 @@ modelId 含义：
 
       </div>
 
-
-
       {/* 右侧面板切换按钮 */}
       <button
-        className={`toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
+        className={`template-toggle-right-panel ${isRightPanelCollapsed ? 'collapsed' : 'expanded'}`}
         onClick={handleToggleRightPanel}
         title={isRightPanelCollapsed ? '展开面板' : '收起面板'}
+        style={{
+          position: 'absolute',
+          right: isRightPanelCollapsed ? '20px' : `${rightWidth + 10}px`,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 100
+        }}
       >
         {isRightPanelCollapsed ? '◀' : '▶'}
       </button>
 
       {/* 右侧数据调节面板 */}
-      <aside className={`data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{ width: `${isRightPanelCollapsed ? 0 : rightWidth}px` }}>
+      <aside className={`template-data-panel ${isRightPanelCollapsed ? 'collapsed' : ''}`} style={{
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        bottom: 0,
+        width: `${isRightPanelCollapsed ? 0 : rightWidth}px`,
+        zIndex: 99
+      }}>
+        {console.log('currentTemplate:', currentTemplate)}
+        {console.log('selectedComponent:', selectedComponent)}
+        {console.log('parts.base:', currentTemplate?.parts?.base)}
         {selectedComponent === 'base' && renderBasePanel()}
         {selectedComponent === 'column' && renderColumnPanel()}
         {selectedComponent === 'decoration' && renderDecorationPanel()}
@@ -2005,31 +2290,31 @@ modelId 含义：
 
       {/* 导出窗口 */}
       {showExportModal && (
-        <div className="modal-overlay">
-          <div className="export-modal">
-            <div className="modal-header">
+        <div className="template-modal-overlay">
+          <div className="template-export-modal">
+            <div className="template-modal-header">
               <h2>导出模型</h2>
-              <button className="close-button" onClick={() => setShowExportModal(false)}>
+              <button className="template-close-button" onClick={() => setShowExportModal(false)}>
                 ×
               </button>
             </div>
-            <div className="modal-content">
+            <div className="template-modal-content">
               <p>请选择导出方式：</p>
-              <div className="export-buttons">
+              <div className="template-export-buttons">
                 <button
-                  className="export-option-button"
+                  className="template-export-option-button"
                   onClick={() => handleExportAction('json')}
                 >
                   JSON数据
                 </button>
                 <button
-                  className="export-option-button"
+                  className="template-export-option-button"
                   onClick={() => handleExportAction('stl')}
                 >
                   STL（适合3D打印）
                 </button>
                 <button
-                  className="export-option-button"
+                  className="template-export-option-button"
                   onClick={() => handleExportAction('obj')}
                 >
                   OBJ（适合3D建模软件）
@@ -2038,6 +2323,38 @@ modelId 含义：
             </div>
           </div>
         </div>
+      )}
+
+      {/* 纹理选择器弹窗 */}
+      {showTextureSelector && (
+        <div className="template-modal-overlay" onClick={() => setShowTextureSelector(false)}>
+          <div className="template-texture-selector-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="template-modal-header">
+              <h2>{textureMode === 'selector' ? '📂 选择浮雕纹理' : '✨ 生成浮雕纹理'}</h2>
+              <button className="template-close-button" onClick={() => setShowTextureSelector(false)}>
+                ×
+              </button>
+            </div>
+            <div className="template-modal-content template-texture-selector-content">
+              <TextureGrid
+                onSelectTexture={handleTextureSelect}
+                onClose={() => setShowTextureSelector(false)}
+                mode={textureMode}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 装饰选择器弹窗 */}
+      {showDecorationModal && (
+        <ChooseDecoration
+          isOpen={showDecorationModal}
+          onClose={() => setShowDecorationModal(false)}
+          currentModelId={currentTemplate?.parts?.decoration?.modelId}
+          onSelect={handleDecorationSelect}
+          onSaveAndNavigate={handleSave}
+        />
       )}
     </div>
   );

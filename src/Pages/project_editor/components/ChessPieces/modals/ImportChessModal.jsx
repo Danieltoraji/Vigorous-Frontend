@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTemplates } from '../../../../../hooks/useTemplates';
 import { useChess } from '../../../../../hooks/useChess';
 import './modals.css';
@@ -6,7 +7,7 @@ import './modals.css';
 const ImportChessModal = ({ onCancel, projectId }) => {
   const { templatesData, loading: templatesLoading } = useTemplates();
   const { createChessFromJson } = useChess();
-  
+
   const [isParsing, setIsParsing] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -14,7 +15,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
   const [selectedTemplates, setSelectedTemplates] = useState([]);
   const [isCreatingFromTemplates, setIsCreatingFromTemplates] = useState(false);
   const [viewMode, setViewMode] = useState('card'); // 'card' 或 'list'
-  
+
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -54,17 +55,17 @@ const ImportChessModal = ({ onCancel, projectId }) => {
       alert('请选择 JSON 文件');
       return;
     }
-    
+
     setIsParsing(true);
     const reader = new FileReader();
-    
+
     reader.onload = async (e) => {
       try {
         const jsonContent = e.target.result;
         const chessJson = JSON.parse(jsonContent);
-        
+
         await createChessFromJson(projectId, chessJson);
-        
+
         setIsParsing(false);
         alert('导入成功，棋子已创建');
         onCancel();
@@ -74,12 +75,12 @@ const ImportChessModal = ({ onCancel, projectId }) => {
         alert('解析失败：' + error.message);
       }
     };
-    
+
     reader.onerror = () => {
       setIsParsing(false);
       alert('文件读取失败');
     };
-    
+
     reader.readAsText(selectedFile);
   };
 
@@ -129,7 +130,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
     }
 
     setIsCreatingFromTemplates(false);
-    
+
     if (failCount === 0) {
       alert(`成功导入 ${successCount} 个棋子`);
       setShowTemplateSelector(false);
@@ -145,9 +146,21 @@ const ImportChessModal = ({ onCancel, projectId }) => {
     setSelectedTemplates([]);
   };
 
+  const overlayStyle = {
+    position: 'fixed',
+    inset: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+  };
+
   if (showTemplateSelector) {
-    return (
-      <div className="modal-overlay">
+    return createPortal(
+      <div className="modal-overlay" style={overlayStyle}>
         <div className="modal-content template-selector-modal">
           <div className="modal-header">
             <h3>从模板导入</h3>
@@ -179,12 +192,12 @@ const ImportChessModal = ({ onCancel, projectId }) => {
                         列表
                       </button>
                     </div>
-                    <button 
+                    <button
                       className="select-all-button"
                       onClick={handleSelectAllTemplates}
                     >
-                      {selectedTemplates.length === Object.keys(templatesData).length 
-                        ? '取消全选' 
+                      {selectedTemplates.length === Object.keys(templatesData).length
+                        ? '取消全选'
                         : '全选'}
                     </button>
                   </div>
@@ -200,7 +213,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
                         <input
                           type="checkbox"
                           checked={selectedTemplates.includes(id)}
-                          onChange={() => {}}
+                          onChange={() => { }}
                         />
                       </div>
                       {viewMode === 'card' ? (
@@ -289,12 +302,13 @@ const ImportChessModal = ({ onCancel, projectId }) => {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
-    <div className="modal-overlay">
+  return createPortal(
+    <div className="modal-overlay" style={overlayStyle}>
       <div className="modal-content">
         <div className="modal-header">
           <h3>导入棋子</h3>
@@ -303,7 +317,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
           </button>
         </div>
         <div className="modal-body">
-          <div 
+          <div
             className={`file-upload-area ${isDragOver ? 'drag-over' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -327,7 +341,7 @@ const ImportChessModal = ({ onCancel, projectId }) => {
             <button className="cancel-button" onClick={onCancel}>
               取消
             </button>
-            <button 
+            <button
               className="confirm-button"
               onClick={handleConfirmJsonImport}
               disabled={isParsing || !selectedFile}
@@ -335,13 +349,13 @@ const ImportChessModal = ({ onCancel, projectId }) => {
               {isParsing ? '导入中...' : '确认导入'}
             </button>
           </div>
-          
+
           <div className="import-divider">
             <span>或者</span>
           </div>
-          
+
           <div className="template-import-section">
-            <button 
+            <button
               className="template-import-button"
               onClick={handleOpenTemplateSelector}
             >
@@ -350,7 +364,8 @@ const ImportChessModal = ({ onCancel, projectId }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

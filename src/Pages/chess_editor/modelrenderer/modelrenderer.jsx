@@ -1,179 +1,235 @@
 import React, { useEffect, useRef, useState, Suspense, useMemo } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls, Text, Environment, Text3D } from '@react-three/drei';
+import { OrbitControls, Text as DreiText, Environment, Text3D } from '@react-three/drei';
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
 import { OBJLoader } from 'three-stdlib';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import { useDecoration } from '../../../hooks/useDecoration.jsx';
 
-const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader } = THREE;
+
+const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector2, Vector3, LatheGeometry } = THREE;
+const DEFAULT_TEXT_FONT_JSON = '/static/fonts/STZhongsong_Regular.json';
 
 const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
 const textureLoader = new TextureLoader();
 // 基础几何图形 ID 列表
 const BASIC_GEOMETRY_IDS = ['geo_sphere', 'geo_cube', 'geo_cylinder', 'geo_cone'];
 
+function toRadians(value = 0) {
+    return (value * Math.PI) / 180;
+}
+
+function toRotation(rotation = {}) {
+    return [
+        toRadians(rotation.x || 0),
+        toRadians(rotation.y || 0),
+        toRadians(rotation.z || 0)
+    ];
+}
+
+function getPatternTransform(pattern = {}) {
+    const scaleX = pattern.scaleX !== undefined ? pattern.scaleX : 1;
+    const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
+    const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
+
+    return [scaleX, scaleY, scaleZ];
+}
+
+function getPatternRotation(pattern = {}) {
+    const rotationX = toRadians(pattern.rotationX || 0);
+    const rotationY = toRadians(pattern.rotationY || 0);
+    const rotationZ = toRadians(pattern.rotationZ || 0);
+
+    return [rotationX, rotationY, rotationZ];
+}
+
+function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
+    const transform = getPatternTransform(pattern);
+
+    return (
+        <group position={position} rotation={rotation} scale={transform}>
+            <mesh castShadow receiveShadow>
+                <Text3D
+                    font={pattern.font || DEFAULT_TEXT_FONT_JSON}
+                    size={pattern.size || 5}
+                    height={pattern.depth || 1}
+                    curveSegments={12}
+                >
+                    {(pattern.content ?? '').toString()}
+                </Text3D>
+                <meshStandardMaterial
+                    color={color}
+                    metalness={material?.metalness ?? 0.2}
+                    roughness={material?.roughness ?? 0.6}
+                    clearcoat={material?.clearcoat ?? 0}
+                    clearcoatRoughness={material?.clearcoatRoughness ?? 0}
+                />
+            </mesh>
+        </group>
+    );
+}
+
 function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smooth = false }) {
-  const [geometry, setGeometry] = useState(null);
+    const [geometry, setGeometry] = useState(null);
 
-  useEffect(() => {
-    if (!textureFile) {
-      setGeometry(null);
-      return;
-    }
-
-    const loadTextureAndCreateGeometry = async () => {
-      try {
-        const texture = await new Promise((resolve, reject) => {
-          textureLoader.load(
-            textureFile,
-            resolve,
-            undefined,
-            reject
-          );
-        });
-
-        const image = texture.image;
-        if (!image) {
-          console.warn('纹理图像未加载完成');
-          return;
+    useEffect(() => {
+        if (!textureFile) {
+            setGeometry(null);
+            return;
         }
 
-        const width = image.width;
-        const height = image.height;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(image, 0, 0);
-        
-        const imageData = ctx.getImageData(0, 0, width, height);
-        const data = imageData.data;
-        
-        // 存储所有体素点的高度值
-        const heightMap = [];
-        const step = sampleRate;
-        
-        // 先提取原始灰度数据到数组
-        const rawGrayData = [];
-        for (let y = 0; y < height; y += step) {
-          const row = [];
-          for (let x = 0; x < width; x += step) {
-            const idx = (y * width + x) * 4;
-            // 计算灰度值 (0-1)
-            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-            row.push(gray);
-          }
-          rawGrayData.push(row);
-        }
-        
-        // 根据 smooth 参数决定是否应用 3x3 均值滤波
-        const grayDataToUse = smooth ? [] : rawGrayData;
-        
-        if (smooth) {
-          // 应用 3x3 均值滤波消除噪点
-          for (let row = 0; row < rawGrayData.length; row++) {
-            const filteredRow = [];
-            for (let col = 0; col < rawGrayData[row].length; col++) {
-              let sum = 0;
-              let count = 0;
-              
-              // 取周围 3x3 邻域的平均值
-              for (let dy = -1; dy <= 1; dy++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                  const newRow = row + dy;
-                  const newCol = col + dx;
-                  
-                  if (newRow >= 0 && newRow < rawGrayData.length && 
-                      newCol >= 0 && newCol < rawGrayData[row].length) {
-                    sum += rawGrayData[newRow][newCol];
-                    count++;
-                  }
+        const loadTextureAndCreateGeometry = async () => {
+            try {
+                const texture = await new Promise((resolve, reject) => {
+                    textureLoader.load(
+                        textureFile,
+                        resolve,
+                        undefined,
+                        reject
+                    );
+                });
+
+                const image = texture.image;
+                if (!image) {
+                    console.warn('纹理图像未加载完成');
+                    return;
                 }
-              }
-              
-              filteredRow.push(sum / count);
+
+                const width = image.width;
+                const height = image.height;
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+
+                // 存储所有体素点的高度值
+                const heightMap = [];
+                const step = sampleRate;
+
+                // 先提取原始灰度数据到数组
+                const rawGrayData = [];
+                for (let y = 0; y < height; y += step) {
+                    const row = [];
+                    for (let x = 0; x < width; x += step) {
+                        const idx = (y * width + x) * 4;
+                        // 计算灰度值 (0-1)
+                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+                        row.push(gray);
+                    }
+                    rawGrayData.push(row);
+                }
+
+                // 根据 smooth 参数决定是否应用 3x3 均值滤波
+                const grayDataToUse = smooth ? [] : rawGrayData;
+
+                if (smooth) {
+                    // 应用 3x3 均值滤波消除噪点
+                    for (let row = 0; row < rawGrayData.length; row++) {
+                        const filteredRow = [];
+                        for (let col = 0; col < rawGrayData[row].length; col++) {
+                            let sum = 0;
+                            let count = 0;
+
+                            // 取周围 3x3 邻域的平均值
+                            for (let dy = -1; dy <= 1; dy++) {
+                                for (let dx = -1; dx <= 1; dx++) {
+                                    const newRow = row + dy;
+                                    const newCol = col + dx;
+
+                                    if (newRow >= 0 && newRow < rawGrayData.length &&
+                                        newCol >= 0 && newCol < rawGrayData[row].length) {
+                                        sum += rawGrayData[newRow][newCol];
+                                        count++;
+                                    }
+                                }
+                            }
+
+                            filteredRow.push(sum / count);
+                        }
+                        grayDataToUse.push(filteredRow);
+                    }
+                }
+
+                // 使用选定的灰度数据生成高度图
+                for (let row = 0; row < grayDataToUse.length; row++) {
+                    for (let col = 0; col < grayDataToUse[row].length; col++) {
+                        const gray = grayDataToUse[row][col];
+                        // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
+                        const h = (1 - gray) * depth;
+                        heightMap.push({
+                            x: col * step,
+                            y: row * step,
+                            height: h
+                        });
+                    }
+                }
+
+                // 生成网格顶点和索引（只有顶面）
+                const positions = [];
+                const indices = [];
+
+                const gridWidth = Math.floor(width / step);
+                const gridHeight = Math.floor(height / step);
+                const planeSize = size / Math.max(gridWidth, gridHeight);
+
+                // 生成顶点
+                for (let i = 0; i < heightMap.length; i++) {
+                    const point = heightMap[i];
+                    // 直接生成在 XZ 平面，高度沿 Y 轴
+                    const px = -(point.x - width / 2) * planeSize;
+                    const py = point.height;
+                    const pz = -(point.y - height / 2) * planeSize;
+
+                    positions.push(px, py, pz);
+                }
+
+                // 生成三角形索引（连接相邻点）
+                for (let row = 0; row < gridHeight - 1; row++) {
+                    for (let col = 0; col < gridWidth - 1; col++) {
+                        const a = row * gridWidth + col;
+                        const b = row * gridWidth + (col + 1);
+                        const c = (row + 1) * gridWidth + col;
+                        const d = (row + 1) * gridWidth + (col + 1);
+
+                        // 两个三角形组成一个四边形
+                        // 三角形 1: a-b-c
+                        indices.push(a, b, c);
+                        // 三角形 2: b-d-c
+                        indices.push(b, d, c);
+                    }
+                }
+
+                // 创建几何体
+                const geom = new BufferGeometry();
+                geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
+                geom.setIndex(indices);
+                geom.computeVertexNormals();
+
+
+                console.log('体素几何体创建成功:', {
+                    vertexCount: positions.length / 3,
+                    triangleCount: indices.length / 3,
+                    gridSize: `${gridWidth}x${gridHeight}`
+                });
+
+                setGeometry(geom);
+            } catch (error) {
+                console.error('体素几何体创建失败:', error);
+                setGeometry(null);
             }
-            grayDataToUse.push(filteredRow);
-          }
-        }
-        
-        // 使用选定的灰度数据生成高度图
-        for (let row = 0; row < grayDataToUse.length; row++) {
-          for (let col = 0; col < grayDataToUse[row].length; col++) {
-            const gray = grayDataToUse[row][col];
-            // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
-            const h = (1 - gray) * depth;
-            heightMap.push({ 
-              x: col * step, 
-              y: row * step, 
-              height: h 
-            });
-          }
-        }
-        
-         // 生成网格顶点和索引（只有顶面）
-        const positions = [];
-        const indices = [];
-        
-        const gridWidth = Math.floor(width / step);
-        const gridHeight = Math.floor(height / step);
-        const planeSize = size / Math.max(gridWidth, gridHeight);
-        
-        // 生成顶点
-        for (let i = 0; i < heightMap.length; i++) {
-          const point = heightMap[i];
-          // 直接生成在 XZ 平面，高度沿 Y 轴
-          const px = -(point.x - width / 2) * planeSize;
-          const py = point.height;
-          const pz = -(point.y - height / 2) * planeSize;
-          
-          positions.push(px, py, pz);
-        }
-        
-        // 生成三角形索引（连接相邻点）
-        for (let row = 0; row < gridHeight - 1; row++) {
-          for (let col = 0; col < gridWidth - 1; col++) {
-            const a = row * gridWidth + col;
-            const b = row * gridWidth + (col + 1);
-            const c = (row + 1) * gridWidth + col;
-            const d = (row + 1) * gridWidth + (col + 1);
-            
-            // 两个三角形组成一个四边形
-            // 三角形 1: a-b-c
-            indices.push(a, b, c);
-            // 三角形 2: b-d-c
-            indices.push(b, d, c);
-          }
-        }
-        
-        // 创建几何体
-        const geom = new BufferGeometry();
-        geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-        geom.setIndex(indices);
-        geom.computeVertexNormals();
-        
-        
-        console.log('体素几何体创建成功:', {
-          vertexCount: positions.length / 3,
-          triangleCount: indices.length / 3,
-          gridSize: `${gridWidth}x${gridHeight}`
-        });
-        
-        setGeometry(geom);
-      } catch (error) {
-        console.error('体素几何体创建失败:', error);
-        setGeometry(null);
-      }
-    };
+        };
 
-    loadTextureAndCreateGeometry();
-  }, [textureFile, size, depth, sampleRate, smooth]);
+        loadTextureAndCreateGeometry();
+    }, [textureFile, size, depth, sampleRate, smooth]);
 
-  if (!geometry) return null;
+    if (!geometry) return null;
 
-  return <primitive object={geometry} />;
+    return <primitive object={geometry} />;
 }
 
 // 创建网格辅助线（LineSegments，不会被导出为模型网格）
@@ -222,7 +278,6 @@ function createAxisLines(length = 80, thickness = 2) {
 
     return axes;
 }
-
 // 根据文件扩展名判断模型类型
 function getModelType(url) {
     const extension = url.split('.').pop().toLowerCase();
@@ -366,9 +421,9 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 <OrbitControls />
                 <ambientLight intensity={2.5} />
                 <pointLight position={[10, 10, 10]} />
-                <Text position={[0, 0, 0]} fontSize={1} color="red">
+                <DreiText position={[0, 0, 0]} fontSize={1} color="red">
                     Invalid chess data
-                </Text>
+                </DreiText>
             </>
         );
     }
@@ -387,21 +442,176 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
     const baseShape = hasBase ? base.shape : null;
     const columnShape = hasColumn ? column.shape : null;
 
+    // 根据形状类型生成 Shape 轮廓（支持圆形、多边形、正方形）
+    const generateShapeOutline = (geoType, size1, size2, sides = 0) => {
+        const shape = new Shape();
+        const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
+
+        if (geoType === 'box') {
+            // 正方形轮廓
+            const halfWidth = size1 / 2;
+            const halfDepth = size2 / 2;
+            shape.moveTo(-halfWidth, -halfDepth);
+            shape.lineTo(halfWidth, -halfDepth);
+            shape.lineTo(halfWidth, halfDepth);
+            shape.lineTo(-halfWidth, halfDepth);
+            shape.lineTo(-halfWidth, -halfDepth);
+        } else if (geoType === 'cylinder' && sides >= 3) {
+            // 多边形轮廓
+            const angleStep = (Math.PI * 2) / sides;
+            for (let i = 0; i < sides; i++) {
+                const angle = i * angleStep;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                if (i === 0) {
+                    shape.moveTo(x, y);
+                } else {
+                    shape.lineTo(x, y);
+                }
+            }
+            shape.lineTo(Math.cos(0) * radius, Math.sin(0) * radius);
+        } else {
+            // 默认圆形轮廓
+            for (let i = 0; i <= 1024; i++) {
+                const angle = (i / 1024) * Math.PI * 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                if (i === 0) {
+                    shape.moveTo(x, y);
+                } else {
+                    shape.lineTo(x, y);
+                }
+            }
+        }
+        shape.closePath();
+        return shape;
+    };
+
+    // 为台体（上下半径不一致）生成可倒角的圆滑几何体
+    const createRoundedFrustumGeometry = (radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments) => {
+        const safeTop = Math.max(radiusTop || 0, 0.001);
+        const safeBottom = Math.max(radiusBottom || 0, 0.001);
+        const halfHeight = Math.max(height || 0, 0.001) / 2;
+        const maxBevel = Math.min(
+            bevelSize || 0,
+            halfHeight - 0.001,
+            safeTop * 0.45,
+            safeBottom * 0.45
+        );
+
+        if (maxBevel <= 0.0001) {
+            return new THREE.CylinderGeometry(safeTop, safeBottom, Math.max(height || 0, 0.001), radialSegments);
+        }
+
+        const topFlat = Math.max(safeTop - maxBevel, 0.001);
+        const bottomFlat = Math.max(safeBottom - maxBevel, 0.001);
+        const yTop = halfHeight;
+        const yBottom = -halfHeight;
+        const bSeg = Math.max(2, bevelSegments || 4);
+        const bodySeg = 24;
+        const points = [];
+
+        // 顶面中心到顶面边
+        points.push(new Vector2(0, yTop));
+        points.push(new Vector2(topFlat, yTop));
+
+        // 顶部圆角过渡（顶面 -> 侧面）
+        for (let i = 1; i <= bSeg; i++) {
+            const t = i / bSeg;
+            const theta = t * Math.PI * 0.5;
+            const r = topFlat + (safeTop - topFlat) * Math.sin(theta);
+            const y = yTop - maxBevel * (1 - Math.cos(theta));
+            points.push(new Vector2(r, y));
+        }
+
+        // 侧面（台体斜面）
+        for (let i = 1; i <= bodySeg; i++) {
+            const t = i / bodySeg;
+            const yStart = yTop - maxBevel;
+            const yEnd = yBottom + maxBevel;
+            const y = yStart + (yEnd - yStart) * t;
+            const r = safeTop + (safeBottom - safeTop) * t;
+            points.push(new Vector2(r, y));
+        }
+
+        // 底部圆角过渡（侧面 -> 底面）
+        for (let i = 1; i <= bSeg; i++) {
+            const t = i / bSeg;
+            const theta = t * Math.PI * 0.5;
+            const r = safeBottom - (safeBottom - bottomFlat) * Math.sin(theta);
+            const y = yBottom + maxBevel * Math.cos(theta);
+            points.push(new Vector2(r, y));
+        }
+
+        // 底面边到底面中心
+        points.push(new Vector2(bottomFlat, yBottom));
+        points.push(new Vector2(0, yBottom));
+
+        const geometry = new LatheGeometry(points.reverse(), Math.max(16, radialSegments || 64));
+        geometry.computeVertexNormals();
+        return geometry;
+    };
+
+    // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体
+    const createRoundedPolygonFrustumGeometry = (radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments) => {
+        const safeTop = Math.max(radiusTop || 0, 0.001);
+        const safeBottom = Math.max(radiusBottom || 0, 0.001);
+        const safeHeight = Math.max(height || 0, 0.001);
+        const safeSides = Math.max(3, sides || 6);
+        const baseRadius = Math.max(safeTop, safeBottom, 0.001);
+        const maxBevel = Math.min(bevelSize || 0, safeHeight * 0.45, baseRadius * 0.35);
+
+        const shape = generateShapeOutline('cylinder', baseRadius, baseRadius, safeSides);
+        const extrudeSettings = {
+            depth: safeHeight,
+            bevelEnabled: maxBevel > 0.0001,
+            bevelThickness: maxBevel,
+            bevelSize: maxBevel,
+            bevelSegments: Math.max(2, bevelSegments || 4),
+            curveSegments: 8,
+            steps: 1
+        };
+
+        const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+        geometry.rotateX(Math.PI / 2);
+        geometry.translate(0, safeHeight / 2, 0);
+
+        // 按 y 位置将截面半径从底部线性过渡到顶部，形成多棱柱台体
+        const position = geometry.attributes.position;
+        for (let i = 0; i < position.count; i++) {
+            const x = position.getX(i);
+            const y = position.getY(i);
+            const z = position.getZ(i);
+            const t = Math.max(0, Math.min(1, y / safeHeight));
+            const targetRadius = safeBottom + (safeTop - safeBottom) * t;
+            const scale = targetRadius / baseRadius;
+            position.setXYZ(i, x * scale, y, z * scale);
+        }
+
+        position.needsUpdate = true;
+        geometry.computeVertexNormals();
+        return geometry;
+    };
+
     // 渲染底座组件（带边缘处理）
     const renderBaseShape = () => {
         if (!hasBase) return null;
 
         const { type, size1, size2, height } = baseShape;
         const position = base.position || { x: 0, y: 0, z: 0 };
+        const rotation = baseShape.rotation || { x: 0, y: 0, z: 0 };
+        const specialScale = baseShape.specialScale || { x: 1, y: 1, z: 1 };
+        const specialRotation = baseShape.specialRotation || { x: 0, y: 0, z: 0 };
         const material = base.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = base.pattern || { shape: 'none', position: { x: 0, y: 0, z: 0 } };
+        const patternScale = getPatternTransform(pattern);
         const edge = base.edge || { type: 'none', depth: 0, segments: 4 };
 
         // 渲染主体元素 
         let bodyelement = null;
 
         // 根据边缘处理类型创建几何体
-        const createGeometry = (geoType, args) => {
+        const createGeometry = (geoType, args, sides = 0) => {
             if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
                 // 无边缘处理，直接创建标准几何体
                 if (geoType === 'cylinder') {
@@ -410,68 +620,60 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     return <boxGeometry args={args} />;
                 }
             } else {
-                // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
-                const shape = new Shape();
-                const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
-                const halfWidth = geoType === 'box' ? size1 / 2 : radius;
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
 
-                if (edge.type === 'smooth') {
-                    // 平滑：创建带倒角的圆形
-                    const segments = edge.segments || 4;
-                    const bevelSize = edge.depth || 0.1;
-
-                    // 绘制圆形路径，在顶部和底部添加倒角
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
-
-                    const extrudeSettings = {
-                        depth: height,
-                        bevelEnabled: true,
-                        bevelThickness: bevelSize,
-                        bevelSize: bevelSize,
-                        bevelSegments: segments,
-                        curveSegments: 16
-                    };
-
-                    shape.closePath();
-                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-                    geometry.rotateX(Math.PI / 2);
-                    geometry.translate(0, height / 2, 0);
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
                     return <primitive object={geometry} />;
-                } else if (edge.type === 'round') {
-                    // 圆滑：创建带圆角的形状，使用固定的高分段数
-                    const bevelSize = edge.depth || 0.1;
-                    const segments = 256; // 固定使用 256 分段数，实现极致圆滑
+                }
 
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    const geometry = createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
+
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
+                    const bevelSize = edge.depth || 0.1;
 
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
                         bevelThickness: bevelSize,
                         bevelSize: bevelSize,
-                        bevelSegments: segments,
+                        bevelSegments: bevelSegments,
                         curveSegments: 16
                     };
 
-                    shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
                     geometry.translate(0, height / 2, 0);
@@ -490,7 +692,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         switch (type) {
             case 'cycle':
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('cylinder', [size1, size2, height, 64])}
                         <meshStandardMaterial
                             color="#8B4513"
@@ -504,8 +706,8 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'polygon':
                 const baseSides = baseShape.sides || 6;
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
-                        {createGeometry('cylinder', [size1, size2, height, baseSides])}
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
+                        {createGeometry('cylinder', [size1, size2, height, baseSides], baseSides)}
                         <meshStandardMaterial
                             color="#8B4513"
                             metalness={material.metalness}
@@ -517,7 +719,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 ); break;
             case 'cube':
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('box', [size1, height, size2])}
                         <meshStandardMaterial
                             color="#8B4513"
@@ -531,7 +733,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'special': // 异形类型
                 const baseCustomShape = base.customShape || { profilePoints: [], pathPoints: [], generated: false };
                 bodyelement = (
-                    <group position={[position.x, position.y, position.z]}>
+                    <group position={[0, 0, 0]}>
                         <ModelPreview
                             profilePoints={baseCustomShape.profilePoints}
                             pathPoints={baseCustomShape.pathPoints}
@@ -541,7 +743,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 ); break;
             default:
                 bodyelement = (
-                    <mesh position={[position.x, position.y + height / 2, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
                         <cylinderGeometry args={[size1, size2, height, 64]} />
                         <meshStandardMaterial
                             color="#8B4513"
@@ -563,23 +765,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 break;
             case 'text':
                 patternelement = (
-                    <mesh position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0), pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                        <Text3D
-                            font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
-                            size={pattern.size || 5}
-                            height={pattern.depth || 1}
-                            curveSegments={12}
-                        >
-                            {pattern.content}
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </Text3D>
-                    </mesh>
+                    <PatternTextMesh
+                        pattern={pattern}
+                        material={material}
+                        color="#CD853F"
+                        position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
+                    />
                 );
                 break;
             case 'geometry':
@@ -588,11 +779,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -611,11 +798,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -634,11 +817,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -678,32 +857,33 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 console.log('渲染自定义纹理 - Base:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
+                    const patternRotation = getPatternRotation(pattern);
                     patternelement = (
-                        <mesh
+                        <group
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                            scale={[
-                                pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                            ]}
-                            castShadow
-                            receiveShadow
+                            rotation={patternRotation}
                         >
-                            <VoxelGeometry
-                                textureFile={pattern.textureFile}
-                                size={pattern.size || 10}
-                                depth={pattern.depth || 1}
-                                sampleRate={2} // 每 2 个像素采样一次，减少噪点影响
-                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
-                            />
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </mesh>
+                            <mesh
+                                scale={patternScale}
+                                castShadow
+                                receiveShadow
+                            >
+                                <VoxelGeometry
+                                    textureFile={pattern.textureFile}
+                                    size={pattern.size || 10}
+                                    depth={pattern.depth || 1}
+                                    sampleRate={2}
+                                    smooth={pattern.smooth ?? smoothTexture}
+                                />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
                     );
                 } else {
                     console.log('缺少 textureFile 字段');
@@ -714,7 +894,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 break;
         }
         return (
-            <group>
+            <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
                 {bodyelement}
                 {patternelement}
             </group>
@@ -727,14 +907,18 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
 
         const { type, size1, size2, height } = columnShape;
         const position = column.position || { x: 0, y: 0, z: 0 };
+        const rotation = columnShape.rotation || { x: 0, y: 0, z: 0 };
+        const specialScale = columnShape.specialScale || { x: 1, y: 1, z: 1 };
+        const specialRotation = columnShape.specialRotation || { x: 0, y: 0, z: 0 };
         const material = column.material || { metalness: 0.3, roughness: 0.4, clearcoat: 0, clearcoatRoughness: 0 };
         const pattern = column.pattern || { shape: 'none' };
+        const patternScale = getPatternTransform(pattern);
         const edge = column.edge || { type: 'none', depth: 0, segments: 4 };
         const baseheight = base.shape.height || 0;
         let bodyelement = null;
 
         // 根据边缘处理类型创建几何体
-        const createGeometry = (geoType, args) => {
+        const createGeometry = (geoType, args, sides = 0) => {
             if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
                 // 无边缘处理，直接创建标准几何体
                 if (geoType === 'cylinder') {
@@ -743,68 +927,60 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                     return <boxGeometry args={args} />;
                 }
             } else {
-                // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
-                const shape = new Shape();
-                const radius = geoType === 'cylinder' ? Math.max(size1, size2) : Math.max(size1, size2) / 2;
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
 
-                if (edge.type === 'smooth') {
-                    // 平滑：创建带倒角的圆形
-                    const segments = edge.segments || 4;
-                    const bevelSize = edge.depth || 0.1;
-
-                    // 绘制圆形路径
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
-
-                    const extrudeSettings = {
-                        depth: height,
-                        bevelEnabled: true,
-                        bevelThickness: bevelSize,
-                        bevelSize: bevelSize,
-                        bevelSegments: segments,
-                        curveSegments: 16
-                    };
-
-                    shape.closePath();
-                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-                    geometry.rotateX(Math.PI / 2);
-                    geometry.translate(0, height / 2, 0);
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
                     return <primitive object={geometry} />;
-                } else if (edge.type === 'round') {
-                    // 圆滑：创建带圆角的形状，使用固定的高分段数
-                    const bevelSize = edge.depth || 0.1;
-                    const segments = 256; // 固定使用 256 分段数，实现极致圆滑
+                }
 
-                    // 绘制带圆角的圆形
-                    for (let i = 0; i <= 1024; i++) {
-                        const angle = (i / 1024) * Math.PI * 2;
-                        const x = Math.cos(angle) * radius;
-                        const y = Math.sin(angle) * radius;
-                        if (i === 0) {
-                            shape.moveTo(x, y);
-                        } else {
-                            shape.lineTo(x, y);
-                        }
-                    }
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    const geometry = createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    const geometry = createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                    return <primitive object={geometry} />;
+                }
+
+                // 有边缘处理，使用 ExtrudeGeometry 实现倒角效果
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
+
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
+                    const bevelSize = edge.depth || 0.1;
 
                     const extrudeSettings = {
                         depth: height,
                         bevelEnabled: true,
                         bevelThickness: bevelSize,
                         bevelSize: bevelSize,
-                        bevelSegments: segments,
+                        bevelSegments: bevelSegments,
                         curveSegments: 16
                     };
 
-                    shape.closePath();
                     const geometry = new ExtrudeGeometry(shape, extrudeSettings);
                     geometry.rotateX(Math.PI / 2);
                     geometry.translate(0, height / 2, 0);
@@ -824,7 +1000,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         switch (type) {
             case 'cycle':
                 bodyelement = (
-                    <mesh position={[position.x, baseheight + height / 2 + position.y, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('cylinder', [size1, size2, height, 64])}
                         <meshStandardMaterial
                             color="#CD853F"
@@ -839,8 +1015,8 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'polygon':
                 const columnSides = columnShape.sides || 6;
                 bodyelement = (
-                    <mesh position={[position.x, baseheight + height / 2 + position.y, position.z]} castShadow receiveShadow>
-                        {createGeometry('cylinder', [size1, size2, height, columnSides])}
+                    <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
+                        {createGeometry('cylinder', [size1, size2, height, columnSides], columnSides)}
                         <meshStandardMaterial
                             color="#CD853F"
                             metalness={material.metalness}
@@ -852,7 +1028,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 ); break;
             case 'cube':
                 bodyelement = (
-                    <mesh position={[position.x, baseheight + height / 2 + position.y, position.z]} castShadow receiveShadow>
+                    <mesh position={[0, baseheight + height / 2, 0]} castShadow receiveShadow>
                         {createGeometry('box', [size1, height, size2])}
                         <meshStandardMaterial
                             color="#CD853F"
@@ -868,7 +1044,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             case 'special': // 异形类型
                 const columnCustomShape = column.customShape || { profilePoints: [], pathPoints: [], generated: false };
                 bodyelement = (
-                    <group position={[position.x, baseheight + height / 2 + position.y, position.z]}>
+                    <group position={[0, baseheight + height / 2, 0]}>
                         <ModelPreview
                             profilePoints={columnCustomShape.profilePoints}
                             pathPoints={columnCustomShape.pathPoints}
@@ -888,23 +1064,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 break;
             case 'text':
                 patternelement = (
-                    <mesh position={[pattern.position?.x || 0, baseheight + height + position.y + pattern.position?.y || 0, pattern.position?.z || 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                        <Text3D
-                            font={"https://threejs.org/examples/fonts/helvetiker_regular.typeface.json"}
-                            size={pattern.size || 5}
-                            height={pattern.depth || 1}
-                            curveSegments={12}
-                        >
-                            {pattern.content}
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </Text3D>
-                    </mesh>
+                    <PatternTextMesh
+                        pattern={pattern}
+                        material={material}
+                        color="#CD853F"
+                        position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
+                    />
                 );
                 break;
             case 'geometry':
@@ -913,11 +1078,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -936,11 +1097,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -959,11 +1116,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                         patternelement = (
                             <mesh
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={[
-                                    pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                    pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                    pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                                ]}
+                                scale={patternScale}
                                 castShadow
                                 receiveShadow
                             >
@@ -1003,32 +1156,33 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 console.log('渲染自定义纹理 - Column:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
+                    const patternRotation = getPatternRotation(pattern);
                     patternelement = (
-                        <mesh
+                        <group
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                            scale={[
-                                pattern.scaleX !== undefined ? pattern.scaleX : 1,
-                                pattern.scaleY !== undefined ? pattern.scaleY : -1,
-                                pattern.scaleZ !== undefined ? pattern.scaleZ : 1
-                            ]}
-                            castShadow
-                            receiveShadow
+                            rotation={patternRotation}
                         >
-                            <VoxelGeometry
-                                textureFile={pattern.textureFile}
-                                size={pattern.size || 10}
-                                depth={pattern.depth || 1}
-                                sampleRate={2}
-                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
-                            />
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </mesh>
+                            <mesh
+                                scale={patternScale}
+                                castShadow
+                                receiveShadow
+                            >
+                                <VoxelGeometry
+                                    textureFile={pattern.textureFile}
+                                    size={pattern.size || 10}
+                                    depth={pattern.depth || 1}
+                                    sampleRate={2}
+                                    smooth={pattern.smooth ?? smoothTexture}
+                                />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
                     );
                 } else {
                     console.log('缺少 textureFile 字段');
@@ -1040,7 +1194,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         }
 
         return (
-            <group>
+            <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
                 {bodyelement}
                 {patternelement}
             </group>
@@ -1374,9 +1528,9 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />
 
             {/* 坐标轴标签 */}
-            <Text position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</Text>
-            <Text position={[0, 50, 0]} fontSize={3} color="green" anchorX="center">Y</Text>
-            <Text position={[0, 0, 50]} fontSize={3} color="blue" anchorX="left">Z</Text>
+            <DreiText position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</DreiText>
+            <DreiText position={[0, 50, 0]} fontSize={3} color="green" anchorX="center">Y</DreiText>
+            <DreiText position={[0, 0, 50]} fontSize={3} color="blue" anchorX="left">Z</DreiText>
 
             {/* Model root group - contains only the chess model meshes */}
             <group ref={modelRootRef}>

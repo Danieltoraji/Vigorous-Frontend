@@ -8,7 +8,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: url("/static/projectExplorer/sticker.png") center / cover no-repeat;
+  background: url("/static/projectExplorer/project_sticker.png") center / cover no-repeat;
   background-size: 100% 100%;
   inset: -10%;
 }

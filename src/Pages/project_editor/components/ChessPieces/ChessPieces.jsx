@@ -10,6 +10,7 @@ import Pagination from './controls/Pagination';
 import EditChessModal from './modals/EditChessModal';
 import DeleteConfirmModal from './modals/DeleteConfirmModal';
 import ImportChessModal from './modals/ImportChessModal';
+import { SaveAsTemplateModal } from './modals/SaveAsTemplateModal';
 import './ChessPieces.css';
 
 const ChessPieces = ({ projectId }) => {
@@ -28,6 +29,7 @@ const ChessPieces = ({ projectId }) => {
   const [editingPiece, setEditingPiece] = useState(null);
   const [deletingPiece, setDeletingPiece] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [savingAsTemplateId, setSavingAsTemplateId] = useState(null);
 
   // 加载棋子数据
   useEffect(() => {
@@ -105,11 +107,22 @@ const ChessPieces = ({ projectId }) => {
     navigate(`/chess-editor/${piece.id}`, { state: { piece } });
   };
 
+  // 处理保存为模板
+  const handleSaveAsTemplate = (piece) => {
+    setSavingAsTemplateId(piece.id);
+  };
+
+  // 处理保存为模板成功
+  const handleSaveAsTemplateSuccess = (preset) => {
+    setSavingAsTemplateId(null);
+    alert(`成功创建预设：${preset.name}`);
+  };
+
   return (
     <div className="chess-pieces">
       <div className="chess-pieces-header">
         <h2>棋子管理</h2>
-        
+
         <div className="chess-pieces-controls">
           <button className="create-button" onClick={() => {
             createChess(projectId);
@@ -160,6 +173,7 @@ const ChessPieces = ({ projectId }) => {
             onEdit={handleEditPiece}
             onOpen={handleOpenPiece}
             onDelete={handleDeletePiece}
+            onSaveAsTemplate={handleSaveAsTemplate}
           />
         ) : (
           <ListView
@@ -167,6 +181,7 @@ const ChessPieces = ({ projectId }) => {
             onEdit={handleEditPiece}
             onOpen={handleOpenPiece}
             onDelete={handleDeletePiece}
+            onSaveAsTemplate={handleSaveAsTemplate}
           />
         )}
       </div>
@@ -208,7 +223,19 @@ const ChessPieces = ({ projectId }) => {
           />
         )
       }
-    </div >
+
+      {
+        savingAsTemplateId && (
+          <SaveAsTemplateModal
+            isOpen={!!savingAsTemplateId}
+            onClose={() => setSavingAsTemplateId(null)}
+            pieceId={savingAsTemplateId}
+            pieceName={chessData[savingAsTemplateId]?.name || ''}
+            onSaveSuccess={handleSaveAsTemplateSuccess}
+          />
+        )
+      }
+    </div>
   );
 };
 

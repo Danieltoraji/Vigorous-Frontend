@@ -1,5 +1,5 @@
 .texture-list {
-  max-width: 1400px;
+  max-width: 90%;
   margin: 0 auto;
 }
 
@@ -21,7 +21,7 @@
 }
 
 .texture-list-header .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -37,8 +37,15 @@
   box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
 }
 
-.texture-grid {
+.texture-explorer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .texture-explorer-grid {
+    grid-template-columns: 1fr;
+  }
 }

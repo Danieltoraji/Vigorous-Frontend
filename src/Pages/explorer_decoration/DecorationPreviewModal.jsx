@@ -184,7 +184,7 @@ function DecorationPreviewModal({ isOpen, onClose, decoration }) {
           )}
 
           {modelUrl && fileType && (
-            <div className="preview-canvas-container">
+            <div className="decoration-preview-canvas-container">
               <Canvas
                 camera={{ position: [18, 14, 18], fov: 45 }}
                 shadows

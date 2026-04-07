@@ -151,6 +151,7 @@
     transform: scale(0);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -205,13 +206,13 @@
 }
 
 .texture-grid-footer .btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   border: none;
 }
 
 .texture-grid-footer .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5568d3, #6a4190);
+  background: linear-gradient(135deg, #6583c0 0%, #5876b3 100%);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   transform: translateY(-1px);
 }

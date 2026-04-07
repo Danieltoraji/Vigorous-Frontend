@@ -1,9 +1,8 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.project-editor .modal-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -65,7 +64,7 @@
 }
 
 .chess-modal-form {
-  background: url("/static/projectEditor/sticker.png") center / cover no-repeat !important;
+  background: url("/static/projectEditor/chess_sticker.png") center / cover no-repeat !important;
   background-size: 100% 100% !important;
   padding-top: 100px !important;
   padding-right: 15% !important;
@@ -240,7 +239,7 @@
 .save-button {
   padding: 8px 16px;
   border: none;
-  background-color: #107C10;
+  background: linear-gradient(135deg, #389e0d 0%, #3d8b40 100%);
   color: white;
   border-radius: var(--fluent-radius);
   cursor: pointer;
@@ -254,7 +253,7 @@
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #0D6E0D;
+  background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 
@@ -477,7 +476,7 @@
 }
 
 .view-button.active {
-  background: var(--fluent-primary);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   border-color: var(--fluent-primary);
 }

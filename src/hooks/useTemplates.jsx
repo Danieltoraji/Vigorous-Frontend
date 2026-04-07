@@ -7,7 +7,7 @@ export function TemplatesProvider({ children }) {
   // 初始状态
   const [templatesData, setTemplatesData] = useState({
   });
-  
+
   // 状态管理：加载中、错误、最后更新时间
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,22 +17,22 @@ export function TemplatesProvider({ children }) {
   const fetchTemplates = async (params = {}) => {
     try {
       setLoading(true);
-      
+
       // 构建查询参数
       const queryParams = new URLSearchParams();
       if (params.search) queryParams.append('search', params.search);
       if (params.ordering) queryParams.append('ordering', params.ordering);
-      
+
       const url = `/presets/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await csrfapi.get(url);
       const data = response.data;
-      
+
       // 转换数据格式：{ '模板id': { ...模板详情 } }
       const templatesMap = {};
       data.forEach(template => {
         templatesMap[template.id] = template;
       });
-      
+
       setTemplatesData(templatesMap);
       setLastUpdated(new Date().toISOString());
       setError(null);
@@ -55,13 +55,13 @@ export function TemplatesProvider({ children }) {
     try {
       const response = await csrfapi.get(`/presets/${templateId}/`);
       const template = response.data;
-      
+
       // 更新这个模板的数据
       setTemplatesData(prev => ({
         ...prev,
         [templateId]: template
       }));
-      
+
       return template;
     } catch (err) {
       throw err;
@@ -88,7 +88,7 @@ export function TemplatesProvider({ children }) {
             "material": null,
             "pattern": {
               "shape": "text",
-              "position": { "x": 0, "y":0, "z": 0 },
+              "position": { "x": 0, "y": 0, "z": 0 },
               "size": 10,
               "depth": 1
             },
@@ -111,7 +111,7 @@ export function TemplatesProvider({ children }) {
             "sideTreatment": "none",
             "pattern": {
               "shape": "geometry",
-              "geometryType":"Cube",
+              "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
               "depth": 0.5
@@ -130,13 +130,13 @@ export function TemplatesProvider({ children }) {
       }
       const response = await csrfapi.post('/presets/', templateData);
       const newTemplate = response.data;
-      
+
       // 后端返回的新模板应该包含 id
       setTemplatesData(prev => ({
         ...prev,
         [newTemplate.id]: newTemplate
       }));
-      
+
       setLastUpdated(new Date().toISOString());
       return newTemplate;
     } catch (err) {
@@ -147,7 +147,7 @@ export function TemplatesProvider({ children }) {
   // 从既定的JSON中创建模板
   const createTemplateFromJson = async (templateJson) => {
     try {
-      console.log("从JSON创建模板，使用数据：",templateJson)
+      console.log("从JSON创建模板，使用数据：", templateJson)
       const templateData = {
         name: '新模板',
         parts: {
@@ -225,7 +225,7 @@ export function TemplatesProvider({ children }) {
   const updateTemplate = async (templateId, updatedData) => {
     // 先保存旧值（万一失败要恢复）
     const oldData = templatesData[templateId];
-    
+
     // 乐观更新：立即更新界面
     setTemplatesData(prev => ({
       ...prev,
@@ -234,19 +234,19 @@ export function TemplatesProvider({ children }) {
         ...updatedData
       }
     }));
-    
+
     try {
       const response = await csrfapi.patch(`/presets/${templateId}/`, updatedData);
-      
+
       // 后端可能返回更新后的完整数据
       const updatedFromServer = response.data;
-      
+
       // 用后端返回的数据再次更新（确保一致）
       setTemplatesData(prev => ({
         ...prev,
         [templateId]: updatedFromServer
       }));
-      
+
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复旧数据
@@ -263,24 +263,67 @@ export function TemplatesProvider({ children }) {
     // 先保存旧值
     const oldData = { ...templatesData };
     const templateExists = templateId in templatesData;
-    
+
     if (!templateExists) return;
-    
+
     // 乐观更新：立即从界面移除
     setTemplatesData(prev => {
       const newData = { ...prev };
       delete newData[templateId];
       return newData;
     });
-    
+
     try {
       await csrfapi.delete(`/presets/${templateId}/`);
-      
+
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       // 失败：恢复被删除的模板
       setTemplatesData(oldData);
       throw err;
+    }
+  };
+
+  // 将预设应用到指定项目（或自动创建新项目）
+  const applyPresetToProjects = async (presetId, projectIds = [], pieceName = null) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 获取预设信息用于默认命名
+      const preset = templatesData[presetId];
+      const defaultPieceName = pieceName || (preset?.name) || '导入的棋子';
+
+      const response = await csrfapi.post(
+        `/presets/${presetId}/apply_to_projects/`,
+        {
+          project_ids: projectIds && projectIds.length > 0 ? projectIds : [],
+          piece_name: defaultPieceName
+        }
+      );
+
+      const result = response.data;
+      setLastUpdated(new Date().toISOString());
+
+      // 返回详细的应用结果
+      return {
+        success: true,
+        createdPieces: result.created_pieces,
+        createdProject: result.created_project,
+        failedProjects: result.failed_projects,
+        message: result.message
+      };
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.message || '应用预设失败';
+      setError(errorMessage);
+
+      return {
+        success: false,
+        error: errorMessage,
+        statusCode: err.response?.status
+      };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -296,19 +339,20 @@ export function TemplatesProvider({ children }) {
     loading,
     error,
     lastUpdated,
-    
+
     // 读取方法
     getTemplate: (id) => templatesData[id],
     fetchTemplates,
     fetchTemplate,
     refreshTemplates,
-    
+
     // 修改方法
     createTemplate,
     createTemplateFromJson,
     updateTemplate,
     deleteTemplate,
-    
+    applyPresetToProjects,
+
     // 原始的 setTemplatesData（用于特殊情况）
     setTemplatesData
   };

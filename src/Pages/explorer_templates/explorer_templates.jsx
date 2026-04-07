@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useUser } from '../../hooks/useUser.jsx'
 import { useTemplates } from '../../hooks/useTemplates.jsx'
+import { useProject } from '../../hooks/useProject.jsx'
 import './explorer_templates.css'
 import { useNavigate } from 'react-router-dom'
 import ImportFromProject from './import_from_project/import_from_project.jsx'
+import { ApplyTemplateModal } from './modals/ApplyTemplateModal.jsx'
 
 // 格式化日期时间
 function formatDateTime(dateString) {
@@ -19,18 +21,39 @@ function formatDateTime(dateString) {
 }
 
 function ExplorerTemplates() {
-  const { templatesData, loading, error, deleteTemplate, createTemplate, createTemplateFromJson, updateTemplate } = useTemplates()
+  const { templatesData, loading, error, deleteTemplate, createTemplate, createTemplateFromJson, updateTemplate, applyPresetToProjects } = useTemplates()
+  const { projectData } = useProject()
   const [viewMode, setViewMode] = useState('card') // 'card' or 'list'
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
+  const [visibilityFilter, setVisibilityFilter] = useState('all') // 'all' | 'mine' | 'public'
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  const [editTags, setEditTags] = useState('')
+  const [editTagInput, setEditTagInput] = useState('')
+  const [editTagList, setEditTagList] = useState([])
   const { userData } = useUser()
   const [moreActionsOpen, setMoreActionsOpen] = useState(null)
+  const moreActionsRefs = useRef({})
   const navigate = useNavigate()
+  const [applyingTemplateId, setApplyingTemplateId] = useState(null)
+
+  useEffect(() => {
+    if (moreActionsOpen === null) return undefined
+
+    const handleClickOutside = (event) => {
+      const activeMenu = moreActionsRefs.current[moreActionsOpen]
+      if (activeMenu && !activeMenu.contains(event.target)) {
+        setMoreActionsOpen(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [moreActionsOpen])
 
   const onBack = () => {
     navigate('/menu')
@@ -45,10 +68,21 @@ function ExplorerTemplates() {
   })
 
   // 过滤模板并按id降序排序
+  const currentUserId = userData?.id
+  const mineCount = Object.values(templatesData).filter(template => template.user === currentUserId).length
+  const publicCount = Object.values(templatesData).filter(template => template.is_public).length
+
   const filteredTemplates = Object.values(templatesData).filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesTag = !selectedTag || (template.piece_tags && template.piece_tags.includes(selectedTag))
-    return matchesSearch && matchesTag
+    const matchesVisibility =
+      visibilityFilter === 'all'
+        ? true
+        : visibilityFilter === 'mine'
+          ? template.user === currentUserId
+          : template.is_public
+
+    return matchesSearch && matchesTag && matchesVisibility
   }).sort((a, b) => b.id - a.id)
 
   // 处理更多操作菜单
@@ -69,8 +103,16 @@ function ExplorerTemplates() {
 
   // 处理应用到项目
   const handleApplyToProject = (template) => {
-    alert("apply");
-    // TODO: 实现应用模板逻辑
+    setApplyingTemplateId(template.id);
+  }
+
+  // 处理应用模板成功
+  const handleApplySuccess = (result) => {
+    const message = result.created_project
+      ? `成功创建项目 "${result.created_project.name}" 并添加棋子`
+      : `成功在 ${result.created_pieces.length} 个项目中添加棋子`;
+    alert(message);
+    setApplyingTemplateId(null);
   }
 
   // 处理编辑信息
@@ -78,7 +120,8 @@ function ExplorerTemplates() {
     setEditingTemplate(template)
     setEditName(template.name || '')
     setEditDescription(template.description || '')
-    setEditTags(template.piece_tags ? template.piece_tags.join(', ') : '')
+    setEditTagList(Array.isArray(template.piece_tags) ? [...template.piece_tags] : [])
+    setEditTagInput('')
     setShowEditModal(true)
   }
 
@@ -88,7 +131,8 @@ function ExplorerTemplates() {
     setEditingTemplate(null)
     setEditName('')
     setEditDescription('')
-    setEditTags('')
+    setEditTagInput('')
+    setEditTagList([])
   }
 
   // 处理保存编辑
@@ -99,15 +143,33 @@ function ExplorerTemplates() {
     }
 
     try {
-      const tagsArray = editTags.split(',').map(tag => tag.trim()).filter(tag => tag)
       await updateTemplate(editingTemplate.id, {
         name: editName,
         description: editDescription,
-        piece_tags: tagsArray
+        piece_tags: editTagList
       })
       handleCloseEditModal()
     } catch (error) {
       alert('保存失败：' + error.message)
+    }
+  }
+
+  const handleAddEditTag = () => {
+    const normalizedTag = editTagInput.trim()
+    if (!normalizedTag || editTagList.includes(normalizedTag)) return
+
+    setEditTagList(prev => [...prev, normalizedTag])
+    setEditTagInput('')
+  }
+
+  const handleRemoveEditTag = (tagToRemove) => {
+    setEditTagList(prev => prev.filter(tag => tag !== tagToRemove))
+  }
+
+  const handleEditTagInputKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      handleAddEditTag()
     }
   }
 
@@ -252,6 +314,30 @@ function ExplorerTemplates() {
       <div className="explorer-content">
         <div className="left-sidebar">
           <div className="filter-section">
+            <h2>可见性筛选</h2>
+            <div className="tag-filters">
+              <button
+                className={`tag-filter ${visibilityFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setVisibilityFilter('all')}
+              >
+                全部（{Object.keys(templatesData).length}）
+              </button>
+              <button
+                className={`tag-filter ${visibilityFilter === 'mine' ? 'active' : ''}`}
+                onClick={() => setVisibilityFilter('mine')}
+              >
+                仅我的（{mineCount}）
+              </button>
+              <button
+                className={`tag-filter ${visibilityFilter === 'public' ? 'active' : ''}`}
+                onClick={() => setVisibilityFilter('public')}
+              >
+                仅公开（{publicCount}）
+              </button>
+            </div>
+          </div>
+
+          <div className="filter-section">
             <h2>按标签筛选</h2>
             <div className="tag-filters">
               <button
@@ -323,13 +409,6 @@ function ExplorerTemplates() {
                 <div key={template.id} className="template-card">
                   <div className="template-card-header">
                     <h3 className="template-name">{template.name}</h3>
-                    <button
-                      className="edit-icon"
-                      onClick={() => handleEditInfo(template)}
-                      title="编辑信息"
-                    >
-                      ✏️
-                    </button>
                   </div>
 
                   <div className="template-card-body">
@@ -338,6 +417,12 @@ function ExplorerTemplates() {
                     </p>
 
                     <div className="template-meta">
+                      <div className="template-meta-item">
+                        <span className="meta-label">可见性：</span>
+                        <span className={`visibility-badge ${template.is_public ? 'visibility-public' : 'visibility-private'}`}>
+                          {template.is_public ? '公开' : '私有'}
+                        </span>
+                      </div>
                       <div className="template-meta-item">
                         <span className="meta-label">ID：</span>
                         <span className="meta-value">{template.id}</span>
@@ -365,25 +450,23 @@ function ExplorerTemplates() {
 
                   <div className="template-card-footer">
                     <div className="template-actions">
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => handleOpenTemplate(template)}
+                      <div
+                        className="more-actions"
+                        ref={(node) => {
+                          if (node) {
+                            moreActionsRefs.current[template.id] = node
+                          }
+                        }}
                       >
-                        打开
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => handleApplyToProject(template)}
-                      >
-                        应用到项目
-                      </button>
-                      <button
-                        className="btn btn-outline delete-btn"
-                        onClick={() => handleDeleteTemplate(template.id)}
-                      >
-                        删除
-                      </button>
-                      <div className="more-actions">
+                        <button
+                          type="button"
+                          className="btn btn-outline small more-actions-toggle"
+                          onClick={() => toggleMoreActions(template.id)}
+                          title="更多操作"
+                          aria-label="更多操作"
+                        >
+                          ...
+                        </button>
                         {moreActionsOpen === template.id && (
                           <div className="more-actions-menu">
                             <button
@@ -401,6 +484,18 @@ function ExplorerTemplates() {
                           </div>
                         )}
                       </div>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => handleOpenTemplate(template)}
+                      >
+                        打开
+                      </button>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleApplyToProject(template)}
+                      >
+                        应用到项目
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -416,6 +511,7 @@ function ExplorerTemplates() {
                     <th>ID</th>
                     <th>创建时间</th>
                     <th>修改时间</th>
+                    <th>可见性</th>
                     <th>标签</th>
                     <th>操作</th>
                   </tr>
@@ -426,19 +522,17 @@ function ExplorerTemplates() {
                       <td>
                         <div className="template-title-with-edit">
                           <span>{template.name}</span>
-                          <button
-                            className="edit-icon small"
-                            onClick={() => handleEditInfo(template)}
-                            title="编辑信息"
-                          >
-                            ✏️
-                          </button>
                         </div>
                       </td>
                       <td>{template.description || '暂无描述'}</td>
                       <td>{template.id}</td>
                       <td>{formatDateTime(template.created_at)}</td>
                       <td>{formatDateTime(template.edited_at)}</td>
+                      <td>
+                        <span className={`visibility-badge ${template.is_public ? 'visibility-public' : 'visibility-private'}`}>
+                          {template.is_public ? '公开' : '私有'}
+                        </span>
+                      </td>
                       <td>
                         <div className="template-tags list-tags">
                           {template.piece_tags && template.piece_tags.length > 0 ? (
@@ -452,24 +546,22 @@ function ExplorerTemplates() {
                       </td>
                       <td>
                         <div className="template-actions list-actions">
-                          <button
-                            className="btn btn-secondary small"
-                            onClick={() => handleOpenTemplate(template)}
+                          <div
+                            className="more-actions"
+                            ref={(node) => {
+                              if (node) {
+                                moreActionsRefs.current[template.id] = node
+                              }
+                            }}
                           >
-                            打开
-                          </button>
-                          <button
-                            className="btn btn-primary small"
-                            onClick={() => handleApplyToProject(template)}
-                          >
-                            应用
-                          </button>
-                          <div className="more-actions">
                             <button
-                              className="btn btn-outline small"
+                              type="button"
+                              className="btn btn-outline small more-actions-toggle"
                               onClick={() => toggleMoreActions(template.id)}
+                              title="更多操作"
+                              aria-label="更多操作"
                             >
-                              更多
+                              ...
                             </button>
                             {moreActionsOpen === template.id && (
                               <div className="more-actions-menu">
@@ -488,6 +580,18 @@ function ExplorerTemplates() {
                               </div>
                             )}
                           </div>
+                          <button
+                            className="btn btn-secondary small"
+                            onClick={() => handleOpenTemplate(template)}
+                          >
+                            打开
+                          </button>
+                          <button
+                            className="btn btn-primary small"
+                            onClick={() => handleApplyToProject(template)}
+                          >
+                            应用
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -552,25 +656,43 @@ function ExplorerTemplates() {
 
       {/* 编辑模板模态框 */}
       {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal-content edit-modal">
-            <h2>编辑模板</h2>
+        <div className="modal-overlay template-edit-overlay" onClick={handleCloseEditModal}>
+          <div className="template-edit-modal-content" onClick={(e) => e.stopPropagation()}>
+            <form
+              className="template-edit-form"
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSaveEdit()
+              }}
+            >
+              <div className="template-edit-modal-header">
+                <h2>模板信息编辑</h2>
+                <button
+                  type="button"
+                  className="template-edit-close"
+                  onClick={handleCloseEditModal}
+                >
+                  ×
+                </button>
+              </div>
 
-            <div className="edit-form">
-              <div className="form-group">
-                <label>模板名称 *</label>
+              <div className="template-edit-form-group">
+                <label htmlFor="template-edit-name">模板名称 *</label>
                 <input
+                  id="template-edit-name"
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="请输入模板名称"
                   maxLength="100"
+                  required
                 />
               </div>
 
-              <div className="form-group">
-                <label>描述</label>
+              <div className="template-edit-form-group">
+                <label htmlFor="template-edit-description">描述</label>
                 <textarea
+                  id="template-edit-description"
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="请输入模板描述"
@@ -579,32 +701,52 @@ function ExplorerTemplates() {
                 />
               </div>
 
-              <div className="form-group">
-                <label>标签</label>
-                <input
-                  type="text"
-                  value={editTags}
-                  onChange={(e) => setEditTags(e.target.value)}
-                  placeholder="多个标签用英文逗号分隔"
-                  maxLength="200"
-                />
+              <div className="template-edit-form-group">
+                <label htmlFor="template-edit-tag-input">标签</label>
+                <div className="template-edit-tag-input-container">
+                  <input
+                    id="template-edit-tag-input"
+                    type="text"
+                    value={editTagInput}
+                    onChange={(e) => setEditTagInput(e.target.value)}
+                    onKeyDown={handleEditTagInputKeyDown}
+                    placeholder="输入标签后按回车"
+                    maxLength="50"
+                  />
+                  <button
+                    type="button"
+                    className="template-modal-btn template-modal-btn-secondary"
+                    onClick={handleAddEditTag}
+                  >
+                    添加
+                  </button>
+                </div>
+                <div className="template-edit-tags-container">
+                  {editTagList.map((tag, index) => (
+                    <span key={`${tag}-${index}`} className="template-edit-tag-chip">
+                      {tag}
+                      <button
+                        type="button"
+                        className="template-remove-tag"
+                        onClick={() => handleRemoveEditTag(tag)}
+                        aria-label={`删除标签 ${tag}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="modal-actions">
-              <button
-                className="btn btn-primary"
-                onClick={handleSaveEdit}
-              >
-                保存
-              </button>
-              <button
-                className="btn btn-outline"
-                onClick={handleCloseEditModal}
-              >
-                取消
-              </button>
-            </div>
+              <div className="template-edit-modal-footer">
+                <button type="button" className="template-modal-btn template-modal-btn-secondary" onClick={handleCloseEditModal}>
+                  取消
+                </button>
+                <button type="submit" className="template-modal-btn template-modal-btn-primary">
+                  保存修改
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -615,6 +757,19 @@ function ExplorerTemplates() {
         onClose={handleCloseImportFromProjectModal}
         onConfirm={handleConfirmImportFromProject}
       />
+
+      {/* 应用模板到项目模态框 */}
+      {applyingTemplateId && (
+        <ApplyTemplateModal
+          isOpen={!!applyingTemplateId}
+          onClose={() => setApplyingTemplateId(null)}
+          presetId={applyingTemplateId}
+          presetName={templatesData[applyingTemplateId]?.name || ''}
+          projects={projectData}
+          onApplySuccess={handleApplySuccess}
+          onApply={applyPresetToProjects}
+        />
+      )}
 
     </div>
   )

@@ -104,7 +104,7 @@
 }
 
 .save-button {
-  background-color: var(--fluent-primary);
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -120,7 +120,7 @@
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: var(--fluent-primary-hover);
+  background: linear-gradient(135deg, #4f6fa8 0%, #456294 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
 

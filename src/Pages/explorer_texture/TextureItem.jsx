@@ -1,8 +1,26 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 import './TextureItem.css'
 
 function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [menuOpen])
 
   // 格式化日期
   const formatDate = (dateString) => {
@@ -77,12 +95,41 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
       </div>
 
       <div className="texture-item-footer">
-        <button className="btn btn-secondary" onClick={() => onEditTexture(texture)}>
-          编辑
-        </button>
-        <button className="btn btn-danger" onClick={() => onDeleteTexture(texture.id)}>
-          删除
-        </button>
+        <div className="more-actions" ref={menuRef}>
+          <button
+            type="button"
+            className="btn btn-outline more-actions-toggle"
+            onClick={() => setMenuOpen(prev => !prev)}
+            aria-label="更多操作"
+            title="更多操作"
+          >
+            ...
+          </button>
+          {menuOpen && (
+            <div className="more-actions-menu">
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onEditTexture(texture)
+                }}
+              >
+                编辑
+              </button>
+              <button
+                type="button"
+                className="menu-item delete"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onDeleteTexture(texture.id)
+                }}
+              >
+                删除
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
