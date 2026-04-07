@@ -29,15 +29,19 @@ function toRotation(rotation = {}) {
 }
 
 function getPatternTransform(pattern = {}) {
-    const flipX = pattern.flipX ? -1 : 1;
-    const flipY = pattern.flipY ? -1 : 1;
-    const flipZ = pattern.flipZ ? -1 : 1;
+    const scaleX = pattern.scaleX !== undefined ? pattern.scaleX : 1;
+    const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
+    const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [
-        (pattern.scaleX !== undefined ? pattern.scaleX : 1) * flipX,
-        (pattern.scaleY !== undefined ? pattern.scaleY : -1) * flipY,
-        (pattern.scaleZ !== undefined ? pattern.scaleZ : 1) * flipZ
-    ];
+    return [scaleX, scaleY, scaleZ];
+}
+
+function getPatternRotation(pattern = {}) {
+    const rotationX = toRadians(pattern.rotationX || 0);
+    const rotationY = toRadians(pattern.rotationY || 0);
+    const rotationZ = toRadians(pattern.rotationZ || 0);
+
+    return [rotationX, rotationY, rotationZ];
 }
 
 function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {

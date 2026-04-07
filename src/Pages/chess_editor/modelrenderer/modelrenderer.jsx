@@ -29,15 +29,19 @@ function toRotation(rotation = {}) {
 }
 
 function getPatternTransform(pattern = {}) {
-    const flipX = pattern.flipX ? -1 : 1;
-    const flipY = pattern.flipY ? -1 : 1;
-    const flipZ = pattern.flipZ ? -1 : 1;
+    const scaleX = pattern.scaleX !== undefined ? pattern.scaleX : 1;
+    const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
+    const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [
-        (pattern.scaleX !== undefined ? pattern.scaleX : 1) * flipX,
-        (pattern.scaleY !== undefined ? pattern.scaleY : -1) * flipY,
-        (pattern.scaleZ !== undefined ? pattern.scaleZ : 1) * flipZ
-    ];
+    return [scaleX, scaleY, scaleZ];
+}
+
+function getPatternRotation(pattern = {}) {
+    const rotationX = toRadians(pattern.rotationX || 0);
+    const rotationY = toRadians(pattern.rotationY || 0);
+    const rotationZ = toRadians(pattern.rotationZ || 0);
+
+    return [rotationX, rotationY, rotationZ];
 }
 
 function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
@@ -853,28 +857,33 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 console.log('渲染自定义纹理 - Base:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
+                    const patternRotation = getPatternRotation(pattern);
                     patternelement = (
-                        <mesh
+                        <group
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                            scale={patternScale}
-                            castShadow
-                            receiveShadow
+                            rotation={patternRotation}
                         >
-                            <VoxelGeometry
-                                textureFile={pattern.textureFile}
-                                size={pattern.size || 10}
-                                depth={pattern.depth || 1}
-                                sampleRate={2} // 每 2 个像素采样一次，减少噪点影响
-                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
-                            />
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </mesh>
+                            <mesh
+                                scale={patternScale}
+                                castShadow
+                                receiveShadow
+                            >
+                                <VoxelGeometry
+                                    textureFile={pattern.textureFile}
+                                    size={pattern.size || 10}
+                                    depth={pattern.depth || 1}
+                                    sampleRate={2}
+                                    smooth={pattern.smooth ?? smoothTexture}
+                                />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
                     );
                 } else {
                     console.log('缺少 textureFile 字段');
@@ -1147,28 +1156,33 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 console.log('渲染自定义纹理 - Column:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
+                    const patternRotation = getPatternRotation(pattern);
                     patternelement = (
-                        <mesh
+                        <group
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                            scale={patternScale}
-                            castShadow
-                            receiveShadow
+                            rotation={patternRotation}
                         >
-                            <VoxelGeometry
-                                textureFile={pattern.textureFile}
-                                size={pattern.size || 10}
-                                depth={pattern.depth || 1}
-                                sampleRate={2}
-                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
-                            />
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </mesh>
+                            <mesh
+                                scale={patternScale}
+                                castShadow
+                                receiveShadow
+                            >
+                                <VoxelGeometry
+                                    textureFile={pattern.textureFile}
+                                    size={pattern.size || 10}
+                                    depth={pattern.depth || 1}
+                                    sampleRate={2}
+                                    smooth={pattern.smooth ?? smoothTexture}
+                                />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
                     );
                 } else {
                     console.log('缺少 textureFile 字段');
