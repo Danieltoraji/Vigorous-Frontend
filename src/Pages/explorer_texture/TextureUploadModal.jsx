@@ -623,7 +623,10 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
 
             <div className="texture-form-row texture-file-preview-row">
               <div className="texture-form-group texture-file-group">
-                <label>选择文件</label>
+                <label className="texture-file-label">
+                  <span>选择文件</span>
+                  {file && <span className="texture-file-name">{file.name}</span>}
+                </label>
                 <input
                   type="file"
                   accept="image/*"
@@ -913,7 +916,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                 {/* 截取控制按钮 */}
                 {cropMode ? (
                   <div className="crop-controls">
-                    <div className="crop-shape-selector">
+                    <div className="crop-buttons-row">
                       <button
                         type="button"
                         onClick={() => {
@@ -941,31 +944,30 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                       >
                         ○ 圆形
                       </button>
-                    </div>
-                    <div className="crop-action-buttons">
                       <button
                         type="button"
                         onClick={cancelCropMode}
-                        className="texture-modal-btn texture-modal-btn-secondary"
+                        className="texture-modal-btn texture-modal-btn-cancel"
                       >
                         取消
                       </button>
                       <button
                         type="button"
                         onClick={executeCrop}
-                        className="texture-modal-btn texture-modal-btn-primary"
+                        className="texture-modal-btn texture-modal-btn-confirm"
                       >
                         确认截取
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <>
+                  <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
                     <button
                       type="button"
                       onClick={convertToGrayscale}
                       className="texture-modal-btn texture-modal-btn-grayscale"
                       disabled={!previewUrl}
+                      style={{ flex: 1 }}
                     >
                       🎨 色彩处理🎨
                     </button>
@@ -974,10 +976,11 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                       onClick={startCropMode}
                       className="texture-modal-btn texture-modal-btn-crop"
                       disabled={!previewUrl}
+                      style={{ flex: 1 }}
                     >
                       ✂️ 截取图片✂️
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>

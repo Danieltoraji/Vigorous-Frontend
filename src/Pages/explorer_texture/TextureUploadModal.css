@@ -141,20 +141,45 @@
   box-shadow: 0 0 0 1px var(--fluent-primary);
 }
 
+.texture-file-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.texture-file-name {
+  color: var(--fluent-text);
+  font-weight: 400;
+  font-size: 14px;
+}
+
 .texture-form-group input[type="file"] {
   width: 100%;
-  padding: 10px;
-  border: 1px solid var(--fluent-border);
-  border-radius: var(--fluent-radius);
+  padding: 16px 24px;
+  border: 2px dashed #666666;
+  border-radius: 8px;
   cursor: pointer;
   transition: var(--fluent-transition);
   box-sizing: border-box;
-  background: white;
+  background: transparent;
   color: var(--fluent-text);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 隐藏默认的"选择文件"按钮 */
+.texture-form-group input[type="file"]::file-selector-button {
+  display: none;
+}
+
+.texture-form-group input[type="file"]::-webkit-file-upload-button {
+  display: none;
 }
 
 .texture-form-group input[type="file"]:hover {
-  border-color: rgba(0, 0, 0, 0.16);
+  border-color: #000000;
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .texture-form-group small {
@@ -195,77 +220,124 @@
 }
 
 .texture-modal-btn-grayscale {
-  background-color: var(--fluent-primary);
+  background-color: rgba(78, 205, 196, 0.9);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: 44px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .texture-modal-btn-grayscale:hover {
-  background-color: var(--fluent-primary-hover);
-  box-shadow: var(--fluent-shadow-hover);
+  background-color: rgba(78, 205, 196, 1);
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+}
+
+.texture-modal-btn-grayscale:disabled {
+  background-color: rgba(78, 205, 196, 0.4);
+  cursor: not-allowed;
 }
 
 /* 截取按钮样式 */
 .texture-modal-btn-crop {
-  background-color: #ff6b35;
+  background-color: rgba(155, 140, 165, 0.9);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 10px;
+  min-height: 44px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .texture-modal-btn-crop:hover {
-  background-color: #e55a2b;
-  box-shadow: var(--fluent-shadow-hover);
+  background-color: rgba(155, 140, 165, 1);
+  box-shadow: 0 2px 8px rgba(155, 140, 165, 0.3);
 }
 
 .texture-modal-btn-crop:disabled {
-  background-color: #ccc;
+  background-color: rgba(155, 140, 165, 0.4);
   cursor: not-allowed;
 }
 
 /* 截取控制面板样式 */
 .crop-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   margin-top: 10px;
 }
 
-.crop-shape-selector {
+.crop-buttons-row {
   display: flex;
   gap: 10px;
-  justify-content: center;
+  width: 100%;
 }
 
 .shape-btn {
-  padding: 8px 16px;
+  flex: 1;
+  padding: 10px 0;
   border: 1px solid #ddd;
-  border-radius: var(--fluent-radius);
+  border-radius: 4px;
   background: white;
+  color: #333;
   cursor: pointer;
-  transition: var(--fluent-transition);
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .shape-btn.active {
-  background: var(--fluent-primary);
-  color: white;
-  border-color: var(--fluent-primary);
+  background: #F5E6CC; /* 奶黄灰色 */
+  color: #333;
+  border-color: #E5D5BB;
 }
 
 .shape-btn:hover:not(.active) {
   background: #f0f0f0;
 }
 
-.crop-action-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
+.texture-modal-btn-cancel {
+  flex: 1;
+  background: #E8E8E5;
+  color: #555;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.texture-modal-btn-cancel:hover {
+  background: #D8D8D5;
+}
+
+.texture-modal-btn-confirm {
+  flex: 1;
+  background: #000000;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.texture-modal-btn-confirm:hover {
+  background: #1A1A1A;
 }
 
 /* 调整大小手柄样式 */
