@@ -99,6 +99,20 @@ function ChessEditor() {
     </div>
   );
 
+  const renderBooleanControls = (patternPath, pattern) => (
+    <div className="editor-item">
+      <label>布尔操作：</label>
+      <select
+        value={getSafeValue(pattern?.boolean?.operationType, 'subtract')}
+        onChange={(e) => handleDataUpdate(`${patternPath}.boolean.operationType`, e.target.value)}
+      >
+        <option value="union">并集</option>
+        <option value="subtract">差集</option>
+        <option value="intersect">交集</option>
+      </select>
+    </div>
+  );
+
   // AI 生成相关状态
   const [showAIGenerator, setShowAIGenerator] = useState(false); // AI 生成器显示状态
   const [aiPrompt, setAiPrompt] = useState(''); // AI 提示词
@@ -131,9 +145,13 @@ function ChessEditor() {
 
     // 根据当前选中的组件更新对应的 pattern 数据
     const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
+    const currentPattern = selectedComponent === 'base'
+      ? currentChess.parts?.base?.pattern || {}
+      : currentChess.parts?.column?.pattern || {};
 
-    // 同时更新 textureFile、shape 和 smooth 字段
+    // 同时更新 textureFile、shape 和 smooth 字段，并保留已有的布尔配置等扩展字段
     const patternData = {
+      ...currentPattern,
       textureFile: texture.file,
       shape: 'custom',
       size: 10,
@@ -1007,6 +1025,7 @@ modelId 含义：
           </div>
 
           {renderFlipControls('parts.base.pattern', pattern)}
+          {renderBooleanControls('parts.base.pattern', pattern)}
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
             <div className="editor-item">
@@ -1790,6 +1809,7 @@ modelId 含义：
           </div>
 
           {renderFlipControls('parts.column.pattern', pattern)}
+          {renderBooleanControls('parts.column.pattern', pattern)}
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
             <div className="editor-item">

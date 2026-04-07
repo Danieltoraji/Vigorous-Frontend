@@ -22,6 +22,15 @@ function validateOrFixGeometry(mesh) {
     } else if (geometry.index !== null) {
         geometry = geometry.toNonIndexed();
     }
+
+    if (geometry && geometry.setDrawRange) {
+        geometry.setDrawRange(0, Infinity);
+    }
+
+    if (geometry && geometry.computeVertexNormals) {
+        geometry.computeVertexNormals();
+    }
+
     return geometry;
 }
 

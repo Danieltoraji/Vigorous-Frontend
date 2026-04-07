@@ -4,8 +4,11 @@ import { OrbitControls, Text as DreiText, Environment, Text3D } from '@react-thr
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
 import { OBJLoader } from 'three-stdlib';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import { useDecoration } from '../../../hooks/useDecoration.jsx';
+import { applyBooleanOperation } from '../../../utils/geometryCsg.js';
 
 
 const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector2, Vector3, LatheGeometry } = THREE;
@@ -402,13 +405,58 @@ function FallbackDecoration({ position, size }) {
  */
 function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
     const modelRootRef = useRef();
+    const booleanWarningRef = useRef(new Set());
+    const loadingFontRef = useRef(new Set());
     const { decorationData, loading: decorationLoading } = useDecoration();
+    const fontLoader = useMemo(() => new FontLoader(), []);
+    const [fontMap, setFontMap] = useState({});
+
+    const warnBooleanOnce = (key, message) => {
+        if (booleanWarningRef.current.has(key)) {
+            return;
+        }
+        booleanWarningRef.current.add(key);
+        console.warn(message);
+    };
 
     useEffect(() => {
         if (onModelReady && modelRootRef.current) {
             onModelReady(modelRootRef.current);
         }
     }, [onModelReady]);
+
+    useEffect(() => {
+        const fontUrls = [
+            DEFAULT_TEXT_FONT_JSON,
+            chess?.parts?.base?.pattern?.font,
+            chess?.parts?.column?.pattern?.font
+        ].filter(Boolean);
+
+        fontUrls.forEach((fontUrl) => {
+            if (fontMap[fontUrl] || loadingFontRef.current.has(fontUrl)) {
+                return;
+            }
+
+            loadingFontRef.current.add(fontUrl);
+            fontLoader.load(
+                fontUrl,
+                (font) => {
+                    setFontMap((prev) => ({ ...prev, [fontUrl]: font }));
+                    loadingFontRef.current.delete(fontUrl);
+                },
+                undefined,
+                (error) => {
+                    console.warn(`[CSG] 字体加载失败，text 布尔将回退叠加渲染: ${fontUrl}`, error);
+                    loadingFontRef.current.delete(fontUrl);
+                }
+            );
+        });
+    }, [chess?.parts?.base?.pattern?.font, chess?.parts?.column?.pattern?.font, fontLoader, fontMap]);
+
+    const resolvePatternFont = (pattern = {}) => {
+        const fontUrl = pattern.font || DEFAULT_TEXT_FONT_JSON;
+        return fontMap[fontUrl] || fontMap[DEFAULT_TEXT_FONT_JSON] || null;
+    };
 
     // 添加安全检查，防止 undefined 错误
     if (!chess) {
@@ -685,6 +733,114 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             }
         };
 
+        const createGeometryObject = (geoType, args, sides = 0) => {
+            if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
+                if (geoType === 'cylinder') {
+                    return new THREE.CylinderGeometry(...args);
+                } else if (geoType === 'box') {
+                    return new THREE.BoxGeometry(...args);
+                }
+            } else {
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
+
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    return createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
+                    const bevelSize = edge.depth || 0.1;
+
+                    const extrudeSettings = {
+                        depth: height,
+                        bevelEnabled: true,
+                        bevelThickness: bevelSize,
+                        bevelSize: bevelSize,
+                        bevelSegments: bevelSegments,
+                        curveSegments: 16
+                    };
+
+                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.translate(0, height / 2, 0);
+                    return geometry;
+                }
+            }
+
+            if (geoType === 'cylinder') {
+                return new THREE.CylinderGeometry(...args);
+            }
+            if (geoType === 'box') {
+                return new THREE.BoxGeometry(...args);
+            }
+            return null;
+        };
+
+        const createPatternGeometryObject = () => {
+            if (pattern.shape === 'text') {
+                const font = resolvePatternFont(pattern);
+                const text = (pattern.content ?? '').toString();
+                if (!font || !text.trim()) {
+                    return null;
+                }
+
+                const geometry = new TextGeometry(text, {
+                    font,
+                    size: pattern.size || 5,
+                    height: pattern.depth || 1,
+                    curveSegments: 12
+                });
+
+                return {
+                    geometry,
+                    rotation: [-Math.PI / 2, 0, 0],
+                    useDepthHalf: false,
+                    yOffset: -((pattern.depth || 1) / 2) + 0.001
+                };
+            }
+
+            switch (pattern.geometryType) {
+                case 'Circle':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, 64), useDepthHalf: true, yOffset: 0 };
+                case 'Polygon':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, pattern.sides || 6), useDepthHalf: true, yOffset: 0 };
+                case 'Cube':
+                    return { geometry: new THREE.BoxGeometry(pattern.size || 5, pattern.depth || 1, pattern.size || 5), useDepthHalf: true, yOffset: 0 };
+                default:
+                    return null;
+            }
+        };
+
         switch (type) {
             case 'cycle':
                 bodyelement = (
@@ -884,6 +1040,68 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 patternelement = null;
                 break;
         }
+
+        const operationType = (pattern.boolean?.operationType || 'subtract').toLowerCase();
+        const canBoolean = ['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType) && type !== 'special';
+        if (canBoolean) {
+            let bodyGeometry = null;
+            if (type === 'cycle') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, 64]);
+            } else if (type === 'polygon') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, baseShape.sides || 6], baseShape.sides || 6);
+            } else if (type === 'cube') {
+                bodyGeometry = createGeometryObject('box', [size1, height, size2]);
+            }
+
+            const cutterData = createPatternGeometryObject();
+            if (bodyGeometry && cutterData?.geometry) {
+                const bodyMesh = new THREE.Mesh(bodyGeometry);
+                bodyMesh.position.set(0, height / 2, 0);
+
+                const cutterMesh = new THREE.Mesh(cutterData.geometry);
+                const cutterY = cutterData.useDepthHalf
+                    ? position.y + height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : position.y + height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                cutterMesh.position.set(
+                    pattern.position?.x || 0,
+                    cutterY,
+                    pattern.position?.z || 0
+                );
+                cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
+                if (cutterData.rotation) {
+                    cutterMesh.rotation.set(cutterData.rotation[0], cutterData.rotation[1], cutterData.rotation[2]);
+                }
+
+                const csgGeometry = applyBooleanOperation(bodyMesh, cutterMesh, operationType);
+                if (csgGeometry) {
+                    return (
+                        <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
+                            <mesh castShadow receiveShadow>
+                                <primitive object={csgGeometry} />
+                                <meshStandardMaterial
+                                    color="#8B4513"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
+                    );
+                } else {
+                    warnBooleanOnce(
+                        `base-${type}-${pattern.shape}-${operationType}`,
+                        `[CSG] Base 布尔运算失败，已回退叠加渲染。type=${type}, shape=${pattern.shape}, op=${operationType}`
+                    );
+                }
+            }
+        } else if (pattern.shape !== 'none' && !['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType)) {
+            warnBooleanOnce(
+                `base-unsupported-${pattern.shape}-${operationType}`,
+                `[CSG] Base 暂不支持 ${pattern.shape} 的布尔运算，已回退叠加渲染。op=${operationType}`
+            );
+        }
+
         return (
             <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
                 {bodyelement}
@@ -984,6 +1202,114 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 return <cylinderGeometry args={args} />;
             } else if (geoType === 'box') {
                 return <boxGeometry args={args} />;
+            }
+        };
+
+        const createGeometryObject = (geoType, args, sides = 0) => {
+            if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
+                if (geoType === 'cylinder') {
+                    return new THREE.CylinderGeometry(...args);
+                } else if (geoType === 'box') {
+                    return new THREE.BoxGeometry(...args);
+                }
+            } else {
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
+
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    return createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
+                    const bevelSize = edge.depth || 0.1;
+
+                    const extrudeSettings = {
+                        depth: height,
+                        bevelEnabled: true,
+                        bevelThickness: bevelSize,
+                        bevelSize: bevelSize,
+                        bevelSegments: bevelSegments,
+                        curveSegments: 16
+                    };
+
+                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.translate(0, height / 2, 0);
+                    return geometry;
+                }
+            }
+
+            if (geoType === 'cylinder') {
+                return new THREE.CylinderGeometry(...args);
+            }
+            if (geoType === 'box') {
+                return new THREE.BoxGeometry(...args);
+            }
+            return null;
+        };
+
+        const createPatternGeometryObject = () => {
+            if (pattern.shape === 'text') {
+                const font = resolvePatternFont(pattern);
+                const text = (pattern.content ?? '').toString();
+                if (!font || !text.trim()) {
+                    return null;
+                }
+
+                const geometry = new TextGeometry(text, {
+                    font,
+                    size: pattern.size || 5,
+                    height: pattern.depth || 1,
+                    curveSegments: 12
+                });
+
+                return {
+                    geometry,
+                    rotation: [-Math.PI / 2, 0, 0],
+                    useDepthHalf: false,
+                    yOffset: -((pattern.depth || 1) / 2) + 0.001
+                };
+            }
+
+            switch (pattern.geometryType) {
+                case 'Circle':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, 64), useDepthHalf: true, yOffset: 0 };
+                case 'Polygon':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, pattern.sides || 6), useDepthHalf: true, yOffset: 0 };
+                case 'Cube':
+                    return { geometry: new THREE.BoxGeometry(pattern.size || 5, pattern.depth || 1, pattern.size || 5), useDepthHalf: true, yOffset: 0 };
+                default:
+                    return null;
             }
         };
 
@@ -1177,6 +1503,63 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             default:
                 patternelement = null;
                 break;
+        }
+
+        const operationType = (pattern.boolean?.operationType || 'subtract').toLowerCase();
+        const canBoolean = ['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType) && type !== 'special';
+        if (canBoolean) {
+            let bodyGeometry = null;
+            if (type === 'cycle') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, 64]);
+            } else if (type === 'polygon') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, columnShape.sides || 6], columnShape.sides || 6);
+            } else if (type === 'cube') {
+                bodyGeometry = createGeometryObject('box', [size1, height, size2]);
+            }
+
+            const cutterData = createPatternGeometryObject();
+            if (bodyGeometry && cutterData?.geometry) {
+                const bodyMesh = new THREE.Mesh(bodyGeometry);
+                bodyMesh.position.set(0, baseheight + height / 2, 0);
+
+                const cutterMesh = new THREE.Mesh(cutterData.geometry);
+                const cutterY = cutterData.useDepthHalf
+                    ? baseheight + height + position.y - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : baseheight + height + position.y + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                cutterMesh.position.set(pattern.position?.x || 0, cutterY, pattern.position?.z || 0);
+                cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
+                if (cutterData.rotation) {
+                    cutterMesh.rotation.set(cutterData.rotation[0], cutterData.rotation[1], cutterData.rotation[2]);
+                }
+
+                const csgGeometry = applyBooleanOperation(bodyMesh, cutterMesh, operationType);
+                if (csgGeometry) {
+                    return (
+                        <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
+                            <mesh castShadow receiveShadow>
+                                <primitive object={csgGeometry} />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
+                    );
+                } else {
+                    warnBooleanOnce(
+                        `column-${type}-${pattern.shape}-${operationType}`,
+                        `[CSG] Column 布尔运算失败，已回退叠加渲染。type=${type}, shape=${pattern.shape}, op=${operationType}`
+                    );
+                }
+            }
+        } else if (pattern.shape !== 'none' && !['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType)) {
+            warnBooleanOnce(
+                `column-unsupported-${pattern.shape}-${operationType}`,
+                `[CSG] Column 暂不支持 ${pattern.shape} 的布尔运算，已回退叠加渲染。op=${operationType}`
+            );
         }
 
         return (
