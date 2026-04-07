@@ -32,15 +32,19 @@ function toRotation(rotation = {}) {
 }
 
 function getPatternTransform(pattern = {}) {
-    const flipX = pattern.flipX ? -1 : 1;
-    const flipY = pattern.flipY ? -1 : 1;
-    const flipZ = pattern.flipZ ? -1 : 1;
+    const scaleX = pattern.scaleX !== undefined ? pattern.scaleX : 1;
+    const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
+    const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [
-        (pattern.scaleX !== undefined ? pattern.scaleX : 1) * flipX,
-        (pattern.scaleY !== undefined ? pattern.scaleY : -1) * flipY,
-        (pattern.scaleZ !== undefined ? pattern.scaleZ : 1) * flipZ
-    ];
+    return [scaleX, scaleY, scaleZ];
+}
+
+function getPatternRotation(pattern = {}) {
+    const rotationX = toRadians(pattern.rotationX || 0);
+    const rotationY = toRadians(pattern.rotationY || 0);
+    const rotationZ = toRadians(pattern.rotationZ || 0);
+
+    return [rotationX, rotationY, rotationZ];
 }
 
 function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
@@ -95,6 +99,11 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     return;
                 }
 
+                console.log('=== VoxelGeometry 纹理处理开始 ===', {
+                    图片尺寸: `${image.width || image.naturalWidth}x${image.height || image.naturalHeight}`,
+                    纹理文件URL: textureFile
+                });
+
                 const width = image.width;
                 const height = image.height;
                 const canvas = document.createElement('canvas');
@@ -106,6 +115,27 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 const imageData = ctx.getImageData(0, 0, width, height);
                 const data = imageData.data;
 
+                // 调试：检查四个角落的alpha值和RGB值
+                const corners = [
+                    { name: '左上角', idx: 0 },
+                    { name: '右上角', idx: (width - 1) * 4 },
+                    { name: '左下角', idx: (height - 1) * width * 4 },
+                    { name: '右下角', idx: (height - 1) * width * 4 + (width - 1) * 4 },
+                    { name: '中心', idx: Math.floor(height / 2) * width * 4 + Math.floor(width / 2) * 4 }
+                ];
+                
+                corners.forEach(corner => {
+                    const i = corner.idx;
+                    console.log(`${corner.name}:`, {
+                        R: data[i],
+                        G: data[i + 1],
+                        B: data[i + 2],
+                        A: data[i + 3],
+                        alpha_normalized: (data[i + 3] / 255).toFixed(3),
+                        will_be_zero: data[i + 3] < 13  // 0.05 * 255 = 12.75
+                    });
+                });
+
                 // 存储所有体素点的高度值
                 const heightMap = [];
                 const step = sampleRate;
@@ -116,9 +146,16 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     const row = [];
                     for (let x = 0; x < width; x += step) {
                         const idx = (y * width + x) * 4;
-                        // 计算灰度值 (0-1)
-                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-                        row.push(gray);
+                        // 检查alpha通道，如果透明则标记为-1（不生成几何体）
+                        const alpha = data[idx + 3] / 255;
+                        if (alpha < 0.05) {
+                            // 几乎完全透明区域，标记为无效
+                            row.push(-1);
+                        } else {
+                            // 计算灰度值 (0-1)
+                            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+                            row.push(gray);
+                        }
                     }
                     rawGrayData.push(row);
                 }
@@ -126,13 +163,33 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 // 根据 smooth 参数决定是否应用 3x3 均值滤波
                 const grayDataToUse = smooth ? [] : rawGrayData;
 
+                // 统计透明像素数量
+                let transparentCount = 0;
+                let totalCount = rawGrayData.length * (rawGrayData[0] ? rawGrayData[0].length : 0);
+                rawGrayData.forEach(row => {
+                    row.forEach(val => {
+                        if (val === 0) transparentCount++;
+                    });
+                });
+                console.log('透明像素统计:', {
+                    总像素数: totalCount,
+                    透明像素数: transparentCount,
+                    透明比例: (transparentCount / totalCount * 100).toFixed(2) + '%',
+                    smooth模式: smooth
+                });
+
                 if (smooth) {
                     // 应用 3x3 均值滤波消除噪点
+                    let smoothedTransparentCount = 0;
                     for (let row = 0; row < rawGrayData.length; row++) {
                         const filteredRow = [];
                         for (let col = 0; col < rawGrayData[row].length; col++) {
                             let sum = 0;
                             let count = 0;
+
+                            // 检查中心像素是否透明
+                            const centerValue = rawGrayData[row][col];
+                            const isTransparent = centerValue === 0;
 
                             // 取周围 3x3 邻域的平均值
                             for (let dy = -1; dy <= 1; dy++) {
@@ -142,31 +199,63 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
 
                                     if (newRow >= 0 && newRow < rawGrayData.length &&
                                         newCol >= 0 && newCol < rawGrayData[row].length) {
-                                        sum += rawGrayData[newRow][newCol];
-                                        count++;
+                                        const neighborValue = rawGrayData[newRow][newCol];
+                                        const neighborIsTransparent = neighborValue === 0;
+                                        
+                                        // 只平均相同透明状态的像素
+                                        if (isTransparent === neighborIsTransparent) {
+                                            sum += neighborValue;
+                                            count++;
+                                        }
                                     }
                                 }
                             }
 
-                            filteredRow.push(sum / count);
+                            const filteredValue = count > 0 ? sum / count : centerValue;
+                            filteredRow.push(filteredValue);
+                            
+                            if (filteredValue === 0) smoothedTransparentCount++;
                         }
                         grayDataToUse.push(filteredRow);
                     }
+                    
+                    console.log('Smooth后透明像素统计:', {
+                        原始透明数: transparentCount,
+                        Smooth后透明数: smoothedTransparentCount,
+                        丢失的透明像素: transparentCount - smoothedTransparentCount
+                    });
                 }
 
                 // 使用选定的灰度数据生成高度图
+                let zeroHeightCount = 0;
+                let invalidCount = 0;
                 for (let row = 0; row < grayDataToUse.length; row++) {
                     for (let col = 0; col < grayDataToUse[row].length; col++) {
                         const gray = grayDataToUse[row][col];
-                        // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
-                        const h = (1 - gray) * depth;
-                        heightMap.push({
-                            x: col * step,
-                            y: row * step,
-                            height: h
-                        });
+                        
+                        // 如果是无效像素（透明），标记为null
+                        if (gray === -1) {
+                            heightMap.push(null);
+                            invalidCount++;
+                        } else {
+                            // 映射到高度（黑色=最高，白色=最低）
+                            const h = (1 - gray) * depth;
+                            if (h === 0) zeroHeightCount++;
+                            heightMap.push({
+                                x: col * step,
+                                y: row * step,
+                                height: h
+                            });
+                        }
                     }
                 }
+
+                console.log('高度图统计:', {
+                    总点数: heightMap.length,
+                    '无效点数(透明)': invalidCount,
+                    无效比例: (invalidCount / heightMap.length * 100).toFixed(2) + '%',
+                    高度为0的点数: zeroHeightCount
+                });
 
                 // 生成网格顶点和索引（只有顶面）
                 const positions = [];
@@ -176,18 +265,24 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 const gridHeight = Math.floor(height / step);
                 const planeSize = size / Math.max(gridWidth, gridHeight);
 
-                // 生成顶点
+                // 生成顶点（跳过无效顶点）
                 for (let i = 0; i < heightMap.length; i++) {
                     const point = heightMap[i];
-                    // 直接生成在 XZ 平面，高度沿 Y 轴
-                    const px = -(point.x - width / 2) * planeSize;
-                    const py = point.height;
-                    const pz = -(point.y - height / 2) * planeSize;
-
-                    positions.push(px, py, pz);
+                    // 如果是无效顶点（透明），跳过
+                    if (point === null) {
+                        positions.push(0, -10000, 0);  // 放到极远处，不可见
+                    } else {
+                        // 直接生成在 XZ 平面，高度沿 Y 轴
+                        const px = -(point.x - width / 2) * planeSize;
+                        const py = point.height;
+                        const pz = -(point.y - height / 2) * planeSize;
+                        positions.push(px, py, pz);
+                    }
                 }
 
-                // 生成三角形索引（连接相邻点）
+                // 生成三角形索引（连接相邻点），跳过包含透明顶点的三角形
+                let skippedQuads = 0;
+                let totalQuads = 0;
                 for (let row = 0; row < gridHeight - 1; row++) {
                     for (let col = 0; col < gridWidth - 1; col++) {
                         const a = row * gridWidth + col;
@@ -195,13 +290,33 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         const c = (row + 1) * gridWidth + col;
                         const d = (row + 1) * gridWidth + (col + 1);
 
-                        // 两个三角形组成一个四边形
-                        // 三角形 1: a-b-c
-                        indices.push(a, b, c);
-                        // 三角形 2: b-d-c
-                        indices.push(b, d, c);
+                        totalQuads++;
+
+                        // 检查四个顶点是否都有效（不是null）
+                        const pA = heightMap[a];
+                        const pB = heightMap[b];
+                        const pC = heightMap[c];
+                        const pD = heightMap[d];
+
+                        // 只有当所有顶点都有效时才生成三角形
+                        if (pA !== null && pB !== null && pC !== null && pD !== null) {
+                            // 两个三角形组成一个四边形
+                            // 三角形 1: a-b-c
+                            indices.push(a, b, c);
+                            // 三角形 2: b-d-c
+                            indices.push(b, d, c);
+                        } else {
+                            skippedQuads++;
+                        }
                     }
                 }
+
+                console.log('网格生成统计:', {
+                    总四边形数: totalQuads,
+                    跳过的四边形数: skippedQuads,
+                    实际生成的三角形数: indices.length / 3,
+                    跳过比例: (skippedQuads / totalQuads * 100).toFixed(2) + '%'
+                });
 
                 // 创建几何体
                 const geom = new BufferGeometry();
@@ -403,7 +518,7 @@ function FallbackDecoration({ position, size }) {
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
  */
-function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
+function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, showAxes = true, showGrid = true }) {
     const modelRootRef = useRef();
     const booleanWarningRef = useRef(new Set());
     const loadingFontRef = useRef(new Set());
@@ -916,85 +1031,89 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;
@@ -1009,28 +1128,33 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 console.log('渲染自定义纹理 - Base:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
+                    const patternRotation = getPatternRotation(pattern);
                     patternelement = (
-                        <mesh
+                        <group
                             position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                            scale={patternScale}
-                            castShadow
-                            receiveShadow
+                            rotation={patternRotation}
                         >
-                            <VoxelGeometry
-                                textureFile={pattern.textureFile}
-                                size={pattern.size || 10}
-                                depth={pattern.depth || 1}
-                                sampleRate={2} // 每 2 个像素采样一次，减少噪点影响
-                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
-                            />
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </mesh>
+                            <mesh
+                                scale={patternScale}
+                                castShadow
+                                receiveShadow
+                            >
+                                <VoxelGeometry
+                                    textureFile={pattern.textureFile}
+                                    size={pattern.size || 10}
+                                    depth={pattern.depth || 1}
+                                    sampleRate={2}
+                                    smooth={pattern.smooth ?? smoothTexture}
+                                />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
                     );
                 } else {
                     console.log('缺少 textureFile 字段');
@@ -1380,85 +1504,89 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;
@@ -1473,28 +1601,33 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 console.log('渲染自定义纹理 - Column:', pattern);
                 if (pattern.textureFile) {
                     console.log('纹理路径:', pattern.textureFile);
+                    const patternRotation = getPatternRotation(pattern);
                     patternelement = (
-                        <mesh
+                        <group
                             position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                            scale={patternScale}
-                            castShadow
-                            receiveShadow
+                            rotation={patternRotation}
                         >
-                            <VoxelGeometry
-                                textureFile={pattern.textureFile}
-                                size={pattern.size || 10}
-                                depth={pattern.depth || 1}
-                                sampleRate={2}
-                                smooth={pattern.smooth ?? smoothTexture} // 优先使用 pattern 中保存的设置
-                            />
-                            <meshStandardMaterial
-                                color="#CD853F"
-                                metalness={material.metalness}
-                                roughness={material.roughness}
-                                clearcoat={material.clearcoat}
-                                clearcoatRoughness={material.clearcoatRoughness}
-                            />
-                        </mesh>
+                            <mesh
+                                scale={patternScale}
+                                castShadow
+                                receiveShadow
+                            >
+                                <VoxelGeometry
+                                    textureFile={pattern.textureFile}
+                                    size={pattern.size || 10}
+                                    depth={pattern.depth || 1}
+                                    sampleRate={2}
+                                    smooth={pattern.smooth ?? smoothTexture}
+                                />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
                     );
                 } else {
                     console.log('缺少 textureFile 字段');
@@ -1889,12 +2022,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             />
 
             {/* 加粗坐标轴 - 使用LineSegments，不会被导出 */}
-            {createAxisLines(600, 3).map((axis, index) => (
+            {showAxes && createAxisLines(600, 3).map((axis, index) => (
                 <primitive key={`axis-${index}`} object={axis} />
             ))}
 
             {/* XY平面网格 - 使用LineSegments绘制，不会被导出 */}
-            <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />
+            {showGrid && <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />}
 
             {/* 坐标轴标签 */}
             <DreiText position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</DreiText>
@@ -1917,6 +2050,11 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
 }
 
 function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) {
+    const [showAxes, setShowAxes] = useState(true);
+    const [showGrid, setShowGrid] = useState(true);
+    const [isHovered, setIsHovered] = useState(false);
+    const hoverTimerRef = useRef(null);
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <Canvas
@@ -1934,58 +2072,186 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
                 }}
                 gl={{ alpha: true, premultipliedAlpha: false }}
             >
-                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} />
+                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} showAxes={showAxes} showGrid={showGrid} />
             </Canvas>
 
             {/* 页面左下角比例尺标签 */}
-            <div style={{
-                position: 'absolute',
-                bottom: '100px',
-                left: '20px',
-                backgroundColor: 'rgba(200, 200, 200, 0.6)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                borderRadius: '12px',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                padding: '0 16px',
-                minWidth: '120px',
-                height: '50px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                fontFamily: 'sans-serif',
-                zIndex: 10,
-                pointerEvents: 'none'
-            }}>
-                <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div 
+                style={{
+                    position: 'absolute',
+                    bottom: '80px',
+                    left: '20px',
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                }}
+            >
+                {/* 悬浮弹出的模态框 */}
+                <div style={{
+                    marginBottom: '12px',
+                    display: 'flex',
+                    gap: '10px',
+                    opacity: isHovered ? 1 : 0,
+                    transform: isHovered ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'all 0.3s ease',
+                    pointerEvents: isHovered ? 'auto' : 'none'
+                }}
+                    onMouseEnter={() => {
+                        // 鼠标进入模态框，取消隐藏定时器
+                        clearTimeout(hoverTimerRef.current);
+                    }}
+                    onMouseLeave={() => {
+                        // 鼠标离开模态框，延迟隐藏
+                        hoverTimerRef.current = setTimeout(() => {
+                            setIsHovered(false);
+                        }, 300);
+                    }}
+                >
+                    {/* 坐标轴开关 */}
                     <div style={{
-                        width: '25px',
-                        height: '2px',
-                        backgroundColor: '#333',
-                        position: 'relative',
-                    }}>
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '8px',
+                        border: '2px solid rgba(255, 255, 255, 0.4)',
+                        padding: '6px 9px',
+                        width: '68px',
+                        height: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        cursor: 'pointer'
+                    }} onClick={() => setShowAxes(!showAxes)}>
+                        <div style={{ fontWeight: '600', color: '#333', fontSize: '11px' }}>坐标轴</div>
                         <div style={{
-                            position: 'absolute',
-                            width: '2px',
-                            height: '5px',
-                            backgroundColor: '#333',
-                            left: '0',
-                            top: '-1.5px'
-                        }} />
-                        <div style={{
-                            position: 'absolute',
-                            width: '2px',
-                            height: '5px',
-                            backgroundColor: '#333',
-                            right: '0',
-                            top: '-1.5px'
-                        }} />
+                            width: '32px',
+                            height: '16px',
+                            backgroundColor: showAxes ? 'rgba(14, 95, 115, 1)' : '#ccc',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            transition: 'background-color 0.3s ease'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                top: '2px',
+                                left: showAxes ? '18px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }} />
+                        </div>
                     </div>
-                    <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
+
+                    {/* 网格开关 */}
+                    <div style={{
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '8px',
+                        border: '2px solid rgba(255, 255, 255, 0.4)',
+                        padding: '6px 9px',
+                        width: '68px',
+                        height: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        cursor: 'pointer'
+                    }} onClick={() => setShowGrid(!showGrid)}>
+                        <div style={{ fontWeight: '600', color: '#333', fontSize: '11px' }}>网格</div>
+                        <div style={{
+                            width: '32px',
+                            height: '16px',
+                            backgroundColor: showGrid ? 'rgba(14, 95, 115, 1)' : '#ccc',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            transition: 'background-color 0.3s ease'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                top: '2px',
+                                left: showGrid ? '18px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Scale指示器 */}
+                <div 
+                    className="scale-label"
+                    style={{
+                        position: 'relative',
+                        backgroundColor: 'rgba(200, 200, 200, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '12px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        padding: '0 16px',
+                        minWidth: '120px',
+                        height: '50px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        fontFamily: 'sans-serif',
+                        cursor: 'pointer'
+                    }}
+                    onMouseEnter={() => {
+                        // 鼠标进入Scale，取消隐藏定时器并显示模态框
+                        clearTimeout(hoverTimerRef.current);
+                        setIsHovered(true);
+                    }}
+                    onMouseLeave={() => {
+                        // 鼠标离开Scale，延迟隐藏以给用户时间移动到模态框
+                        hoverTimerRef.current = setTimeout(() => {
+                            setIsHovered(false);
+                        }, 100);
+                    }}
+                >
+                    <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{
+                            width: '25px',
+                            height: '2px',
+                            backgroundColor: '#333',
+                            position: 'relative',
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '2px',
+                                height: '5px',
+                                backgroundColor: '#333',
+                                left: '0',
+                                top: '-1.5px'
+                            }} />
+                            <div style={{
+                                position: 'absolute',
+                                width: '2px',
+                                height: '5px',
+                                backgroundColor: '#333',
+                                right: '0',
+                                top: '-1.5px'
+                            }} />
+                        </div>
+                        <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
+                    </div>
                 </div>
             </div>
         </div>

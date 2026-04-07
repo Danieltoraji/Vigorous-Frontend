@@ -635,31 +635,32 @@ modelId 含义：
   }, [handleMouseMove, handleMouseUp]);
 
   const renderFlipControls = useCallback((patternPath, pattern, getSafeValue) => (
-    <div className="template-editor-item">
-      <label>翻转：</label>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {['X', 'Y', 'Z'].map((axis) => {
-          const key = `flip${axis}`;
-          const active = !!getSafeValue(pattern?.[key], false);
-          return (
-            <button
-              key={axis}
-              type="button"
-              onClick={() => handleDataUpdate(`${patternPath}.${key}`, !active)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: active ? '1px solid #667eea' : '1px solid #ccc',
-                background: active ? '#e8ecff' : '#f5f5f5',
-                color: '#333',
-                cursor: 'pointer'
-              }}
-            >
-              {axis} 轴{active ? '已翻转' : '翻转'}
-            </button>
-          );
-        })}
-      </div>
+    <div className="template-editor-section">
+      <h4>旋转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `rotation${axis}`;
+        const rotationValue = getSafeValue(pattern?.[key], 0);
+        return (
+          <div className="template-editor-item" key={axis}>
+            <label>{axis} 轴：</label>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+              className="template-number-input"
+            />
+          </div>
+        );
+      })}
     </div>
   ), [handleDataUpdate]);
 

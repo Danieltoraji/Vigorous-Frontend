@@ -29,15 +29,19 @@ function toRotation(rotation = {}) {
 }
 
 function getPatternTransform(pattern = {}) {
-    const flipX = pattern.flipX ? -1 : 1;
-    const flipY = pattern.flipY ? -1 : 1;
-    const flipZ = pattern.flipZ ? -1 : 1;
+    const scaleX = pattern.scaleX !== undefined ? pattern.scaleX : 1;
+    const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
+    const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [
-        (pattern.scaleX !== undefined ? pattern.scaleX : 1) * flipX,
-        (pattern.scaleY !== undefined ? pattern.scaleY : -1) * flipY,
-        (pattern.scaleZ !== undefined ? pattern.scaleZ : 1) * flipZ
-    ];
+    return [scaleX, scaleY, scaleZ];
+}
+
+function getPatternRotation(pattern = {}) {
+    const rotationX = toRadians(pattern.rotationX || 0);
+    const rotationY = toRadians(pattern.rotationY || 0);
+    const rotationZ = toRadians(pattern.rotationZ || 0);
+
+    return [rotationX, rotationY, rotationZ];
 }
 
 function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
@@ -92,6 +96,14 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     return;
                 }
 
+                console.log('纹理加载信息:', {
+                    类型: image.constructor.name,
+                    尺寸: `${image.width || image.naturalWidth}x${image.height || image.naturalHeight}`,
+                    是否为ImageBitmap: image instanceof ImageBitmap,
+                    是否为HTMLImageElement: image instanceof HTMLImageElement,
+                    是否为HTMLCanvasElement: image instanceof HTMLCanvasElement
+                });
+
                 const width = image.width;
                 const height = image.height;
                 const canvas = document.createElement('canvas');
@@ -103,6 +115,34 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 const imageData = ctx.getImageData(0, 0, width, height);
                 const data = imageData.data;
 
+                console.log('=== VoxelGeometry 纹理处理开始 ===', {
+                    图片尺寸: `${width}x${height}`,
+                    像素数据长度: data.length,
+                    是否有Alpha通道: imageData.data.length === width * height * 4,
+                    纹理文件URL: textureFile
+                });
+
+                // 调试：检查四个角落的alpha值和RGB值
+                const corners = [
+                    { name: '左上角', idx: 0 },
+                    { name: '右上角', idx: (width - 1) * 4 },
+                    { name: '左下角', idx: (height - 1) * width * 4 },
+                    { name: '右下角', idx: (height - 1) * width * 4 + (width - 1) * 4 },
+                    { name: '中心', idx: Math.floor(height / 2) * width * 4 + Math.floor(width / 2) * 4 }
+                ];
+                
+                corners.forEach(corner => {
+                    const i = corner.idx;
+                    console.log(`${corner.name}:`, {
+                        R: data[i],
+                        G: data[i + 1],
+                        B: data[i + 2],
+                        A: data[i + 3],
+                        alpha_normalized: (data[i + 3] / 255).toFixed(3),
+                        will_be_zero: data[i + 3] < 13  // 0.05 * 255 = 12.75
+                    });
+                });
+
                 // 存储所有体素点的高度值
                 const heightMap = [];
                 const step = sampleRate;
@@ -113,15 +153,37 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     const row = [];
                     for (let x = 0; x < width; x += step) {
                         const idx = (y * width + x) * 4;
-                        // 计算灰度值 (0-1)
-                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-                        row.push(gray);
+                        // 检查alpha通道，如果透明则标记为-1（不生成几何体）
+                        const alpha = data[idx + 3] / 255;
+                        if (alpha < 0.05) {
+                            // 几乎完全透明区域，标记为无效
+                            row.push(-1);
+                        } else {
+                            // 计算灰度值 (0-1)
+                            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+                            row.push(gray);
+                        }
                     }
                     rawGrayData.push(row);
                 }
 
                 // 根据 smooth 参数决定是否应用 3x3 均值滤波
                 const grayDataToUse = smooth ? [] : rawGrayData;
+
+                // 统计透明像素数量
+                let transparentCount = 0;
+                let totalCount = rawGrayData.length * (rawGrayData[0] ? rawGrayData[0].length : 0);
+                rawGrayData.forEach(row => {
+                    row.forEach(val => {
+                        if (val === 0) transparentCount++;
+                    });
+                });
+                console.log('透明像素统计:', {
+                    总像素数: totalCount,
+                    透明像素数: transparentCount,
+                    透明比例: (transparentCount / totalCount * 100).toFixed(2) + '%',
+                    smooth模式: smooth
+                });
 
                 if (smooth) {
                     // 应用 3x3 均值滤波消除噪点
@@ -131,6 +193,10 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                             let sum = 0;
                             let count = 0;
 
+                            // 检查中心像素是否透明
+                            const centerValue = rawGrayData[row][col];
+                            const isTransparent = centerValue === 0;
+
                             // 取周围 3x3 邻域的平均值
                             for (let dy = -1; dy <= 1; dy++) {
                                 for (let dx = -1; dx <= 1; dx++) {
@@ -139,13 +205,19 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
 
                                     if (newRow >= 0 && newRow < rawGrayData.length &&
                                         newCol >= 0 && newCol < rawGrayData[row].length) {
-                                        sum += rawGrayData[newRow][newCol];
-                                        count++;
+                                        const neighborValue = rawGrayData[newRow][newCol];
+                                        const neighborIsTransparent = neighborValue === 0;
+                                        
+                                        // 只平均相同透明状态的像素
+                                        if (isTransparent === neighborIsTransparent) {
+                                            sum += neighborValue;
+                                            count++;
+                                        }
                                     }
                                 }
                             }
 
-                            filteredRow.push(sum / count);
+                            filteredRow.push(count > 0 ? sum / count : centerValue);
                         }
                         grayDataToUse.push(filteredRow);
                     }
@@ -184,7 +256,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     positions.push(px, py, pz);
                 }
 
-                // 生成三角形索引（连接相邻点）
+                // 生成三角形索引（连接相邻点），跳过包含透明顶点的三角形
                 for (let row = 0; row < gridHeight - 1; row++) {
                     for (let col = 0; col < gridWidth - 1; col++) {
                         const a = row * gridWidth + col;
@@ -192,11 +264,20 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         const c = (row + 1) * gridWidth + col;
                         const d = (row + 1) * gridWidth + (col + 1);
 
-                        // 两个三角形组成一个四边形
-                        // 三角形 1: a-b-c
-                        indices.push(a, b, c);
-                        // 三角形 2: b-d-c
-                        indices.push(b, d, c);
+                        // 检查四个顶点是否都是非透明的（高度 > 0）
+                        const hA = heightMap[a].height;
+                        const hB = heightMap[b].height;
+                        const hC = heightMap[c].height;
+                        const hD = heightMap[d].height;
+
+                        // 只有当所有顶点都有高度时才生成三角形
+                        if (hA > 0 && hB > 0 && hC > 0 && hD > 0) {
+                            // 两个三角形组成一个四边形
+                            // 三角形 1: a-b-c
+                            indices.push(a, b, c);
+                            // 三角形 2: b-d-c
+                            indices.push(b, d, c);
+                        }
                     }
                 }
 
@@ -760,85 +841,89 @@ function SceneContent({ template, onModelReady, hdrFile, smoothTexture = false }
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;
@@ -1054,85 +1139,89 @@ function SceneContent({ template, onModelReady, hdrFile, smoothTexture = false }
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;

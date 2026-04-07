@@ -71,31 +71,32 @@ function ChessEditor() {
   };
 
   const renderFlipControls = (patternPath, pattern) => (
-    <div className="editor-item">
-      <label>翻转：</label>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {['X', 'Y', 'Z'].map((axis) => {
-          const key = `flip${axis}`;
-          const active = !!getSafeValue(pattern?.[key], false);
-          return (
-            <button
-              key={axis}
-              type="button"
-              onClick={() => handleDataUpdate(`${patternPath}.${key}`, !active)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: active ? '1px solid #667eea' : '1px solid #ccc',
-                background: active ? '#e8ecff' : '#f5f5f5',
-                color: '#333',
-                cursor: 'pointer'
-              }}
-            >
-              {axis} 轴{active ? '已翻转' : '翻转'}
-            </button>
-          );
-        })}
-      </div>
+    <div className="editor-section">
+      <h4>旋转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `rotation${axis}`;
+        const rotationValue = getSafeValue(pattern?.[key], 0);
+        return (
+          <div className="editor-item" key={axis}>
+            <label>{axis} 轴：</label>
+            <input
+              type="range"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+            />
+            <input
+              type="number"
+              min="0"
+              max="360"
+              value={rotationValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, parseInt(e.target.value))}
+              className="number-input"
+            />
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -318,10 +319,10 @@ function ChessEditor() {
   },
 
   pattern: {
-    shape: 'none' | 'text' | 'geometry' | 'strange', (浮雕效果的形状)
-    content: string,(浮雕text专用，表示文字内容)
-
-    geometryType: 'Cube' | 'Circle' | 'Polygon' | 'strange',（选geometry时的形状）
+    shape: 'none' | 'text' | 'geometry', (浮雕效果的形状)
+    content: string,(浮雕text专用,表示文字内容)
+  
+    geometryType: 'Cube' | 'Circle' | 'Polygon',（选geometry时的形状）
     sides: number,（polygon 专用，范围为3-64)）
 
     size: number,（浮雕缩放大小）
@@ -1090,7 +1091,6 @@ modelId 含义：
                   <option value="Cube">矩形</option>
                   <option value="Circle">圆形</option>
                   <option value="Polygon">多边形</option>
-                  <option value="strange">奇异形状</option>
                 </select>
               </div>
 
@@ -1874,7 +1874,6 @@ modelId 含义：
                   <option value="Cube">矩形</option>
                   <option value="Circle">圆形</option>
                   <option value="Polygon">多边形</option>
-                  <option value="strange">奇异形状</option>
                 </select>
               </div>
 

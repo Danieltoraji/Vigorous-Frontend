@@ -4,23 +4,6 @@ import './TextureItem.css'
 
 function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
   const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
-
-  useEffect(() => {
-    if (!menuOpen) return undefined
-
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [menuOpen])
 
   // 格式化日期
   const formatDate = (dateString) => {
@@ -51,85 +34,62 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
   };
 
   return (
-    <div className="texture-item">
-      <div className="texture-item-header">
-        <h3 className="texture-name">{texture.name}</h3>
-        <span className="texture-format">{getFileExtension(texture.file)}</span>
-      </div>
-
-      <div className="texture-item-body">
-        <div className="texture-preview">
-          {texture.file ? (
-            <img src={texture.file} alt={texture.name} />
-          ) : (
-            <div className="no-preview">无预览</div>
-          )}
+    <div className="texture-item" onClick={() => onEditTexture(texture)}>
+      <div className="texture-item-content">
+        <div className="texture-item-header">
+          <h3 className="texture-name">{texture.name}</h3>
+          <span className="texture-format">{getFileExtension(texture.file)}</span>
         </div>
 
-        <div className="texture-meta">
-          <div className="texture-meta-item">
-            <span className="meta-label">纹理 ID：</span>
-            <span className="meta-value">{texture.id}</span>
-          </div>
-          <div className="texture-meta-item">
-            <span className="meta-label">创建时间：</span>
-            <span className="meta-value">{formatDate(texture.created_at)}</span>
-          </div>
-          <div className="texture-meta-item">
-            <span className="meta-label">修改时间：</span>
-            <span className="meta-value">{formatDate(texture.edited_at)}</span>
-          </div>
-        </div>
-
-        <div className="texture-tags">
-          {
-            Array.isArray(texture.texture_tags) ? (
-              texture.texture_tags.map((tag, index) => (
-                <span key={index} className="texture-tag">{tag}</span>
-              ))
+        <div className="texture-item-body">
+          <div className="texture-preview">
+            {texture.file ? (
+              <img src={texture.file} alt={texture.name} />
             ) : (
-              <span className="texture-tag">无标签</span>
-            )
-          }
+              <div className="no-preview">无预览</div>
+            )}
+          </div>
+
+          <div className="texture-meta">
+            <div className="texture-meta-item">
+              <span className="meta-label">纹理 ID：</span>
+              <span className="meta-value">{texture.id}</span>
+            </div>
+            <div className="texture-meta-item">
+              <span className="meta-label">创建时间：</span>
+              <span className="meta-value">{formatDate(texture.created_at)}</span>
+            </div>
+            <div className="texture-meta-item">
+              <span className="meta-label">修改时间：</span>
+              <span className="meta-value">{formatDate(texture.edited_at)}</span>
+            </div>
+          </div>
+
+          <div className="texture-tags">
+            {
+              Array.isArray(texture.texture_tags) ? (
+                texture.texture_tags.map((tag, index) => (
+                  <span key={index} className="texture-tag">{tag}</span>
+                ))
+              ) : (
+                <span className="texture-tag">无标签</span>
+              )
+            }
+          </div>
         </div>
       </div>
 
       <div className="texture-item-footer">
-        <div className="more-actions" ref={menuRef}>
-          <button
-            type="button"
-            className="btn btn-outline more-actions-toggle"
-            onClick={() => setMenuOpen(prev => !prev)}
-            aria-label="更多操作"
-            title="更多操作"
-          >
-            ...
-          </button>
-          {menuOpen && (
-            <div className="more-actions-menu">
-              <button
-                type="button"
-                className="menu-item"
-                onClick={() => {
-                  setMenuOpen(false)
-                  onEditTexture(texture)
-                }}
-              >
-                编辑
-              </button>
-              <button
-                type="button"
-                className="menu-item delete"
-                onClick={() => {
-                  setMenuOpen(false)
-                  onDeleteTexture(texture.id)
-                }}
-              >
-                删除
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          className="btn btn-outline delete-btn"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDeleteTexture(texture.id)
+          }}
+        >
+          删除
+        </button>
       </div>
     </div>
   )
