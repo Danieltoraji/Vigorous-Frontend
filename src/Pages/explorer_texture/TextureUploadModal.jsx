@@ -72,10 +72,38 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
     console.log('当前 file 对象:', file)
 
     try {
+      // 如果是编辑模式且 file 为 null，需要先加载预览图
+      let imageToProcess = previewUrl
+      
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.src = previewUrl
+      
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          console.log('图片加载成功，尺寸:', img.width, 'x', img.height)
+          resolve()
+        }
+        img.onerror = (error) => {
+          console.error('图片加载失败:', error)
+          reject(error)
+        }
+      })
+      
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      
+      // 绘制原图
+      ctx.drawImage(img, 0, 0)
+      
+      // 获取像素数据
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const data = imageData.data
-
+      
       console.log('成功获取像素数据，开始处理...')
-
+      
       // 转换为灰度并反色
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i]
@@ -89,10 +117,10 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         data[i + 1] = inverted // G
         data[i + 2] = inverted // B
       }
-
+      
       // 放回画布
       ctx.putImageData(imageData, 0, 0)
-
+      
       // 生成处理后的 Blob
       canvas.toBlob((blob) => {
         if (!blob) {
@@ -100,20 +128,20 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           alert('图片处理失败，请重试')
           return
         }
-
+        
         console.log('成功生成 Blob:', blob.size, 'bytes, type:', blob.type)
-
+        
         // 创建新的 File 对象（编辑模式下 file 可能为 null）
         const fileName = file?.name || `processed_${Date.now()}.png`
-        const processedFile = new File([blob], fileName, {
-          type: blob.type
+        const processedFile = new File([blob], fileName, { 
+          type: blob.type 
         })
         setFile(processedFile)
-
+        
         // 更新预览为处理后的图片
         const processedUrl = URL.createObjectURL(blob)
         setPreviewUrl(processedUrl)
-
+        
         console.log('图片处理完成，已更新预览，file 对象已设置:', processedFile)
         // alert('✅ 色彩处理成功！图片已经反色（黑变白，白变黑），可以保存了')
       }, file?.type || 'image/png')
