@@ -208,7 +208,7 @@ export function ChessProvider({ children }) {
         name: '新棋子',
         project: projectId,
         parts: {
-          "base": chessJson?.parts?.base ? JSON.parse(JSON.stringify(chessJson.parts.base)) : {
+          "base": chessJson?.parts?.base ? structuredClone(chessJson.parts.base) : {
             "shape": {
               "type": "cycle",
               "size1": 15,
@@ -241,7 +241,7 @@ export function ChessProvider({ children }) {
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
           },
-          "column": chessJson?.parts?.column ? JSON.parse(JSON.stringify(chessJson.parts.column)) : {
+          "column": chessJson?.parts?.column ? structuredClone(chessJson.parts.column) : {
             "shape": {
               "type": "cycle",
               "size1": 10,
@@ -276,7 +276,7 @@ export function ChessProvider({ children }) {
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },
-          "decoration": chessJson?.parts?.decoration ? JSON.parse(JSON.stringify(chessJson.parts.decoration)) : {
+          "decoration": chessJson?.parts?.decoration ? structuredClone(chessJson.parts.decoration) : {
             "modelId": "0",
             "size": { "size1": 5, "size2": 5, "size3": 5 },
             "position": { "x": 0, "y": 21, "z": 0 },

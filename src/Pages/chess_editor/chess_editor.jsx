@@ -196,7 +196,7 @@ function ChessEditor() {
     if (!currentChess) return;
 
     // 深度克隆当前数据
-    const updatedChess = JSON.parse(JSON.stringify(currentChess));
+    const updatedChess = structuredClone(currentChess);
     console.log('正在更新棋子数据：', path, value);
     // 根据路径更新数据
     const keys = path.split('.');
