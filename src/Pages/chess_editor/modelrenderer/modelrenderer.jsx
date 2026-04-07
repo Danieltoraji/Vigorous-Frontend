@@ -96,6 +96,11 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     return;
                 }
 
+                console.log('=== VoxelGeometry 纹理处理开始 ===', {
+                    图片尺寸: `${image.width || image.naturalWidth}x${image.height || image.naturalHeight}`,
+                    纹理文件URL: textureFile
+                });
+
                 const width = image.width;
                 const height = image.height;
                 const canvas = document.createElement('canvas');
@@ -107,6 +112,27 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 const imageData = ctx.getImageData(0, 0, width, height);
                 const data = imageData.data;
 
+                // 调试：检查四个角落的alpha值和RGB值
+                const corners = [
+                    { name: '左上角', idx: 0 },
+                    { name: '右上角', idx: (width - 1) * 4 },
+                    { name: '左下角', idx: (height - 1) * width * 4 },
+                    { name: '右下角', idx: (height - 1) * width * 4 + (width - 1) * 4 },
+                    { name: '中心', idx: Math.floor(height / 2) * width * 4 + Math.floor(width / 2) * 4 }
+                ];
+                
+                corners.forEach(corner => {
+                    const i = corner.idx;
+                    console.log(`${corner.name}:`, {
+                        R: data[i],
+                        G: data[i + 1],
+                        B: data[i + 2],
+                        A: data[i + 3],
+                        alpha_normalized: (data[i + 3] / 255).toFixed(3),
+                        will_be_zero: data[i + 3] < 13  // 0.05 * 255 = 12.75
+                    });
+                });
+
                 // 存储所有体素点的高度值
                 const heightMap = [];
                 const step = sampleRate;
@@ -117,9 +143,16 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     const row = [];
                     for (let x = 0; x < width; x += step) {
                         const idx = (y * width + x) * 4;
-                        // 计算灰度值 (0-1)
-                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-                        row.push(gray);
+                        // 检查alpha通道，如果透明则标记为-1（不生成几何体）
+                        const alpha = data[idx + 3] / 255;
+                        if (alpha < 0.05) {
+                            // 几乎完全透明区域，标记为无效
+                            row.push(-1);
+                        } else {
+                            // 计算灰度值 (0-1)
+                            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+                            row.push(gray);
+                        }
                     }
                     rawGrayData.push(row);
                 }
@@ -127,13 +160,33 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 // 根据 smooth 参数决定是否应用 3x3 均值滤波
                 const grayDataToUse = smooth ? [] : rawGrayData;
 
+                // 统计透明像素数量
+                let transparentCount = 0;
+                let totalCount = rawGrayData.length * (rawGrayData[0] ? rawGrayData[0].length : 0);
+                rawGrayData.forEach(row => {
+                    row.forEach(val => {
+                        if (val === 0) transparentCount++;
+                    });
+                });
+                console.log('透明像素统计:', {
+                    总像素数: totalCount,
+                    透明像素数: transparentCount,
+                    透明比例: (transparentCount / totalCount * 100).toFixed(2) + '%',
+                    smooth模式: smooth
+                });
+
                 if (smooth) {
                     // 应用 3x3 均值滤波消除噪点
+                    let smoothedTransparentCount = 0;
                     for (let row = 0; row < rawGrayData.length; row++) {
                         const filteredRow = [];
                         for (let col = 0; col < rawGrayData[row].length; col++) {
                             let sum = 0;
                             let count = 0;
+
+                            // 检查中心像素是否透明
+                            const centerValue = rawGrayData[row][col];
+                            const isTransparent = centerValue === 0;
 
                             // 取周围 3x3 邻域的平均值
                             for (let dy = -1; dy <= 1; dy++) {
@@ -143,31 +196,63 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
 
                                     if (newRow >= 0 && newRow < rawGrayData.length &&
                                         newCol >= 0 && newCol < rawGrayData[row].length) {
-                                        sum += rawGrayData[newRow][newCol];
-                                        count++;
+                                        const neighborValue = rawGrayData[newRow][newCol];
+                                        const neighborIsTransparent = neighborValue === 0;
+                                        
+                                        // 只平均相同透明状态的像素
+                                        if (isTransparent === neighborIsTransparent) {
+                                            sum += neighborValue;
+                                            count++;
+                                        }
                                     }
                                 }
                             }
 
-                            filteredRow.push(sum / count);
+                            const filteredValue = count > 0 ? sum / count : centerValue;
+                            filteredRow.push(filteredValue);
+                            
+                            if (filteredValue === 0) smoothedTransparentCount++;
                         }
                         grayDataToUse.push(filteredRow);
                     }
+                    
+                    console.log('Smooth后透明像素统计:', {
+                        原始透明数: transparentCount,
+                        Smooth后透明数: smoothedTransparentCount,
+                        丢失的透明像素: transparentCount - smoothedTransparentCount
+                    });
                 }
 
                 // 使用选定的灰度数据生成高度图
+                let zeroHeightCount = 0;
+                let invalidCount = 0;
                 for (let row = 0; row < grayDataToUse.length; row++) {
                     for (let col = 0; col < grayDataToUse[row].length; col++) {
                         const gray = grayDataToUse[row][col];
-                        // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
-                        const h = (1 - gray) * depth;
-                        heightMap.push({
-                            x: col * step,
-                            y: row * step,
-                            height: h
-                        });
+                        
+                        // 如果是无效像素（透明），标记为null
+                        if (gray === -1) {
+                            heightMap.push(null);
+                            invalidCount++;
+                        } else {
+                            // 映射到高度（黑色=最高，白色=最低）
+                            const h = (1 - gray) * depth;
+                            if (h === 0) zeroHeightCount++;
+                            heightMap.push({
+                                x: col * step,
+                                y: row * step,
+                                height: h
+                            });
+                        }
                     }
                 }
+
+                console.log('高度图统计:', {
+                    总点数: heightMap.length,
+                    '无效点数(透明)': invalidCount,
+                    无效比例: (invalidCount / heightMap.length * 100).toFixed(2) + '%',
+                    高度为0的点数: zeroHeightCount
+                });
 
                 // 生成网格顶点和索引（只有顶面）
                 const positions = [];
@@ -177,18 +262,24 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 const gridHeight = Math.floor(height / step);
                 const planeSize = size / Math.max(gridWidth, gridHeight);
 
-                // 生成顶点
+                // 生成顶点（跳过无效顶点）
                 for (let i = 0; i < heightMap.length; i++) {
                     const point = heightMap[i];
-                    // 直接生成在 XZ 平面，高度沿 Y 轴
-                    const px = -(point.x - width / 2) * planeSize;
-                    const py = point.height;
-                    const pz = -(point.y - height / 2) * planeSize;
-
-                    positions.push(px, py, pz);
+                    // 如果是无效顶点（透明），跳过
+                    if (point === null) {
+                        positions.push(0, -10000, 0);  // 放到极远处，不可见
+                    } else {
+                        // 直接生成在 XZ 平面，高度沿 Y 轴
+                        const px = -(point.x - width / 2) * planeSize;
+                        const py = point.height;
+                        const pz = -(point.y - height / 2) * planeSize;
+                        positions.push(px, py, pz);
+                    }
                 }
 
-                // 生成三角形索引（连接相邻点）
+                // 生成三角形索引（连接相邻点），跳过包含透明顶点的三角形
+                let skippedQuads = 0;
+                let totalQuads = 0;
                 for (let row = 0; row < gridHeight - 1; row++) {
                     for (let col = 0; col < gridWidth - 1; col++) {
                         const a = row * gridWidth + col;
@@ -196,13 +287,33 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         const c = (row + 1) * gridWidth + col;
                         const d = (row + 1) * gridWidth + (col + 1);
 
-                        // 两个三角形组成一个四边形
-                        // 三角形 1: a-b-c
-                        indices.push(a, b, c);
-                        // 三角形 2: b-d-c
-                        indices.push(b, d, c);
+                        totalQuads++;
+
+                        // 检查四个顶点是否都有效（不是null）
+                        const pA = heightMap[a];
+                        const pB = heightMap[b];
+                        const pC = heightMap[c];
+                        const pD = heightMap[d];
+
+                        // 只有当所有顶点都有效时才生成三角形
+                        if (pA !== null && pB !== null && pC !== null && pD !== null) {
+                            // 两个三角形组成一个四边形
+                            // 三角形 1: a-b-c
+                            indices.push(a, b, c);
+                            // 三角形 2: b-d-c
+                            indices.push(b, d, c);
+                        } else {
+                            skippedQuads++;
+                        }
                     }
                 }
+
+                console.log('网格生成统计:', {
+                    总四边形数: totalQuads,
+                    跳过的四边形数: skippedQuads,
+                    实际生成的三角形数: indices.length / 3,
+                    跳过比例: (skippedQuads / totalQuads * 100).toFixed(2) + '%'
+                });
 
                 // 创建几何体
                 const geom = new BufferGeometry();
