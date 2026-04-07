@@ -404,7 +404,7 @@ function FallbackDecoration({ position, size }) {
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
  */
-function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
+function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, showAxes = true, showGrid = true }) {
     const modelRootRef = useRef();
     const { decorationData, loading: decorationLoading } = useDecoration();
 
@@ -1528,12 +1528,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             />
 
             {/* 加粗坐标轴 - 使用LineSegments，不会被导出 */}
-            {createAxisLines(600, 3).map((axis, index) => (
+            {showAxes && createAxisLines(600, 3).map((axis, index) => (
                 <primitive key={`axis-${index}`} object={axis} />
             ))}
 
             {/* XY平面网格 - 使用LineSegments绘制，不会被导出 */}
-            <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />
+            {showGrid && <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />}
 
             {/* 坐标轴标签 */}
             <DreiText position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</DreiText>
@@ -1556,6 +1556,11 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
 }
 
 function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) {
+    const [showAxes, setShowAxes] = useState(true);
+    const [showGrid, setShowGrid] = useState(true);
+    const [isHovered, setIsHovered] = useState(false);
+    const hoverTimerRef = useRef(null);
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <Canvas
@@ -1573,58 +1578,186 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
                 }}
                 gl={{ alpha: true, premultipliedAlpha: false }}
             >
-                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} />
+                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} showAxes={showAxes} showGrid={showGrid} />
             </Canvas>
 
             {/* 页面左下角比例尺标签 */}
-            <div style={{
-                position: 'absolute',
-                bottom: '100px',
-                left: '20px',
-                backgroundColor: 'rgba(200, 200, 200, 0.6)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                borderRadius: '12px',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                padding: '0 16px',
-                minWidth: '120px',
-                height: '50px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                fontFamily: 'sans-serif',
-                zIndex: 10,
-                pointerEvents: 'none'
-            }}>
-                <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div 
+                style={{
+                    position: 'absolute',
+                    bottom: '80px',
+                    left: '20px',
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                }}
+            >
+                {/* 悬浮弹出的模态框 */}
+                <div style={{
+                    marginBottom: '12px',
+                    display: 'flex',
+                    gap: '10px',
+                    opacity: isHovered ? 1 : 0,
+                    transform: isHovered ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'all 0.3s ease',
+                    pointerEvents: isHovered ? 'auto' : 'none'
+                }}
+                    onMouseEnter={() => {
+                        // 鼠标进入模态框，取消隐藏定时器
+                        clearTimeout(hoverTimerRef.current);
+                    }}
+                    onMouseLeave={() => {
+                        // 鼠标离开模态框，延迟隐藏
+                        hoverTimerRef.current = setTimeout(() => {
+                            setIsHovered(false);
+                        }, 300);
+                    }}
+                >
+                    {/* 坐标轴开关 */}
                     <div style={{
-                        width: '25px',
-                        height: '2px',
-                        backgroundColor: '#333',
-                        position: 'relative',
-                    }}>
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '8px',
+                        border: '2px solid rgba(255, 255, 255, 0.4)',
+                        padding: '6px 9px',
+                        width: '68px',
+                        height: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        cursor: 'pointer'
+                    }} onClick={() => setShowAxes(!showAxes)}>
+                        <div style={{ fontWeight: '600', color: '#333', fontSize: '11px' }}>坐标轴</div>
                         <div style={{
-                            position: 'absolute',
-                            width: '2px',
-                            height: '5px',
-                            backgroundColor: '#333',
-                            left: '0',
-                            top: '-1.5px'
-                        }} />
-                        <div style={{
-                            position: 'absolute',
-                            width: '2px',
-                            height: '5px',
-                            backgroundColor: '#333',
-                            right: '0',
-                            top: '-1.5px'
-                        }} />
+                            width: '32px',
+                            height: '16px',
+                            backgroundColor: showAxes ? 'rgba(14, 95, 115, 1)' : '#ccc',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            transition: 'background-color 0.3s ease'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                top: '2px',
+                                left: showAxes ? '18px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }} />
+                        </div>
                     </div>
-                    <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
+
+                    {/* 网格开关 */}
+                    <div style={{
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '8px',
+                        border: '2px solid rgba(255, 255, 255, 0.4)',
+                        padding: '6px 9px',
+                        width: '68px',
+                        height: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        cursor: 'pointer'
+                    }} onClick={() => setShowGrid(!showGrid)}>
+                        <div style={{ fontWeight: '600', color: '#333', fontSize: '11px' }}>网格</div>
+                        <div style={{
+                            width: '32px',
+                            height: '16px',
+                            backgroundColor: showGrid ? 'rgba(14, 95, 115, 1)' : '#ccc',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            transition: 'background-color 0.3s ease'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                top: '2px',
+                                left: showGrid ? '18px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Scale指示器 */}
+                <div 
+                    className="scale-label"
+                    style={{
+                        position: 'relative',
+                        backgroundColor: 'rgba(200, 200, 200, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '12px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        padding: '0 16px',
+                        minWidth: '120px',
+                        height: '50px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        fontFamily: 'sans-serif',
+                        cursor: 'pointer'
+                    }}
+                    onMouseEnter={() => {
+                        // 鼠标进入Scale，取消隐藏定时器并显示模态框
+                        clearTimeout(hoverTimerRef.current);
+                        setIsHovered(true);
+                    }}
+                    onMouseLeave={() => {
+                        // 鼠标离开Scale，延迟隐藏以给用户时间移动到模态框
+                        hoverTimerRef.current = setTimeout(() => {
+                            setIsHovered(false);
+                        }, 100);
+                    }}
+                >
+                    <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{
+                            width: '25px',
+                            height: '2px',
+                            backgroundColor: '#333',
+                            position: 'relative',
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '2px',
+                                height: '5px',
+                                backgroundColor: '#333',
+                                left: '0',
+                                top: '-1.5px'
+                            }} />
+                            <div style={{
+                                position: 'absolute',
+                                width: '2px',
+                                height: '5px',
+                                backgroundColor: '#333',
+                                right: '0',
+                                top: '-1.5px'
+                            }} />
+                        </div>
+                        <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
+                    </div>
                 </div>
             </div>
         </div>
