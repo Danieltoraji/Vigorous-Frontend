@@ -764,85 +764,89 @@ function SceneContent({ template, onModelReady, hdrFile, smoothTexture = false }
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;
@@ -1058,85 +1062,89 @@ function SceneContent({ template, onModelReady, hdrFile, smoothTexture = false }
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;

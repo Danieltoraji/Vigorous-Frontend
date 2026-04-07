@@ -301,10 +301,10 @@ function ChessEditor() {
   },
 
   pattern: {
-    shape: 'none' | 'text' | 'geometry' | 'strange', (浮雕效果的形状)
-    content: string,(浮雕text专用，表示文字内容)
-
-    geometryType: 'Cube' | 'Circle' | 'Polygon' | 'strange',（选geometry时的形状）
+    shape: 'none' | 'text' | 'geometry', (浮雕效果的形状)
+    content: string,(浮雕text专用,表示文字内容)
+  
+    geometryType: 'Cube' | 'Circle' | 'Polygon',（选geometry时的形状）
     sides: number,（polygon 专用，范围为3-64)）
 
     size: number,（浮雕缩放大小）
@@ -1072,7 +1072,6 @@ modelId 含义：
                   <option value="Cube">矩形</option>
                   <option value="Circle">圆形</option>
                   <option value="Polygon">多边形</option>
-                  <option value="strange">奇异形状</option>
                 </select>
               </div>
 
@@ -1855,7 +1854,6 @@ modelId 含义：
                   <option value="Cube">矩形</option>
                   <option value="Circle">圆形</option>
                   <option value="Polygon">多边形</option>
-                  <option value="strange">奇异形状</option>
                 </select>
               </div>
 
