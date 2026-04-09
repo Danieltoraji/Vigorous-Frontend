@@ -9,7 +9,7 @@ import ChooseDecoration from './choose_decoration.jsx';
 import TextureGrid from './TextureGrid.jsx';
 
 
-import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
+import { exportScene, downloadBlob, generateExportFilename, getModelBoundingBox } from '../../utils/exportScene.js';
 function ChessEditor() {
   const { chessData, updateChess, setChessData, getChessById } = useChess();
   const navigate = useNavigate();
@@ -124,6 +124,14 @@ function ChessEditor() {
   const [selectedTexture, setSelectedTexture] = useState(null); // 选中的纹理
   const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
   const [smoothTexture, setSmoothTexture] = useState(false); // 是否启用平滑纹理
+
+  // 缩放弹窗相关状态
+  const [showScaleModal, setShowScaleModal] = useState(false); // 缩放弹窗显示状态
+  const [selectedExportFormat, setSelectedExportFormat] = useState(null); // 'stl' | 'obj'
+  const [modelBoundingBox, setModelBoundingBox] = useState(null); // 模型包围盒尺寸
+  const [scaleValue, setScaleValue] = useState(1); // 缩放比例
+  const [scaleMode, setScaleMode] = useState('ratio'); // 'ratio' | 'dimension'
+  const [targetDimension, setTargetDimension] = useState({ height: null }); // 目标尺寸
 
   // 处理纹理选择
   const handleTextureSelect = (texture) => {
@@ -622,6 +630,49 @@ modelId 含义：
       setShowExportModal(false);
     }
   };
+
+  // 打开缩放设置弹窗（STL/OBJ 导出前）
+  const handleOpenScaleModal = useCallback((format) => {
+    if (!modelRootRef.current) {
+      alert('模型尚未加载完成，请稍后再试');
+      return;
+    }
+
+    const boundingBox = getModelBoundingBox(modelRootRef.current);
+    setModelBoundingBox(boundingBox);
+    setSelectedExportFormat(format);
+    setScaleValue(1);
+    setScaleMode('ratio');
+    setTargetDimension({ height: boundingBox.height });
+    setShowScaleModal(true);
+  }, []);
+
+  // 执行带缩放的导出
+  const handleScaledExport = useCallback(async () => {
+    try {
+      await handleSave();
+      await fetchData();
+
+      // 计算最终缩放比例
+      let finalScale = scaleValue;
+      if (scaleMode === 'dimension' && targetDimension.height) {
+        finalScale = targetDimension.height / modelBoundingBox.height;
+      }
+
+      console.log('正在导出，缩放比例:', finalScale);
+      const blob = await exportScene(currentChess, modelRootRef.current, selectedExportFormat, finalScale);
+      const filename = generateExportFilename(currentChess.name, selectedExportFormat);
+      downloadBlob(blob, filename);
+
+      alert(`导出成功！文件已下载：${filename}`);
+    } catch (error) {
+      console.error('导出失败:', error);
+      alert('导出失败：' + (error.message || '未知错误'));
+    } finally {
+      setShowScaleModal(false);
+      setShowExportModal(false);
+    }
+  }, [scaleValue, scaleMode, targetDimension, modelBoundingBox, selectedExportFormat, currentChess, handleSave, fetchData]);
 
   // 处理返回
   const handleBack = () => {
@@ -2841,13 +2892,13 @@ modelId 含义：
                 </button>
                 <button
                   className="export-option-button"
-                  onClick={() => handleExportAction('stl')}
+                  onClick={() => handleOpenScaleModal('stl')}
                 >
                   STL（适合 3D 打印）
                 </button>
                 <button
                   className="export-option-button"
-                  onClick={() => handleExportAction('obj')}
+                  onClick={() => handleOpenScaleModal('obj')}
                 >
                   OBJ（适合 3D 建模软件）
                 </button>
@@ -2878,6 +2929,95 @@ modelId 含义：
         </div>
       )}
 
+
+      {/* 缩放设置弹窗 */}
+      {showScaleModal && modelBoundingBox && (
+        <div className="modal-overlay">
+          <div className="scale-modal">
+            <div className="modal-header">
+              <h2>导出尺寸设置</h2>
+              <button className="close-button" onClick={() => setShowScaleModal(false)}>×</button>
+            </div>
+            <div className="modal-content">
+              {/* 当前尺寸显示 */}
+              <div className="current-dimensions">
+                <h4>当前模型尺寸</h4>
+                <div className="dimension-values">
+                  <span>宽度 (X): <strong>{modelBoundingBox.width.toFixed(2)}</strong></span>
+                  <span>高度 (Y): <strong>{modelBoundingBox.height.toFixed(2)}</strong></span>
+                  <span>深度 (Z): <strong>{modelBoundingBox.depth.toFixed(2)}</strong></span>
+                </div>
+              </div>
+
+              {/* 缩放模式选择 */}
+              <div className="scale-mode-selector">
+                <label className={`scale-mode-option ${scaleMode === 'ratio' ? 'active' : ''}`}>
+                  <input type="radio" value="ratio" checked={scaleMode === 'ratio'} onChange={() => setScaleMode('ratio')} />
+                  按缩放比例
+                </label>
+                <label className={`scale-mode-option ${scaleMode === 'dimension' ? 'active' : ''}`}>
+                  <input type="radio" value="dimension" checked={scaleMode === 'dimension'} onChange={() => setScaleMode('dimension')} />
+                  按目标高度
+                </label>
+              </div>
+
+              {/* 缩放比例输入 */}
+              {scaleMode === 'ratio' && (
+                <div className="scale-ratio-input">
+                  <label>缩放比例：</label>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    value={scaleValue}
+                    onChange={(e) => setScaleValue(parseFloat(e.target.value))}
+                  />
+                  <input
+                    type="number"
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    value={scaleValue}
+                    onChange={(e) => setScaleValue(parseFloat(e.target.value) || 1)}
+                    className="number-input"
+                  />
+                  <div className="scale-preview">
+                    预览尺寸：{((modelBoundingBox.height * scaleValue)).toFixed(2)} 高度
+                  </div>
+                </div>
+              )}
+
+              {/* 目标尺寸输入 */}
+              {scaleMode === 'dimension' && (
+                <div className="scale-dimension-inputs">
+                  <div className="dimension-input-row">
+                    <label>目标高度 (Y)：</label>
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={targetDimension.height || ''}
+                      onChange={(e) => setTargetDimension({ height: parseFloat(e.target.value) || null })}
+                      className="number-input"
+                    />
+                  </div>
+                  {targetDimension.height && modelBoundingBox.height > 0 && (
+                    <div className="scale-preview">
+                      缩放比例：{(targetDimension.height / modelBoundingBox.height).toFixed(3)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button className="cancel-button" onClick={() => setShowScaleModal(false)}>取消</button>
+                <button className="confirm-button" onClick={handleScaledExport}>确定导出</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 装饰选择器弹窗 */}
       {showDecorationModal && (
