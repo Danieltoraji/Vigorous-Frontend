@@ -9,7 +9,7 @@ import ChooseDecoration from './choose_decoration.jsx';
 import TextureGrid from './TextureGrid.jsx';
 
 
-import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
+import { exportScene, downloadBlob, generateExportFilename, getModelBoundingBox } from '../../utils/exportScene.js';
 function ChessEditor() {
   const { chessData, updateChess, setChessData, getChessById } = useChess();
   const navigate = useNavigate();
@@ -25,6 +25,29 @@ function ChessEditor() {
 
   const [selectedComponent, setSelectedComponent] = useState('base'); // 默认选中底座组件
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
+
+  // 撤销功能相关状态
+  const [historyStack, setHistoryStack] = useState([]); // 历史记录栈
+  const [historyIndex, setHistoryIndex] = useState(-1); // 当前历史指针
+  const lastHistoryTimeRef = useRef(0); // 上次记录时间（使用 ref 避免重渲染）
+  const MAX_HISTORY_SIZE = 50; // 最大历史记录数
+  const HISTORY_RECORD_INTERVAL = 500; // 最小记录间隔（毫秒）
+
+  // 鼠标事件相关 ref（用于新的历史记录触发机制）
+  const mouseDownTimeRef = useRef(0); // 鼠标按下时间戳
+  const isDraggingRef = useRef(false); // 是否正在拖动
+  const isUndoRedoRef = useRef(false); // 是否正在执行撤销/重做操作
+
+  // 深度比较两个对象是否相等
+  const isEqualDeep = useCallback((obj1, obj2) => {
+    if (obj1 === obj2) return true;
+    if (!obj1 || !obj2) return false;
+    try {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    } catch {
+      return false;
+    }
+  }, []);
 
   // 右侧面板固定宽度
   const [rightWidth, setRightWidth] = useState(450); // 右侧面板宽度
@@ -97,6 +120,37 @@ function ChessEditor() {
           </div>
         );
       })}
+
+      <h4>翻转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `flip${axis}`;
+        const flipValue = !!pattern?.[key];
+        return (
+          <div className="editor-item" key={key}>
+            <label>{axis} 轴：</label>
+            <input
+              type="checkbox"
+              checked={flipValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, e.target.checked)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderBooleanControls = (patternPath, pattern) => (
+    <div className="editor-item">
+      <label>布尔操作：</label>
+      <select
+        value={getSafeValue(pattern?.boolean?.operationType, 'none')}
+        onChange={(e) => handleDataUpdate(`${patternPath}.boolean.operationType`, e.target.value)}
+      >
+        <option value="none">无</option>
+        <option value="union">并集</option>
+        <option value="subtract">差集</option>
+        <option value="intersect">交集</option>
+      </select>
     </div>
   );
 
@@ -125,6 +179,14 @@ function ChessEditor() {
   const [textureMode, setTextureMode] = useState('selector'); // 'selector' | 'generator'
   const [smoothTexture, setSmoothTexture] = useState(false); // 是否启用平滑纹理
 
+  // 缩放弹窗相关状态
+  const [showScaleModal, setShowScaleModal] = useState(false); // 缩放弹窗显示状态
+  const [selectedExportFormat, setSelectedExportFormat] = useState(null); // 'stl' | 'obj'
+  const [modelBoundingBox, setModelBoundingBox] = useState(null); // 模型包围盒尺寸
+  const [scaleValue, setScaleValue] = useState(1); // 缩放比例
+  const [scaleMode, setScaleMode] = useState('ratio'); // 'ratio' | 'dimension'
+  const [targetDimension, setTargetDimension] = useState({ height: null }); // 目标尺寸
+
   // 处理纹理选择
   const handleTextureSelect = (texture) => {
     setSelectedTexture(texture);
@@ -132,9 +194,13 @@ function ChessEditor() {
 
     // 根据当前选中的组件更新对应的 pattern 数据
     const componentPath = selectedComponent === 'base' ? 'parts.base.pattern' : 'parts.column.pattern';
+    const currentPattern = selectedComponent === 'base'
+      ? currentChess.parts?.base?.pattern || {}
+      : currentChess.parts?.column?.pattern || {};
 
-    // 同时更新 textureFile、shape 和 smooth 字段
+    // 同时更新 textureFile、shape 和 smooth 字段，并保留已有的布尔配置等扩展字段
     const patternData = {
+      ...currentPattern,
       textureFile: texture.file,
       shape: 'custom',
       size: 10,
@@ -186,17 +252,129 @@ function ChessEditor() {
     }
   }, [pieceId, navigate]);
 
+  // 强制记录历史快照（无视时间间隔限制）
+  const pushToHistoryImmediate = useCallback((snapshot) => {
+    lastHistoryTimeRef.current = Date.now();
+    
+    setHistoryStack(prev => {
+      const newStack = prev.slice(0, historyIndex + 1);
+      newStack.push(structuredClone(snapshot));
+      
+      // 如果超过最大长度，移除最旧记录
+      while (newStack.length > MAX_HISTORY_SIZE) {
+        newStack.shift();
+      }
+      
+      return newStack;
+    });
+    
+    // 确保 historyIndex 正确同步
+    // 新索引 = 当前索引 + 1，但不能超过栈的最大长度 - 1
+    setHistoryIndex(prev => {
+      const newIndex = prev + 1;
+      return Math.min(newIndex, MAX_HISTORY_SIZE - 1);
+    });
+  }, [historyIndex, MAX_HISTORY_SIZE]);
+
+  // 记录历史快照（带状态比较，避免重复记录）
+  const pushToHistory = useCallback((snapshot) => {
+    if (!snapshot) return;
+    
+    // 获取上一个状态
+    const lastState = historyStack.length > 0 && historyIndex >= 0 
+      ? historyStack[historyIndex] 
+      : null;
+    
+    // 如果状态相同，忽略
+    if (lastState && isEqualDeep(snapshot, lastState)) {
+      return;
+    }
+    
+    // 状态不同，执行记录
+    pushToHistoryImmediate(snapshot);
+  }, [historyStack, historyIndex, isEqualDeep, pushToHistoryImmediate]);
+
+  // 撤销操作
+  const handleUndo = useCallback(() => {
+    if (historyIndex < 0 || historyStack.length === 0) {
+      showSuccessToast('没有可撤销的操作');
+      return;
+    }
+
+    // 标记为撤销/重做操作（避免 mouseup 触发历史记录）
+    isUndoRedoRef.current = true;
+
+    const previousState = historyStack[historyIndex];
+    
+    // 恢复状态
+    setCurrentChess(previousState);
+    setChessData(prev => ({ ...prev, [previousState.id]: previousState }));
+    
+    // 移动历史指针
+    setHistoryIndex(prev => prev - 1);
+    
+    showSuccessToast('已撤销');
+  }, [historyStack, historyIndex, setChessData, showSuccessToast]);
+
+  // 重做操作
+  const handleRedo = useCallback(() => {
+    // 检查是否有可重做的状态
+    if (historyIndex >= historyStack.length - 1) {
+      showSuccessToast('没有可重做的操作');
+      return;
+    }
+
+    // 标记为撤销/重做操作（避免 mouseup 触发历史记录）
+    isUndoRedoRef.current = true;
+
+    // 获取下一个状态
+    const nextState = historyStack[historyIndex + 1];
+    
+    // 恢复状态
+    setCurrentChess(nextState);
+    setChessData(prev => ({ ...prev, [nextState.id]: nextState }));
+    
+    // 移动历史指针向前
+    setHistoryIndex(prev => prev + 1);
+    
+    showSuccessToast('已重做');
+  }, [historyStack, historyIndex, setChessData, showSuccessToast]);
+
+  // 键盘快捷键支持（Ctrl+Z 撤销，Ctrl+Shift+Z / Ctrl+Y 重做）
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+Z 撤销
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Ctrl+Shift+Z 或 Ctrl+Y 重做
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
   // 处理组件选择 - 使用 useCallback 避免重复创建
   const handleComponentSelect = useCallback((componentType) => {
+    // 切换组件前强制记录当前状态（确保切换前的状态可恢复）
+    if (currentChess) {
+      pushToHistoryImmediate(currentChess);
+    }
     setSelectedComponent(componentType);
-  }, []);
+  }, [currentChess, pushToHistoryImmediate]);
 
   // 处理数据更新 - 使用 useCallback 避免重复创建
+  // 注意：历史记录现在由鼠标事件触发，不再在此处记录
   const handleDataUpdate = useCallback((path, value) => {
     if (!currentChess) return;
 
     // 深度克隆当前数据
-    const updatedChess = JSON.parse(JSON.stringify(currentChess));
+    const updatedChess = structuredClone(currentChess);
     console.log('正在更新棋子数据：', path, value);
     // 根据路径更新数据
     const keys = path.split('.');
@@ -301,10 +479,10 @@ function ChessEditor() {
   },
 
   pattern: {
-    shape: 'none' | 'text' | 'geometry' | 'strange', (浮雕效果的形状)
-    content: string,(浮雕text专用，表示文字内容)
-
-    geometryType: 'Cube' | 'Circle' | 'Polygon' | 'strange',（选geometry时的形状）
+    shape: 'none' | 'text' | 'geometry', (浮雕效果的形状)
+    content: string,(浮雕text专用,表示文字内容)
+  
+    geometryType: 'Cube' | 'Circle' | 'Polygon',（选geometry时的形状）
     sides: number,（polygon 专用，范围为3-64)）
 
     size: number,（浮雕缩放大小）
@@ -623,6 +801,49 @@ modelId 含义：
     }
   };
 
+  // 打开缩放设置弹窗（STL/OBJ 导出前）
+  const handleOpenScaleModal = useCallback((format) => {
+    if (!modelRootRef.current) {
+      alert('模型尚未加载完成，请稍后再试');
+      return;
+    }
+
+    const boundingBox = getModelBoundingBox(modelRootRef.current);
+    setModelBoundingBox(boundingBox);
+    setSelectedExportFormat(format);
+    setScaleValue(1);
+    setScaleMode('ratio');
+    setTargetDimension({ height: boundingBox.height });
+    setShowScaleModal(true);
+  }, []);
+
+  // 执行带缩放的导出
+  const handleScaledExport = useCallback(async () => {
+    try {
+      await handleSave();
+      await fetchData();
+
+      // 计算最终缩放比例
+      let finalScale = scaleValue;
+      if (scaleMode === 'dimension' && targetDimension.height) {
+        finalScale = targetDimension.height / modelBoundingBox.height;
+      }
+
+      console.log('正在导出，缩放比例:', finalScale);
+      const blob = await exportScene(currentChess, modelRootRef.current, selectedExportFormat, finalScale);
+      const filename = generateExportFilename(currentChess.name, selectedExportFormat);
+      downloadBlob(blob, filename);
+
+      alert(`导出成功！文件已下载：${filename}`);
+    } catch (error) {
+      console.error('导出失败:', error);
+      alert('导出失败：' + (error.message || '未知错误'));
+    } finally {
+      setShowScaleModal(false);
+      setShowExportModal(false);
+    }
+  }, [scaleValue, scaleMode, targetDimension, modelBoundingBox, selectedExportFormat, currentChess, handleSave, fetchData]);
+
   // 处理返回
   const handleBack = () => {
     const projectId = currentChess.project;
@@ -649,10 +870,37 @@ modelId 含义：
   }, []);
 
 
-  // 添加全局鼠标事件监听器
+  // 鼠标事件监听 - 用于触发历史记录
   useEffect(() => {
+    const handleMouseDown = (e) => {
+      mouseDownTimeRef.current = Date.now();
+      isDraggingRef.current = true;
+    };
 
-  }, [handleMouseMove, handleMouseUp]);
+    const handleMouseUp = (e) => {
+      if (isDraggingRef.current) {
+        // 如果是撤销/重做操作，跳过历史记录
+        if (isUndoRedoRef.current) {
+          isUndoRedoRef.current = false;  // 重置标志
+          isDraggingRef.current = false;
+          return;
+        }
+        
+        // 触发历史记录
+        pushToHistory(currentChess);
+      }
+      
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [currentChess, pushToHistory]);
 
   // 渲染底座组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderBasePanel = () => {
@@ -1008,6 +1256,7 @@ modelId 含义：
           </div>
 
           {renderFlipControls('parts.base.pattern', pattern)}
+          {renderBooleanControls('parts.base.pattern', pattern)}
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
             <div className="editor-item">
@@ -1072,7 +1321,6 @@ modelId 含义：
                   <option value="Cube">矩形</option>
                   <option value="Circle">圆形</option>
                   <option value="Polygon">多边形</option>
-                  <option value="strange">奇异形状</option>
                 </select>
               </div>
 
@@ -1757,21 +2005,7 @@ modelId 含义：
           </div>
         </div>
 
-        {/* Side Treatment 部分 */}
-        <div className="editor-section">
-          <h4>侧面处理</h4>
 
-          <div className="editor-item">
-            <label>类型：</label>
-            <select
-              value={getSafeValue(component.sideTreatment, 'none')}
-              onChange={(e) => handleDataUpdate('parts.column.sideTreatment', e.target.value)}
-            >
-              <option value="none">无</option>
-              <option value="groove">凹槽</option>
-            </select>
-          </div>
-        </div>
 
         {/* Pattern 部分 */}
         <div className="editor-section">
@@ -1791,6 +2025,7 @@ modelId 含义：
           </div>
 
           {renderFlipControls('parts.column.pattern', pattern)}
+          {renderBooleanControls('parts.column.pattern', pattern)}
 
           {getSafeValue(pattern.shape, 'text') === 'custom' && (
             <div className="editor-item">
@@ -1855,7 +2090,6 @@ modelId 含义：
                   <option value="Cube">矩形</option>
                   <option value="Circle">圆形</option>
                   <option value="Polygon">多边形</option>
-                  <option value="strange">奇异形状</option>
                 </select>
               </div>
 
@@ -2311,15 +2545,6 @@ modelId 含义：
               选择模型
             </button>
           </div>
-          <div className="editor-item">
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowAIGenerator(!showAIGenerator)}
-              style={{ width: '100%', marginTop: '8px' }}
-            >
-              {showAIGenerator ? '收起 AI 生成器' : '✨ AI 智能生成'}
-            </button>
-          </div>
 
           {/* AI 生成器面板 */}
           {showAIGenerator && (
@@ -2428,7 +2653,7 @@ modelId 含义：
           )}
 
           <div className="editor-item">
-            <label>X 轴缩放：</label>
+            <label>X 轴：</label>
             <input
               type="range"
               min={fineTuneMode ? fineTuneMin : 0.01}
@@ -2449,7 +2674,7 @@ modelId 含义：
           </div>
 
           <div className="editor-item">
-            <label>Y 轴缩放：</label>
+            <label>Y 轴：</label>
             <input
               type="range"
               min={fineTuneMode ? fineTuneMin : 0.01}
@@ -2470,7 +2695,7 @@ modelId 含义：
           </div>
 
           <div className="editor-item">
-            <label>Z 轴缩放：</label>
+            <label>Z 轴：</label>
             <input
               type="range"
               min={fineTuneMode ? fineTuneMin : 0.01}
@@ -2728,6 +2953,22 @@ modelId 含义：
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
+          <button 
+            className="undo-button" 
+            onClick={handleUndo}
+            disabled={historyIndex < 0}
+            title="撤销 (Ctrl+Z)"
+          >
+            ↶ 撤销
+          </button>
+          <button 
+            className="redo-button" 
+            onClick={handleRedo}
+            disabled={historyIndex >= historyStack.length - 1}
+            title="重做 (Ctrl+Shift+Z)"
+          >
+            ↷ 重做
+          </button>
           <button className="save-button" onClick={handleSave}>保存</button>
           <button className="export-button" onClick={handleExport}>导出</button>
         </div>
@@ -2841,13 +3082,13 @@ modelId 含义：
                 </button>
                 <button
                   className="export-option-button"
-                  onClick={() => handleExportAction('stl')}
+                  onClick={() => handleOpenScaleModal('stl')}
                 >
                   STL（适合 3D 打印）
                 </button>
                 <button
                   className="export-option-button"
-                  onClick={() => handleExportAction('obj')}
+                  onClick={() => handleOpenScaleModal('obj')}
                 >
                   OBJ（适合 3D 建模软件）
                 </button>
@@ -2878,6 +3119,95 @@ modelId 含义：
         </div>
       )}
 
+
+      {/* 缩放设置弹窗 */}
+      {showScaleModal && modelBoundingBox && (
+        <div className="modal-overlay">
+          <div className="scale-modal">
+            <div className="modal-header">
+              <h2>导出尺寸设置</h2>
+              <button className="close-button" onClick={() => setShowScaleModal(false)}>×</button>
+            </div>
+            <div className="export-scale-modal-content">
+              {/* 当前尺寸显示 */}
+              <div className="current-dimensions">
+                <h4>当前模型尺寸</h4>
+                <div className="dimension-values">
+                  <span>宽度 (X): <strong>{modelBoundingBox.width.toFixed(2)}</strong></span>
+                  <span>高度 (Y): <strong>{modelBoundingBox.height.toFixed(2)}</strong></span>
+                  <span>深度 (Z): <strong>{modelBoundingBox.depth.toFixed(2)}</strong></span>
+                </div>
+              </div>
+
+              {/* 缩放模式选择 */}
+              <div className="scale-mode-selector">
+                <label className={`scale-mode-option ${scaleMode === 'ratio' ? 'active' : ''}`}>
+                  <input type="radio" value="ratio" checked={scaleMode === 'ratio'} onChange={() => setScaleMode('ratio')} />
+                  按缩放比例
+                </label>
+                <label className={`scale-mode-option ${scaleMode === 'dimension' ? 'active' : ''}`}>
+                  <input type="radio" value="dimension" checked={scaleMode === 'dimension'} onChange={() => setScaleMode('dimension')} />
+                  按目标高度
+                </label>
+              </div>
+
+              {/* 缩放比例输入 */}
+              {scaleMode === 'ratio' && (
+                <div className="scale-ratio-input">
+                  <label>缩放比例：</label>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    value={scaleValue}
+                    onChange={(e) => setScaleValue(parseFloat(e.target.value))}
+                  />
+                  <input
+                    type="number"
+                    min="0.1"
+                    max="10"
+                    step="0.1"
+                    value={scaleValue}
+                    onChange={(e) => setScaleValue(parseFloat(e.target.value) || 1)}
+                    className="number-input"
+                  />
+                  <div className="scale-preview">
+                    预览尺寸：{((modelBoundingBox.height * scaleValue)).toFixed(2)} 高度
+                  </div>
+                </div>
+              )}
+
+              {/* 目标尺寸输入 */}
+              {scaleMode === 'dimension' && (
+                <div className="scale-dimension-inputs">
+                  <div className="dimension-input-row">
+                    <label>目标高度 (Y)：</label>
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={targetDimension.height || ''}
+                      onChange={(e) => setTargetDimension({ height: parseFloat(e.target.value) || null })}
+                      className="number-input"
+                    />
+                  </div>
+                  {targetDimension.height && modelBoundingBox.height > 0 && (
+                    <div className="scale-preview">
+                      缩放比例：{(targetDimension.height / modelBoundingBox.height).toFixed(3)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button className="cancel-button" onClick={() => setShowScaleModal(false)}>取消</button>
+                <button className="confirm-button" onClick={handleScaledExport}>确定导出</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 装饰选择器弹窗 */}
       {showDecorationModal && (

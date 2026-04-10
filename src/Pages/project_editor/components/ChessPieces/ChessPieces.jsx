@@ -134,12 +134,7 @@ const ChessPieces = ({ projectId }) => {
             viewMode={viewMode}
             onViewChange={setViewMode}
           />
-          <button
-            className="filter-button"
-            onClick={() => setShowFilter(!showFilter)}
-          >
-            筛选 {showFilter ? '▼' : '▶'}
-          </button>
+
           <SortControls
             sortBy={sortBy}
             sortOrder={sortOrder}

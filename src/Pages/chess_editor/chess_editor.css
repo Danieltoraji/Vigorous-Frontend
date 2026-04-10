@@ -71,7 +71,8 @@
 }
 
 .save-button,
-.export-button {
+.export-button,
+.undo-button {
   padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -83,6 +84,40 @@
   align-items: center;
   gap: 8px;
   font-weight: 500;
+}
+
+/* 撤销按钮样式 */
+.undo-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.undo-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
+.undo-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 重做按钮样式 */
+.redo-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.redo-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--fluent-shadow-hover);
+}
+
+.redo-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .save-button {
@@ -1196,6 +1231,7 @@ input:checked+.toggle-label:before {
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   width: 90%;
+  height: auto;
   max-width: 400px;
   overflow: hidden;
   animation: slideIn 0.3s ease;
@@ -1249,13 +1285,13 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.modal-content {
+.export-scale-modal-content {
   padding: 30px 20px;
-  width: 100%;
+  width: auto;
   box-sizing: border-box;
 }
 
-.modal-content p {
+.export-scale-modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
@@ -1413,7 +1449,7 @@ input:checked+.toggle-label:before {
   padding: 0;
 }
 
-.texture-selector-content .modal-content {
+.texture-selector-content .export-scale-modal-content {
   padding: 0;
   height: 100%;
   display: flex;
@@ -1465,13 +1501,243 @@ input:checked+.toggle-label:before {
     max-width: none;
   }
 
-  .modal-content {
+  .export-scale-modal-content {
     padding: 20px 15px;
   }
 
   .export-option-button {
     padding: 10px 16px;
     font-size: 13px;
+  }
+}
+
+/* 缩放设置弹窗样式 */
+.scale-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: min(90vw, 450px);
+  max-width: 450px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+}
+
+.scale-modal .export-scale-modal-content {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* 当前尺寸显示 */
+.current-dimensions {
+  background: rgba(96, 128, 192, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.current-dimensions h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fluent-text);
+}
+
+.dimension-values {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dimension-values span {
+  font-size: 13px;
+  color: var(--fluent-text-secondary);
+}
+
+.dimension-values strong {
+  color: var(--fluent-primary);
+  font-weight: 600;
+}
+
+/* 缩放模式选择器 */
+.scale-mode-selector {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.scale-mode-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: 1px solid var(--fluent-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: var(--fluent-transition);
+  font-size: 14px;
+  color: var(--fluent-text);
+}
+
+.scale-mode-option:hover {
+  border-color: var(--fluent-primary);
+}
+
+.scale-mode-option.active {
+  background: rgba(96, 128, 192, 0.15);
+  border-color: var(--fluent-primary);
+}
+
+.scale-mode-option input[type="radio"] {
+  margin: 0;
+  accent-color: var(--fluent-primary);
+}
+
+/* 缩放比例输入 */
+.scale-ratio-input {
+  margin-bottom: 20px;
+}
+
+.scale-ratio-input label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fluent-text);
+  margin-bottom: 8px;
+}
+
+.scale-ratio-input input[type="range"] {
+  width: 100%;
+  height: 6px;
+  background: var(--fluent-border);
+  border-radius: 3px;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.scale-ratio-input input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--fluent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.scale-ratio-input input[type="number"] {
+  width: 80px;
+  padding: 8px 12px;
+  border: 1px solid var(--fluent-border);
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 目标尺寸输入 */
+.scale-dimension-inputs {
+  margin-bottom: 20px;
+}
+
+.dimension-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dimension-input-row label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fluent-text);
+  white-space: nowrap;
+}
+
+.dimension-input-row input[type="number"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--fluent-border);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* 缩放预览 */
+.scale-preview {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background: rgba(96, 128, 192, 0.1);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--fluent-text-secondary);
+}
+
+/* 弹窗操作按钮 */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-actions .cancel-button,
+.modal-actions .confirm-button {
+  flex: 1;
+  width: 60px !important;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--fluent-transition);
+}
+
+.modal-actions .cancel-button {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--fluent-text);
+  border: 1px solid var(--fluent-border);
+}
+
+.modal-actions .cancel-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.modal-actions .confirm-button {
+  background: linear-gradient(135deg, #6080c0 0%, #5070b0 100%);
+  color: white;
+}
+
+.modal-actions .confirm-button:hover {
+  background: linear-gradient(135deg, #4f6fae 0%, #3f5f9d 100%);
+  box-shadow: 0 4px 12px rgba(96, 128, 192, 0.3);
+}
+
+@media (max-width: 480px) {
+  .scale-modal {
+    width: min(92vw, 450px);
+    max-width: none;
+    max-height: calc(100vh - 32px);
+  }
+
+  .scale-modal .export-scale-modal-content {
+    padding: 20px 15px;
+  }
+
+  .scale-mode-selector {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
   }
 }
 
@@ -1523,7 +1789,7 @@ input:checked+.toggle-label:before {
     max-width: none;
   }
 
-  .modal-content {
+  .export-scale-modal-content {
     padding: 20px 15px;
   }
 
@@ -1977,7 +2243,7 @@ input:checked+.toggle-label:before {
   animation: fadeIn 0.2s ease;
 }
 
-.modal-overlay .modal-content {
+.modal-overlay .texture-selector-content .export-scale-modal-content {
   background: white;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -2198,9 +2464,12 @@ input:checked+.toggle-label:before {
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  width: 90%;
+  width: min(90vw, 400px);
   max-width: 400px;
+  max-height: calc(100vh - 48px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: slideIn 0.3s ease;
 }
 
@@ -2252,13 +2521,15 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.modal-content {
+.export-scale-modal-content {
   padding: 30px 20px;
   width: 100%;
   box-sizing: border-box;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.modal-content p {
+.export-scale-modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
@@ -2302,11 +2573,12 @@ input:checked+.toggle-label:before {
 /* 响应式设计 */
 @media (max-width: 480px) {
   .export-modal {
-    width: 95%;
+    width: min(92vw, 400px);
     max-width: none;
+    max-height: calc(100vh - 32px);
   }
 
-  .modal-content {
+  .export-scale-modal-content {
     padding: 20px 15px;
   }
 

@@ -239,6 +239,95 @@
   display: block;
 }
 
+.device-warning-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(12, 16, 24, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.device-warning-card {
+  width: min(92vw, 460px);
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 249, 252, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  color: #182230;
+  text-align: center;
+  animation: warningPop 180ms ease-out;
+}
+
+.device-warning-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: rgba(0, 120, 212, 0.12);
+  color: #005a9e;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.device-warning-card h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.device-warning-card p {
+  margin: 14px 0 22px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(24, 34, 48, 0.82);
+}
+
+.device-warning-button {
+  min-width: 180px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0f6cbd 0%, #005a9e 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 108, 189, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.device-warning-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(15, 108, 189, 0.34);
+}
+
+.device-warning-button:active {
+  transform: translateY(0);
+  opacity: 0.94;
+}
+
+@keyframes warningPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* 动画 */
 @keyframes slideIn {
   from {
@@ -303,5 +392,27 @@
   .btn {
     padding: 8px 12px;
     font-size: 14px;
+  }
+
+  .device-warning-overlay {
+    padding: 16px;
+  }
+
+  .device-warning-card {
+    padding: 24px 18px 20px;
+    border-radius: 18px;
+  }
+
+  .device-warning-card h2 {
+    font-size: 21px;
+  }
+
+  .device-warning-card p {
+    font-size: 14px;
+  }
+
+  .device-warning-button {
+    width: 100%;
+    min-width: 0;
   }
 }

@@ -84,22 +84,61 @@
   margin-right: 20px;
   display: flex;
   gap: 24px;
+  position: relative;
+  padding-left: 300px;
+  box-sizing: border-box;
+  transition: padding-left 0.3s ease;
+}
+
+.explorer-content.sidebar-collapsed {
+  padding-left: 44px;
 }
 
 .left-sidebar {
-  width: 280px;
-  flex-shrink: 0;
+  --sidebar-image-width: 25%;
+  --sidebar-image-height: 80%;
+  position: fixed;
+  top: 52%;
+  left: calc(-0.25 * var(--sidebar-image-width));
+  transform: translateY(-50%);
+  z-index: 20;
+  width: var(--sidebar-image-width);
+  height: var(--sidebar-image-height);
+  border: none;
+  background: url("/static/projectEditor/sidebar.png") center right / cover no-repeat;
+  cursor: pointer;
+  transition: left 0.1s ease;
+
+}
+
+.left-sidebar.collapsed {
+  left: calc(-0.85 * var(--sidebar-image-width));
+}
+
+.left-sidebar-content {
+  width: calc(100% - 24px);
+  height: 80%;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding: 0 10% 50px 30%;
+  scrollbar-width: none;
+  cursor: default;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+}
+
+.left-sidebar.collapsed .left-sidebar-content {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .filter-section,
 .search-section {
-  background: var(--fluent-acrylic);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  background: transparent;
   border-radius: var(--fluent-radius);
   padding: 20px;
   margin-bottom: 16px;
-  box-shadow: var(--fluent-shadow);
   border: 1px solid var(--fluent-border);
   transition: var(--fluent-transition);
 }
@@ -180,6 +219,7 @@
 
 .right-content {
   flex: 1;
+  min-width: 0;
 }
 
 .view-controls {
@@ -816,8 +856,9 @@
 }
 
 .template-modal-btn {
-  padding: 12px 24px;
+  padding: 12px 16px;
   border: none;
+  min-width: 60px;
   border-radius: var(--fluent-radius);
   cursor: pointer;
   font-size: 14px;
@@ -841,6 +882,74 @@
 
 .template-modal-btn-primary:hover {
   background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
+}
+
+.template-list {
+  margin-top: 40px;
+  border-radius: var(--fluent-radius);
+  border: 1px solid var(--fluent-border);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--fluent-shadow);
+  overflow-x: auto;
+}
+
+.template-list table {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.template-list th,
+.template-list td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.template-list th {
+  background: rgba(245, 248, 255, 0.9);
+  color: var(--fluent-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.template-list td {
+  color: var(--fluent-text);
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.template-list th:nth-child(1),
+.template-list td:nth-child(1) {
+  width: 16%;
+}
+
+.template-list th:nth-child(2),
+.template-list td:nth-child(2) {
+  width: 20%;
+}
+
+.template-list th:nth-child(8),
+.template-list td:nth-child(8) {
+  width: 18%;
+}
+
+.template-list td:nth-child(2) {
+  max-width: 0;
+}
+
+.template-list td:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .template-list tr:hover {
@@ -892,10 +1001,25 @@
 
   .explorer-content {
     flex-direction: column;
+    padding-left: 0;
   }
 
   .left-sidebar {
+    position: relative;
+    left: auto;
+    top: auto;
     width: 100%;
+    max-width: none;
+    height: auto;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .left-sidebar-content {
+    width: 100%;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 
   .template-grid {
@@ -928,10 +1052,21 @@
 @media (max-width: 1024px) {
   .explorer-content {
     gap: 16px;
+    padding-left: 260px;
   }
 
   .left-sidebar {
+    --templates-sidebar-width: 240px;
     width: 240px;
+    max-width: 240px;
+  }
+
+  .explorer-templates-sidebar-toggle {
+    left: calc(20px + 240px);
+  }
+
+  .explorer-content.sidebar-collapsed {
+    padding-left: 44px;
   }
 
   .template-grid {

@@ -4,11 +4,15 @@ import { OrbitControls, Text as DreiText, Environment, Text3D } from '@react-thr
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
 import { OBJLoader } from 'three-stdlib';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { ModelPreview } from '../../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
 import { useDecoration } from '../../../hooks/useDecoration.jsx';
+import { applyBooleanOperation } from '../../../utils/geometryCsg.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 
-const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector2, Vector3, LatheGeometry } = THREE;
+const { AxesHelper, ExtrudeGeometry, Shape, TextureLoader, Float32BufferAttribute, MeshStandardMaterial, LineSegments, LineBasicMaterial, BufferGeometry, Vector2, Vector3, LatheGeometry, ShapeGeometry } = THREE;
 const DEFAULT_TEXT_FONT_JSON = '/static/fonts/STZhongsong_Regular.json';
 
 const PRESET_DECORATION_IDS = ['0', '1', '2', '3', '4'];
@@ -33,7 +37,11 @@ function getPatternTransform(pattern = {}) {
     const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
     const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [scaleX, scaleY, scaleZ];
+    const flipX = pattern.flipX ? -1 : 1;
+    const flipY = pattern.flipY ? -1 : 1;
+    const flipZ = pattern.flipZ ? -1 : 1;
+
+    return [scaleX * flipX, scaleY * flipY, scaleZ * flipZ];
 }
 
 function getPatternRotation(pattern = {}) {
@@ -42,6 +50,17 @@ function getPatternRotation(pattern = {}) {
     const rotationZ = toRadians(pattern.rotationZ || 0);
 
     return [rotationX, rotationY, rotationZ];
+}
+
+function applyPatternCutterRotation(rotation, pattern = {}, cutterData = null) {
+    const patternRotation = getPatternRotation(pattern);
+    rotation.set(patternRotation[0], patternRotation[1], patternRotation[2]);
+
+    if (Array.isArray(cutterData?.rotation) && cutterData.rotation.length >= 3) {
+        rotation.x += cutterData.rotation[0] || 0;
+        rotation.y += cutterData.rotation[1] || 0;
+        rotation.z += cutterData.rotation[2] || 0;
+    }
 }
 
 function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
@@ -53,7 +72,7 @@ function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position =
                 <Text3D
                     font={pattern.font || DEFAULT_TEXT_FONT_JSON}
                     size={pattern.size || 5}
-                    height={pattern.depth || 1}
+                    height={pattern.depth ?? 0.1}
                     curveSegments={12}
                 >
                     {(pattern.content ?? '').toString()}
@@ -96,6 +115,11 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     return;
                 }
 
+                console.log('=== VoxelGeometry 纹理处理开始 ===', {
+                    图片尺寸: `${image.width || image.naturalWidth}x${image.height || image.naturalHeight}`,
+                    纹理文件URL: textureFile
+                });
+
                 const width = image.width;
                 const height = image.height;
                 const canvas = document.createElement('canvas');
@@ -107,6 +131,27 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 const imageData = ctx.getImageData(0, 0, width, height);
                 const data = imageData.data;
 
+                // 调试：检查四个角落的alpha值和RGB值
+                const corners = [
+                    { name: '左上角', idx: 0 },
+                    { name: '右上角', idx: (width - 1) * 4 },
+                    { name: '左下角', idx: (height - 1) * width * 4 },
+                    { name: '右下角', idx: (height - 1) * width * 4 + (width - 1) * 4 },
+                    { name: '中心', idx: Math.floor(height / 2) * width * 4 + Math.floor(width / 2) * 4 }
+                ];
+
+                corners.forEach(corner => {
+                    const i = corner.idx;
+                    console.log(`${corner.name}:`, {
+                        R: data[i],
+                        G: data[i + 1],
+                        B: data[i + 2],
+                        A: data[i + 3],
+                        alpha_normalized: (data[i + 3] / 255).toFixed(3),
+                        will_be_zero: data[i + 3] < 13  // 0.05 * 255 = 12.75
+                    });
+                });
+
                 // 存储所有体素点的高度值
                 const heightMap = [];
                 const step = sampleRate;
@@ -117,9 +162,16 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     const row = [];
                     for (let x = 0; x < width; x += step) {
                         const idx = (y * width + x) * 4;
-                        // 计算灰度值 (0-1)
-                        const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
-                        row.push(gray);
+                        // 检查alpha通道，如果透明则标记为-1（不生成几何体）
+                        const alpha = data[idx + 3] / 255;
+                        if (alpha < 0.05) {
+                            // 几乎完全透明区域，标记为无效
+                            row.push(-1);
+                        } else {
+                            // 计算灰度值 (0-1)
+                            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / (3 * 255);
+                            row.push(gray);
+                        }
                     }
                     rawGrayData.push(row);
                 }
@@ -127,13 +179,33 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 // 根据 smooth 参数决定是否应用 3x3 均值滤波
                 const grayDataToUse = smooth ? [] : rawGrayData;
 
+                // 统计透明像素数量
+                let transparentCount = 0;
+                let totalCount = rawGrayData.length * (rawGrayData[0] ? rawGrayData[0].length : 0);
+                rawGrayData.forEach(row => {
+                    row.forEach(val => {
+                        if (val === -1) transparentCount++;
+                    });
+                });
+                console.log('透明像素统计:', {
+                    总像素数: totalCount,
+                    透明像素数: transparentCount,
+                    透明比例: (transparentCount / totalCount * 100).toFixed(2) + '%',
+                    smooth模式: smooth
+                });
+
                 if (smooth) {
                     // 应用 3x3 均值滤波消除噪点
+                    let smoothedTransparentCount = 0;
                     for (let row = 0; row < rawGrayData.length; row++) {
                         const filteredRow = [];
                         for (let col = 0; col < rawGrayData[row].length; col++) {
                             let sum = 0;
                             let count = 0;
+
+                            // 检查中心像素是否透明
+                            const centerValue = rawGrayData[row][col];
+                            const isTransparent = centerValue === -1;
 
                             // 取周围 3x3 邻域的平均值
                             for (let dy = -1; dy <= 1; dy++) {
@@ -143,52 +215,102 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
 
                                     if (newRow >= 0 && newRow < rawGrayData.length &&
                                         newCol >= 0 && newCol < rawGrayData[row].length) {
-                                        sum += rawGrayData[newRow][newCol];
-                                        count++;
+                                        const neighborValue = rawGrayData[newRow][newCol];
+                                        const neighborIsTransparent = neighborValue === -1;
+
+                                        // 只平均相同透明状态的像素
+                                        if (isTransparent === neighborIsTransparent) {
+                                            sum += neighborValue === -1 ? 0 : neighborValue;
+                                            count++;
+                                        }
                                     }
                                 }
                             }
 
-                            filteredRow.push(sum / count);
+                            const filteredValue = count > 0 ? (isTransparent ? -1 : sum / count) : centerValue;
+                            filteredRow.push(filteredValue);
+
+                            if (filteredValue === -1) smoothedTransparentCount++;
                         }
                         grayDataToUse.push(filteredRow);
                     }
+
+                    console.log('Smooth后透明像素统计:', {
+                        原始透明数: transparentCount,
+                        Smooth后透明数: smoothedTransparentCount,
+                        丢失的透明像素: transparentCount - smoothedTransparentCount
+                    });
                 }
 
                 // 使用选定的灰度数据生成高度图
+                let zeroHeightCount = 0;
+                let invalidCount = 0;
+                let minHeight = Infinity;
+                let maxHeight = -Infinity;
+
                 for (let row = 0; row < grayDataToUse.length; row++) {
                     for (let col = 0; col < grayDataToUse[row].length; col++) {
                         const gray = grayDataToUse[row][col];
-                        // 映射到高度（黑色=最高，白色=最低），不应用 scaleZ，由 group 的 scale 统一处理
-                        const h = (1 - gray) * depth;
-                        heightMap.push({
-                            x: col * step,
-                            y: row * step,
-                            height: h
-                        });
+
+                        // 如果是无效像素（透明），标记为null
+                        if (gray === -1) {
+                            heightMap.push(null);
+                            invalidCount++;
+                        } else {
+                            // 映射到高度（黑色=最高，白色=最低）
+                            const h = (1 - gray) * depth;
+                            if (h === 0) zeroHeightCount++;
+                            minHeight = Math.min(minHeight, h);
+                            maxHeight = Math.max(maxHeight, h);
+                            heightMap.push({
+                                x: col * step,
+                                y: row * step,
+                                height: h
+                            });
+                        }
                     }
                 }
 
-                // 生成网格顶点和索引（只有顶面）
-                const positions = [];
-                const indices = [];
+                console.log('高度图统计:', {
+                    总点数: heightMap.length,
+                    '无效点数(透明)': invalidCount,
+                    无效比例: (invalidCount / heightMap.length * 100).toFixed(2) + '%',
+                    高度为0的点数: zeroHeightCount,
+                    '最低高度_视觉最高': minHeight,
+                    '最高高度_视觉最低': maxHeight
+                });
+
+                // 视觉最低点的高度（白色区域，height最大）
+                const visualLowestHeight = maxHeight;
+                // 视觉最高点的高度（黑色区域，height最小）
+                const visualHighestHeight = minHeight;
 
                 const gridWidth = Math.floor(width / step);
                 const gridHeight = Math.floor(height / step);
                 const planeSize = size / Math.max(gridWidth, gridHeight);
 
-                // 生成顶点
+                // ==================== 第一步：生成顶面网格 ====================
+                const topPositions = [];
+                const topIndices = [];
+
+                // 生成顶点（跳过无效顶点）
                 for (let i = 0; i < heightMap.length; i++) {
                     const point = heightMap[i];
-                    // 直接生成在 XZ 平面，高度沿 Y 轴
-                    const px = -(point.x - width / 2) * planeSize;
-                    const py = point.height;
-                    const pz = -(point.y - height / 2) * planeSize;
-
-                    positions.push(px, py, pz);
+                    // 如果是无效顶点（透明），跳过
+                    if (point === null) {
+                        topPositions.push(0, -10000, 0);  // 放到极远处，不可见
+                    } else {
+                        // 直接生成在 XZ 平面，高度沿 Y 轴（浮雕的原始高度）
+                        const px = -(point.x - width / 2) * planeSize;
+                        const py = point.height;
+                        const pz = -(point.y - height / 2) * planeSize;
+                        topPositions.push(px, py, pz);
+                    }
                 }
 
-                // 生成三角形索引（连接相邻点）
+                // 生成三角形索引（连接相邻点），跳过包含透明顶点的三角形
+                let skippedQuads = 0;
+                let totalQuads = 0;
                 for (let row = 0; row < gridHeight - 1; row++) {
                     for (let col = 0; col < gridWidth - 1; col++) {
                         const a = row * gridWidth + col;
@@ -196,28 +318,318 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         const c = (row + 1) * gridWidth + col;
                         const d = (row + 1) * gridWidth + (col + 1);
 
-                        // 两个三角形组成一个四边形
-                        // 三角形 1: a-b-c
-                        indices.push(a, b, c);
-                        // 三角形 2: b-d-c
-                        indices.push(b, d, c);
+                        totalQuads++;
+
+                        // 检查四个顶点是否都有效（不是null）
+                        const pA = heightMap[a];
+                        const pB = heightMap[b];
+                        const pC = heightMap[c];
+                        const pD = heightMap[d];
+
+                        // 只有当所有顶点都有效时才生成三角形
+                        if (pA !== null && pB !== null && pC !== null && pD !== null) {
+                            // 两个三角形组成一个四边形
+                            // 三角形 1: a-b-c
+                            topIndices.push(a, b, c);
+                            // 三角形 2: b-d-c
+                            topIndices.push(b, d, c);
+                        } else {
+                            skippedQuads++;
+                        }
                     }
                 }
 
-                // 创建几何体
-                const geom = new BufferGeometry();
-                geom.setAttribute('position', new Float32BufferAttribute(positions, 3));
-                geom.setIndex(indices);
-                geom.computeVertexNormals();
-
-
-                console.log('体素几何体创建成功:', {
-                    vertexCount: positions.length / 3,
-                    triangleCount: indices.length / 3,
-                    gridSize: `${gridWidth}x${gridHeight}`
+                console.log('顶面网格生成统计:', {
+                    总四边形数: totalQuads,
+                    跳过的四边形数: skippedQuads,
+                    实际生成的三角形数: topIndices.length / 3,
+                    跳过比例: (skippedQuads / totalQuads * 100).toFixed(2) + '%'
                 });
 
-                setGeometry(geom);
+                // 创建顶面几何体
+                const topGeom = new BufferGeometry();
+                topGeom.setAttribute('position', new Float32BufferAttribute(topPositions, 3));
+                topGeom.setIndex(topIndices);
+                topGeom.computeVertexNormals();
+
+                // ==================== 第二步：确定底面高度 ====================
+                // 底面在视觉最低点高度（白色区域，height最大）
+                const baseHeight = visualLowestHeight; // = maxHeight
+
+                console.log('底面高度设置:', {
+                    视觉最低点高度: visualLowestHeight,
+                    视觉最高点高度: visualHighestHeight,
+                    底面高度: baseHeight
+                });
+
+                // 计算整个纹理的边界框（使用所有有效点）
+                let minX = Infinity, maxX = -Infinity;
+                let minZ = Infinity, maxZ = -Infinity;
+
+                for (let i = 0; i < heightMap.length; i++) {
+                    const point = heightMap[i];
+                    if (point) {
+                        const px = -(point.x - width / 2) * planeSize;
+                        const pz = -(point.y - height / 2) * planeSize;
+                        minX = Math.min(minX, px);
+                        maxX = Math.max(maxX, px);
+                        minZ = Math.min(minZ, pz);
+                        maxZ = Math.max(maxZ, pz);
+                    }
+                }
+
+                console.log('边界框:', { minX, maxX, minZ, maxZ });
+
+                // ==================== 第三步：基于拓扑分析提取浮雕边缘 ====================
+                const edgeUsage = new Map();
+
+                for (let i = 0; i < topIndices.length; i += 3) {
+                    const a = topIndices[i];
+                    const b = topIndices[i + 1];
+                    const c = topIndices[i + 2];
+
+                    // 三个边：a-b, b-c, c-a
+                    const edges = [
+                        [Math.min(a, b), Math.max(a, b)],
+                        [Math.min(b, c), Math.max(b, c)],
+                        [Math.min(c, a), Math.max(c, a)]
+                    ];
+
+                    edges.forEach(([v1, v2]) => {
+                        const key = `${v1}-${v2}`;
+                        edgeUsage.set(key, (edgeUsage.get(key) || 0) + 1);
+                    });
+                }
+
+                // 筛选边界边（只被一个三角形使用的边）
+                const boundaryEdges = [];
+                edgeUsage.forEach((count, key) => {
+                    if (count === 1) {
+                        const [v1, v2] = key.split('-').map(Number);
+                        boundaryEdges.push([v1, v2]);
+                    }
+                });
+
+                console.log('浮雕边缘提取统计:', {
+                    总边数: edgeUsage.size,
+                    边界边数: boundaryEdges.length
+                });
+
+                // 将边界边首尾相连形成封闭轮廓
+                const contourVertices = [];
+                if (boundaryEdges.length > 0) {
+                    // 构建邻接表
+                    const adjacency = new Map();
+                    boundaryEdges.forEach(([v1, v2]) => {
+                        if (!adjacency.has(v1)) adjacency.set(v1, []);
+                        if (!adjacency.has(v2)) adjacency.set(v2, []);
+                        adjacency.get(v1).push(v2);
+                        adjacency.get(v2).push(v1);
+                    });
+
+                    // 从第一个顶点开始遍历
+                    const visited = new Set();
+                    let currentVertex = boundaryEdges[0][0];
+                    contourVertices.push(currentVertex);
+                    visited.add(currentVertex);
+
+                    while (contourVertices.length < boundaryEdges.length + 1) {
+                        const neighbors = adjacency.get(currentVertex) || [];
+                        let nextVertex = null;
+
+                        for (const neighbor of neighbors) {
+                            if (!visited.has(neighbor)) {
+                                nextVertex = neighbor;
+                                break;
+                            }
+                        }
+
+                        if (nextVertex === null) break;
+
+                        contourVertices.push(nextVertex);
+                        visited.add(nextVertex);
+                        currentVertex = nextVertex;
+                    }
+
+                    // 不反转轮廓顶点
+
+                    console.log('轮廓顶点数:', contourVertices.length);
+                }
+
+                // ==================== 第三步：生成底面（使用浮雕轮廓） ====================
+                // 使用轮廓顶点创建底面Shape，确保底面与浮雕边缘形状完全一致
+                let bottomGeom = null;
+                if (contourVertices.length > 2) {
+                    const shapePoints = [];
+                    contourVertices.forEach(vertexIdx => {
+                        const point = heightMap[vertexIdx];
+                        if (point) {
+                            const px = -(point.x - width / 2) * planeSize;
+                            const pz = -(point.y - height / 2) * planeSize;
+                            shapePoints.push(new Vector2(px, pz));
+                        }
+                    });
+
+                    if (shapePoints.length > 2) {
+                        const shape = new Shape(shapePoints);
+                        bottomGeom = new ShapeGeometry(shape);
+
+                        // 旋转底面使其在XZ平面上
+                        bottomGeom.rotateX(-Math.PI / 2);
+
+                        // 平移到底面高度（minHeight）
+                        bottomGeom.translate(0, baseHeight, 0);
+
+                        // 删除 uv 属性以与其他几何体兼容
+                        if (bottomGeom.attributes.uv) {
+                            delete bottomGeom.attributes.uv;
+                        }
+
+                        // 计算法线
+                        bottomGeom.computeVertexNormals();
+
+                        if (bottomGeom) {
+                            console.log('底面生成成功（轮廓形状），顶点数:', bottomGeom.attributes.position.count);
+                            // 输出前3个轮廓顶点的高度信息
+                            const firstFewVertices = contourVertices.slice(0, 5);
+                            console.log('前5个轮廓顶点信息:', firstFewVertices.map((idx, i) => {
+                                const p = heightMap[idx];
+                                return p ? `顶点${i}: [x:${p.x}, y:${p.y}, h:${p.height.toFixed(3)}]` : `顶点${i}: null`;
+                            }));
+                        } else {
+                            console.warn('底面生成失败！');
+                        }
+                    }
+                }
+                const sidePositions = [];
+                const sideIndices = [];
+
+                if (contourVertices.length > 2) {
+                    // 调试：输出轮廓顶点的高度和位置
+                    console.log('轮廓顶点数量:', contourVertices.length);
+                    const sampleHeights = [];
+                    for (let i = 0; i < Math.min(10, contourVertices.length); i++) {
+                        const idx = contourVertices[i];
+                        const p = heightMap[idx];
+                        if (p) {
+                            sampleHeights.push({
+                                index: idx,
+                                x: p.x.toFixed(1),
+                                y: p.y.toFixed(1),
+                                height: p.height.toFixed(3)
+                            });
+                        }
+                    }
+                    console.log('前10个轮廓顶点的高度:', sampleHeights);
+                    console.log('baseHeight (minHeight):', baseHeight.toFixed(3));
+
+                    for (let i = 0; i < contourVertices.length - 1; i++) {
+                        const v1Idx = contourVertices[i];
+                        const v2Idx = contourVertices[i + 1];
+
+                        const p1 = heightMap[v1Idx];
+                        const p2 = heightMap[v2Idx];
+
+                        if (!p1 || !p2) continue;
+
+                        // 浮雕边缘的XZ坐标（使用p1和p2的平面坐标）
+                        const topX1 = -(p1.x - width / 2) * planeSize;
+                        const topZ1 = -(p1.y - height / 2) * planeSize;
+
+                        const topX2 = -(p2.x - width / 2) * planeSize;
+                        const topZ2 = -(p2.y - height / 2) * planeSize;
+
+                        // 侧壁顶部：连接浮雕边缘点的高度（每个点自己height）
+                        const topY1 = p1.height;
+                        const topY2 = p2.height;
+
+                        // 侧壁底部：在视觉最低点（baseHeight）
+                        const botX1 = topX1;
+                        const botY1 = baseHeight;
+                        const botZ1 = topZ1;
+
+                        const botX2 = topX2;
+                        const botY2 = baseHeight;
+                        const botZ2 = topZ2;
+
+                        // 调试：输出前几个侧壁顶点用于验证
+                        if (i < 3) {
+                            console.log(`侧壁段${i}:`, {
+                                '顶部1高度': topY1,
+                                '顶部2高度': topY2,
+                                '底部1高度': botY1,
+                                '底部2高度': botY2,
+                                '侧壁高度': topY1 - botY1
+                            });
+                        }
+
+                        // 添加四个顶点
+                        sidePositions.push(
+                            topX1, topY1, topZ1,  // 0: 浮雕边缘点1
+                            botX1, botY1, botZ1,  // 1: 底面点1
+                            topX2, topY2, topZ2,  // 2: 浮雕边缘点2
+                            botX2, botY2, botZ2   // 3: 底面点2
+                        );
+
+                        // 添加两个三角形 - 法线朝外
+                        const base = sidePositions.length / 3 - 4;
+                        sideIndices.push(
+                            base, base + 1, base + 2,  // 三角形1: 顶1->底1->顶2
+                            base + 1, base + 3, base + 2  // 三角形2: 底1->底2->顶2
+                        );
+                    }
+
+                    console.log('侧面生成成功，三角形数:', sideIndices.length / 3);
+                    // 输出侧面前几个顶点用于调试
+                    if (sidePositions.length > 0) {
+                        console.log('侧面顶点示例（前4个顶点）:', {
+                            '底1': [sidePositions[0], sidePositions[1], sidePositions[2]],
+                            '底2': [sidePositions[3], sidePositions[4], sidePositions[5]],
+                            '顶1': [sidePositions[6], sidePositions[7], sidePositions[8]],
+                            '顶2': [sidePositions[9], sidePositions[10], sidePositions[11]]
+                        });
+                    }
+                }
+
+                // ==================== 第五步：合并几何体 ====================
+                // 合并底面、浮雕顶面和侧面，形成完整的封闭实体
+                const geometriesToMerge = [];
+
+                if (bottomGeom) {
+                    geometriesToMerge.push(bottomGeom);
+                }
+                geometriesToMerge.push(topGeom);
+
+                if (sidePositions.length > 0) {
+                    const sideGeom = new BufferGeometry();
+                    sideGeom.setAttribute('position', new Float32BufferAttribute(sidePositions, 3));
+                    sideGeom.setIndex(sideIndices);
+                    sideGeom.computeVertexNormals();
+                    geometriesToMerge.push(sideGeom);
+                }
+
+                try {
+                    console.log('准备合并几何体...');
+                    const mergedGeometry = mergeGeometries(geometriesToMerge);
+
+                    if (mergedGeometry) {
+                        console.log('几何体合并成功，重新计算法线...');
+                        mergedGeometry.computeVertexNormals();
+
+                        console.log('✅ 封闭几何体创建成功:', {
+                            顶点数: mergedGeometry.attributes.position.count,
+                            三角形数: mergedGeometry.index ? mergedGeometry.index.count / 3 : mergedGeometry.attributes.position.count / 3
+                        });
+
+                        setGeometry(mergedGeometry);
+                    } else {
+                        console.warn('⚠️ mergeGeometries 返回 null，回退到只显示顶面');
+                        setGeometry(topGeom);
+                    }
+                } catch (mergeError) {
+                    console.error('❌ 合并几何体失败:', mergeError);
+                    setGeometry(topGeom);
+                }
             } catch (error) {
                 console.error('体素几何体创建失败:', error);
                 setGeometry(null);
@@ -232,8 +644,42 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
     return <primitive object={geometry} />;
 }
 
+// 辅助线单例 - 避免每次渲染都创建新几何体
+let gridLinesCache = null;
+let axisLinesCache = null;
+
+// 复杂几何体缓存 - 避免重复创建相同参数的几何体
+const geometryCache = new Map();
+const MAX_CACHE_SIZE = 50;
+
+const getCacheKey = (...args) => args.map(arg =>
+    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+).join('_');
+
+const getCachedGeometry = (key, createFn) => {
+    if (geometryCache.has(key)) {
+        return geometryCache.get(key);
+    }
+
+    // 限制缓存大小，防止内存泄漏
+    if (geometryCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = geometryCache.keys().next().value;
+        const oldGeometry = geometryCache.get(firstKey);
+        if (oldGeometry && oldGeometry.dispose) {
+            oldGeometry.dispose();
+        }
+        geometryCache.delete(firstKey);
+    }
+
+    const geometry = createFn();
+    geometryCache.set(key, geometry);
+    return geometry;
+};
+
 // 创建网格辅助线（LineSegments，不会被导出为模型网格）
 function createGridLines(size = 200, divisions = 100) {
+    if (gridLinesCache) return gridLinesCache;
+
     const geometry = new THREE.BufferGeometry();
     const positions = [];
 
@@ -254,11 +700,14 @@ function createGridLines(size = 200, divisions = 100) {
 
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
     const material = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
-    return new THREE.LineSegments(geometry, material);
+    gridLinesCache = new THREE.LineSegments(geometry, material);
+    return gridLinesCache;
 }
 
 // 创建 XYZ 坐标轴辅助线（LineSegments，不会被导出为模型网格）
 function createAxisLines(length = 80, thickness = 2) {
+    if (axisLinesCache) return axisLinesCache;
+
     const axes = [];
 
     const xGeometry = new THREE.BufferGeometry();
@@ -276,7 +725,8 @@ function createAxisLines(length = 80, thickness = 2) {
     const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: thickness });
     axes.push(new THREE.LineSegments(zGeometry, zMaterial));
 
-    return axes;
+    axisLinesCache = axes;
+    return axisLinesCache;
 }
 // 根据文件扩展名判断模型类型
 function getModelType(url) {
@@ -404,15 +854,60 @@ function FallbackDecoration({ position, size }) {
  * SceneContent component - contains all scene objects and model rendering logic
  * This component has access to the Three.js scene via useThree() hook
  */
-function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
+function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, showAxes = true, showGrid = true }) {
     const modelRootRef = useRef();
+    const booleanWarningRef = useRef(new Set());
+    const loadingFontRef = useRef(new Set());
     const { decorationData, loading: decorationLoading } = useDecoration();
+    const fontLoader = useMemo(() => new FontLoader(), []);
+    const [fontMap, setFontMap] = useState({});
+
+    const warnBooleanOnce = (key, message) => {
+        if (booleanWarningRef.current.has(key)) {
+            return;
+        }
+        booleanWarningRef.current.add(key);
+        console.warn(message);
+    };
 
     useEffect(() => {
         if (onModelReady && modelRootRef.current) {
             onModelReady(modelRootRef.current);
         }
     }, [onModelReady]);
+
+    useEffect(() => {
+        const fontUrls = [
+            DEFAULT_TEXT_FONT_JSON,
+            chess?.parts?.base?.pattern?.font,
+            chess?.parts?.column?.pattern?.font
+        ].filter(Boolean);
+
+        fontUrls.forEach((fontUrl) => {
+            if (fontMap[fontUrl] || loadingFontRef.current.has(fontUrl)) {
+                return;
+            }
+
+            loadingFontRef.current.add(fontUrl);
+            fontLoader.load(
+                fontUrl,
+                (font) => {
+                    setFontMap((prev) => ({ ...prev, [fontUrl]: font }));
+                    loadingFontRef.current.delete(fontUrl);
+                },
+                undefined,
+                (error) => {
+                    console.warn(`[CSG] 字体加载失败，text 布尔将回退叠加渲染: ${fontUrl}`, error);
+                    loadingFontRef.current.delete(fontUrl);
+                }
+            );
+        });
+    }, [chess?.parts?.base?.pattern?.font, chess?.parts?.column?.pattern?.font, fontLoader, fontMap]);
+
+    const resolvePatternFont = (pattern = {}) => {
+        const fontUrl = pattern.font || DEFAULT_TEXT_FONT_JSON;
+        return fontMap[fontUrl] || fontMap[DEFAULT_TEXT_FONT_JSON] || null;
+    };
 
     // 添加安全检查，防止 undefined 错误
     if (!chess) {
@@ -487,110 +982,118 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
         return shape;
     };
 
-    // 为台体（上下半径不一致）生成可倒角的圆滑几何体
+    // 为台体（上下半径不一致）生成可倒角的圆滑几何体（带缓存）
     const createRoundedFrustumGeometry = (radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments) => {
-        const safeTop = Math.max(radiusTop || 0, 0.001);
-        const safeBottom = Math.max(radiusBottom || 0, 0.001);
-        const halfHeight = Math.max(height || 0, 0.001) / 2;
-        const maxBevel = Math.min(
-            bevelSize || 0,
-            halfHeight - 0.001,
-            safeTop * 0.45,
-            safeBottom * 0.45
-        );
+        const cacheKey = getCacheKey('frustum', radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments);
 
-        if (maxBevel <= 0.0001) {
-            return new THREE.CylinderGeometry(safeTop, safeBottom, Math.max(height || 0, 0.001), radialSegments);
-        }
+        return getCachedGeometry(cacheKey, () => {
+            const safeTop = Math.max(radiusTop || 0, 0.001);
+            const safeBottom = Math.max(radiusBottom || 0, 0.001);
+            const halfHeight = Math.max(height || 0, 0.001) / 2;
+            const maxBevel = Math.min(
+                bevelSize || 0,
+                halfHeight - 0.001,
+                safeTop * 0.45,
+                safeBottom * 0.45
+            );
 
-        const topFlat = Math.max(safeTop - maxBevel, 0.001);
-        const bottomFlat = Math.max(safeBottom - maxBevel, 0.001);
-        const yTop = halfHeight;
-        const yBottom = -halfHeight;
-        const bSeg = Math.max(2, bevelSegments || 4);
-        const bodySeg = 24;
-        const points = [];
+            if (maxBevel <= 0.0001) {
+                return new THREE.CylinderGeometry(safeTop, safeBottom, Math.max(height || 0, 0.001), radialSegments);
+            }
 
-        // 顶面中心到顶面边
-        points.push(new Vector2(0, yTop));
-        points.push(new Vector2(topFlat, yTop));
+            const topFlat = Math.max(safeTop - maxBevel, 0.001);
+            const bottomFlat = Math.max(safeBottom - maxBevel, 0.001);
+            const yTop = halfHeight;
+            const yBottom = -halfHeight;
+            const bSeg = Math.max(2, bevelSegments || 4);
+            const bodySeg = 24;
+            const points = [];
 
-        // 顶部圆角过渡（顶面 -> 侧面）
-        for (let i = 1; i <= bSeg; i++) {
-            const t = i / bSeg;
-            const theta = t * Math.PI * 0.5;
-            const r = topFlat + (safeTop - topFlat) * Math.sin(theta);
-            const y = yTop - maxBevel * (1 - Math.cos(theta));
-            points.push(new Vector2(r, y));
-        }
+            // 顶面中心到顶面边
+            points.push(new Vector2(0, yTop));
+            points.push(new Vector2(topFlat, yTop));
 
-        // 侧面（台体斜面）
-        for (let i = 1; i <= bodySeg; i++) {
-            const t = i / bodySeg;
-            const yStart = yTop - maxBevel;
-            const yEnd = yBottom + maxBevel;
-            const y = yStart + (yEnd - yStart) * t;
-            const r = safeTop + (safeBottom - safeTop) * t;
-            points.push(new Vector2(r, y));
-        }
+            // 顶部圆角过渡（顶面 -> 侧面）
+            for (let i = 1; i <= bSeg; i++) {
+                const t = i / bSeg;
+                const theta = t * Math.PI * 0.5;
+                const r = topFlat + (safeTop - topFlat) * Math.sin(theta);
+                const y = yTop - maxBevel * (1 - Math.cos(theta));
+                points.push(new Vector2(r, y));
+            }
 
-        // 底部圆角过渡（侧面 -> 底面）
-        for (let i = 1; i <= bSeg; i++) {
-            const t = i / bSeg;
-            const theta = t * Math.PI * 0.5;
-            const r = safeBottom - (safeBottom - bottomFlat) * Math.sin(theta);
-            const y = yBottom + maxBevel * Math.cos(theta);
-            points.push(new Vector2(r, y));
-        }
+            // 侧面（台体斜面）
+            for (let i = 1; i <= bodySeg; i++) {
+                const t = i / bodySeg;
+                const yStart = yTop - maxBevel;
+                const yEnd = yBottom + maxBevel;
+                const y = yStart + (yEnd - yStart) * t;
+                const r = safeTop + (safeBottom - safeTop) * t;
+                points.push(new Vector2(r, y));
+            }
 
-        // 底面边到底面中心
-        points.push(new Vector2(bottomFlat, yBottom));
-        points.push(new Vector2(0, yBottom));
+            // 底部圆角过渡（侧面 -> 底面）
+            for (let i = 1; i <= bSeg; i++) {
+                const t = i / bSeg;
+                const theta = t * Math.PI * 0.5;
+                const r = safeBottom - (safeBottom - bottomFlat) * Math.sin(theta);
+                const y = yBottom + maxBevel * Math.cos(theta);
+                points.push(new Vector2(r, y));
+            }
 
-        const geometry = new LatheGeometry(points.reverse(), Math.max(16, radialSegments || 64));
-        geometry.computeVertexNormals();
-        return geometry;
+            // 底面边到底面中心
+            points.push(new Vector2(bottomFlat, yBottom));
+            points.push(new Vector2(0, yBottom));
+
+            const geometry = new LatheGeometry(points.reverse(), Math.max(16, radialSegments || 64));
+            geometry.computeVertexNormals();
+            return geometry;
+        });
     };
 
-    // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体
+    // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体（带缓存）
     const createRoundedPolygonFrustumGeometry = (radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments) => {
-        const safeTop = Math.max(radiusTop || 0, 0.001);
-        const safeBottom = Math.max(radiusBottom || 0, 0.001);
-        const safeHeight = Math.max(height || 0, 0.001);
-        const safeSides = Math.max(3, sides || 6);
-        const baseRadius = Math.max(safeTop, safeBottom, 0.001);
-        const maxBevel = Math.min(bevelSize || 0, safeHeight * 0.45, baseRadius * 0.35);
+        const cacheKey = getCacheKey('polygonFrustum', radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments);
 
-        const shape = generateShapeOutline('cylinder', baseRadius, baseRadius, safeSides);
-        const extrudeSettings = {
-            depth: safeHeight,
-            bevelEnabled: maxBevel > 0.0001,
-            bevelThickness: maxBevel,
-            bevelSize: maxBevel,
-            bevelSegments: Math.max(2, bevelSegments || 4),
-            curveSegments: 8,
-            steps: 1
-        };
+        return getCachedGeometry(cacheKey, () => {
+            const safeTop = Math.max(radiusTop || 0, 0.001);
+            const safeBottom = Math.max(radiusBottom || 0, 0.001);
+            const safeHeight = Math.max(height || 0, 0.001);
+            const safeSides = Math.max(3, sides || 6);
+            const baseRadius = Math.max(safeTop, safeBottom, 0.001);
+            const maxBevel = Math.min(bevelSize || 0, safeHeight * 0.45, baseRadius * 0.35);
 
-        const geometry = new ExtrudeGeometry(shape, extrudeSettings);
-        geometry.rotateX(Math.PI / 2);
-        geometry.translate(0, safeHeight / 2, 0);
+            const shape = generateShapeOutline('cylinder', baseRadius, baseRadius, safeSides);
+            const extrudeSettings = {
+                depth: safeHeight,
+                bevelEnabled: maxBevel > 0.0001,
+                bevelThickness: maxBevel,
+                bevelSize: maxBevel,
+                bevelSegments: Math.max(2, bevelSegments || 4),
+                curveSegments: 8,
+                steps: 1
+            };
 
-        // 按 y 位置将截面半径从底部线性过渡到顶部，形成多棱柱台体
-        const position = geometry.attributes.position;
-        for (let i = 0; i < position.count; i++) {
-            const x = position.getX(i);
-            const y = position.getY(i);
-            const z = position.getZ(i);
-            const t = Math.max(0, Math.min(1, y / safeHeight));
-            const targetRadius = safeBottom + (safeTop - safeBottom) * t;
-            const scale = targetRadius / baseRadius;
-            position.setXYZ(i, x * scale, y, z * scale);
-        }
+            const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+            geometry.rotateX(Math.PI / 2);
+            geometry.translate(0, safeHeight / 2, 0);
 
-        position.needsUpdate = true;
-        geometry.computeVertexNormals();
-        return geometry;
+            // 按 y 位置将截面半径从底部线性过渡到顶部，形成多棱柱台体
+            const position = geometry.attributes.position;
+            for (let i = 0; i < position.count; i++) {
+                const x = position.getX(i);
+                const y = position.getY(i);
+                const z = position.getZ(i);
+                const t = Math.max(0, Math.min(1, y / safeHeight));
+                const targetRadius = safeBottom + (safeTop - safeBottom) * t;
+                const scale = targetRadius / baseRadius;
+                position.setXYZ(i, x * scale, y, z * scale);
+            }
+
+            position.needsUpdate = true;
+            geometry.computeVertexNormals();
+            return geometry;
+        });
     };
 
     // 渲染底座组件（带边缘处理）
@@ -689,6 +1192,115 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             }
         };
 
+        const createGeometryObject = (geoType, args, sides = 0) => {
+            if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
+                if (geoType === 'cylinder') {
+                    return new THREE.CylinderGeometry(...args);
+                } else if (geoType === 'box') {
+                    return new THREE.BoxGeometry(...args);
+                }
+            } else {
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
+
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    return createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
+                    const bevelSize = edge.depth || 0.1;
+
+                    const extrudeSettings = {
+                        depth: height,
+                        bevelEnabled: true,
+                        bevelThickness: bevelSize,
+                        bevelSize: bevelSize,
+                        bevelSegments: bevelSegments,
+                        curveSegments: 16
+                    };
+
+                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.translate(0, height / 2, 0);
+                    return geometry;
+                }
+            }
+
+            if (geoType === 'cylinder') {
+                return new THREE.CylinderGeometry(...args);
+            }
+            if (geoType === 'box') {
+                return new THREE.BoxGeometry(...args);
+            }
+            return null;
+        };
+
+        const createPatternGeometryObject = () => {
+            if (pattern.shape === 'text') {
+                const font = resolvePatternFont(pattern);
+                const text = (pattern.content ?? '').toString();
+                if (!font || !text.trim()) {
+                    return null;
+                }
+
+                const geometry = new TextGeometry(text, {
+                    font,
+                    size: pattern.size || 5,
+                    height: pattern.depth ?? 0.1,
+                    curveSegments: 12
+                });
+
+                const textDepth = pattern.depth ?? 0.1;
+                return {
+                    geometry,
+                    rotation: [-Math.PI / 2, 0, 0],
+                    useDepthHalf: false,
+                    yOffset: -(textDepth / 2) + 0.001
+                };
+            }
+
+            switch (pattern.geometryType) {
+                case 'Circle':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, 64), useDepthHalf: true, yOffset: 0 };
+                case 'Polygon':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, pattern.sides || 6), useDepthHalf: true, yOffset: 0 };
+                case 'Cube':
+                    return { geometry: new THREE.BoxGeometry(pattern.size || 5, pattern.depth || 1, pattern.size || 5), useDepthHalf: true, yOffset: 0 };
+                default:
+                    return null;
+            }
+        };
+
         switch (type) {
             case 'cycle':
                 bodyelement = (
@@ -764,85 +1376,89 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, position.y + height + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#8B4513"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, position.y + height + pattern.depth / 2 + (pattern.position?.y || 0), pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#8B4513"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;
@@ -893,6 +1509,62 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 patternelement = null;
                 break;
         }
+
+        const operationType = (pattern.boolean?.operationType || 'none').toLowerCase();
+        const canBoolean = ['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType) && type !== 'special';
+        if (canBoolean) {
+            let bodyGeometry = null;
+            if (type === 'cycle') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, 64]);
+            } else if (type === 'polygon') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, baseShape.sides || 6], baseShape.sides || 6);
+            } else if (type === 'cube') {
+                bodyGeometry = createGeometryObject('box', [size1, height, size2]);
+            }
+
+            const cutterData = createPatternGeometryObject();
+            if (bodyGeometry && cutterData?.geometry) {
+                const bodyMesh = new THREE.Mesh(bodyGeometry);
+                bodyMesh.position.set(0, height / 2, 0);
+
+                const cutterMesh = new THREE.Mesh(cutterData.geometry);
+                const cutterY = cutterData.useDepthHalf
+                    ? height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                cutterMesh.position.set(pattern.position?.x || 0, cutterY, pattern.position?.z || 0);
+                cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
+                applyPatternCutterRotation(cutterMesh.rotation, pattern, cutterData);
+
+                const csgGeometry = applyBooleanOperation(bodyMesh, cutterMesh, operationType);
+                if (csgGeometry) {
+                    return (
+                        <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
+                            <mesh castShadow receiveShadow>
+                                <primitive object={csgGeometry} />
+                                <meshStandardMaterial
+                                    color="#8B4513"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
+                    );
+                } else {
+                    warnBooleanOnce(
+                        `base-${type}-${pattern.shape}-${operationType}`,
+                        `[CSG] Base 布尔运算失败，已回退叠加渲染。type=${type}, shape=${pattern.shape}, op=${operationType}`
+                    );
+                }
+            }
+        } else if (pattern.shape !== 'none' && !['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType)) {
+            warnBooleanOnce(
+                `base-unsupported-${pattern.shape}-${operationType}`,
+                `[CSG] Base 暂不支持 ${pattern.shape} 的布尔运算，已回退叠加渲染。op=${operationType}`
+            );
+        }
+
         return (
             <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
                 {bodyelement}
@@ -996,6 +1668,115 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             }
         };
 
+        const createGeometryObject = (geoType, args, sides = 0) => {
+            if (edge.type === 'none' || !edge.depth || edge.depth === 0) {
+                if (geoType === 'cylinder') {
+                    return new THREE.CylinderGeometry(...args);
+                } else if (geoType === 'box') {
+                    return new THREE.BoxGeometry(...args);
+                }
+            } else {
+                const isFrustum = geoType === 'cylinder' && Math.abs((size1 || 0) - (size2 || 0)) > 0.0001;
+
+                if (isFrustum && edge.type === 'smooth' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        Math.max(48, (edge.segments || 4) * 16),
+                        Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                if (isFrustum && edge.type === 'round' && sides < 3) {
+                    return createRoundedFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        edge.depth || 0.1,
+                        256,
+                        24
+                    );
+                }
+
+                if (isFrustum && sides >= 3 && (edge.type === 'smooth' || edge.type === 'round')) {
+                    return createRoundedPolygonFrustumGeometry(
+                        size1,
+                        size2,
+                        height,
+                        sides,
+                        edge.depth || 0.1,
+                        edge.type === 'round' ? 32 : Math.max(4, edge.segments || 4)
+                    );
+                }
+
+                const shape = generateShapeOutline(geoType, size1, size2, sides);
+                if (edge.type === 'smooth' || edge.type === 'round') {
+                    const bevelSegments = edge.type === 'smooth' ? (edge.segments || 4) : 256;
+                    const bevelSize = edge.depth || 0.1;
+
+                    const extrudeSettings = {
+                        depth: height,
+                        bevelEnabled: true,
+                        bevelThickness: bevelSize,
+                        bevelSize: bevelSize,
+                        bevelSegments: bevelSegments,
+                        curveSegments: 16
+                    };
+
+                    const geometry = new ExtrudeGeometry(shape, extrudeSettings);
+                    geometry.rotateX(Math.PI / 2);
+                    geometry.translate(0, height / 2, 0);
+                    return geometry;
+                }
+            }
+
+            if (geoType === 'cylinder') {
+                return new THREE.CylinderGeometry(...args);
+            }
+            if (geoType === 'box') {
+                return new THREE.BoxGeometry(...args);
+            }
+            return null;
+        };
+
+        const createPatternGeometryObject = () => {
+            if (pattern.shape === 'text') {
+                const font = resolvePatternFont(pattern);
+                const text = (pattern.content ?? '').toString();
+                if (!font || !text.trim()) {
+                    return null;
+                }
+
+                const geometry = new TextGeometry(text, {
+                    font,
+                    size: pattern.size || 5,
+                    height: pattern.depth ?? 0.1,
+                    curveSegments: 12
+                });
+
+                const textDepth = pattern.depth ?? 0.1;
+                return {
+                    geometry,
+                    rotation: [-Math.PI / 2, 0, 0],
+                    useDepthHalf: false,
+                    yOffset: -(textDepth / 2) + 0.001
+                };
+            }
+
+            switch (pattern.geometryType) {
+                case 'Circle':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, 64), useDepthHalf: true, yOffset: 0 };
+                case 'Polygon':
+                    return { geometry: new THREE.CylinderGeometry(pattern.size || 5, pattern.size || 5, pattern.depth || 1, pattern.sides || 6), useDepthHalf: true, yOffset: 0 };
+                case 'Cube':
+                    return { geometry: new THREE.BoxGeometry(pattern.size || 5, pattern.depth || 1, pattern.size || 5), useDepthHalf: true, yOffset: 0 };
+                default:
+                    return null;
+            }
+        };
+
         console.log(type);
         switch (type) {
             case 'cycle':
@@ -1063,85 +1844,89 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
                 patternelement = null;
                 break;
             case 'text':
+                const textRotation = getPatternRotation(pattern);
                 patternelement = (
-                    <PatternTextMesh
-                        pattern={pattern}
-                        material={material}
-                        color="#CD853F"
+                    <group
                         position={[pattern.position?.x || 0, baseheight + height + position.y + (pattern.position?.y || 0) + 0.02, pattern.position?.z || 0]}
-                    />
+                        rotation={textRotation}
+                    >
+                        <PatternTextMesh
+                            pattern={pattern}
+                            material={material}
+                            color="#CD853F"
+                        />
+                    </group>
                 );
                 break;
             case 'geometry':
+                const geometryRotation = getPatternRotation(pattern);
                 switch (pattern.geometryType) {
                     case 'Circle':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, 64]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Polygon':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <cylinderGeometry args={[pattern.size, pattern.size, pattern.depth, pattern.sides || 6]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
+                            </group>
                         )
                         break;
                     case 'Cube':
                         patternelement = (
-                            <mesh
+                            <group
                                 position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}
-                                scale={patternScale}
-                                castShadow
-                                receiveShadow
+                                rotation={geometryRotation}
                             >
-                                <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
-                                <meshStandardMaterial
-                                    color="#CD853F"
-                                    metalness={material.metalness}
-                                    roughness={material.roughness}
-                                    clearcoat={material.clearcoat}
-                                    clearcoatRoughness={material.clearcoatRoughness}
-                                />
-                            </mesh>
-                        )
-                        break;
-                    case 'strange':
-                        // 奇异形状 - 使用 ModelPreview 组件渲染异形模型
-                        const profilePoints = pattern.customShape?.profilePoints || [];
-                        const pathPoints = pattern.customShape?.pathPoints || [];
-                        patternelement = (
-                            <group position={[pattern.position?.x || 0, patternheight, pattern.position?.z || 0]}>
-                                <ModelPreview
-                                    profilePoints={profilePoints}
-                                    pathPoints={pathPoints}
-                                    triggerSignal={pattern.customShape?.generated ? 1 : 0}
-                                />
+                                <mesh
+                                    scale={patternScale}
+                                    castShadow
+                                    receiveShadow
+                                >
+                                    <boxGeometry args={[pattern.size, pattern.depth, pattern.size]} />
+                                    <meshStandardMaterial
+                                        color="#CD853F"
+                                        metalness={material.metalness}
+                                        roughness={material.roughness}
+                                        clearcoat={material.clearcoat}
+                                        clearcoatRoughness={material.clearcoatRoughness}
+                                    />
+                                </mesh>
                             </group>
                         )
                         break;
@@ -1191,6 +1976,61 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             default:
                 patternelement = null;
                 break;
+        }
+
+        const operationType = (pattern.boolean?.operationType || 'none').toLowerCase();
+        const canBoolean = ['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType) && type !== 'special';
+        if (canBoolean) {
+            let bodyGeometry = null;
+            if (type === 'cycle') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, 64]);
+            } else if (type === 'polygon') {
+                bodyGeometry = createGeometryObject('cylinder', [size1, size2, height, columnShape.sides || 6], columnShape.sides || 6);
+            } else if (type === 'cube') {
+                bodyGeometry = createGeometryObject('box', [size1, height, size2]);
+            }
+
+            const cutterData = createPatternGeometryObject();
+            if (bodyGeometry && cutterData?.geometry) {
+                const bodyMesh = new THREE.Mesh(bodyGeometry);
+                bodyMesh.position.set(0, baseheight + height / 2, 0);
+
+                const cutterMesh = new THREE.Mesh(cutterData.geometry);
+                const cutterY = cutterData.useDepthHalf
+                    ? baseheight + height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : baseheight + height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                cutterMesh.position.set(pattern.position?.x || 0, cutterY, pattern.position?.z || 0);
+                cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
+                applyPatternCutterRotation(cutterMesh.rotation, pattern, cutterData);
+
+                const csgGeometry = applyBooleanOperation(bodyMesh, cutterMesh, operationType);
+                if (csgGeometry) {
+                    return (
+                        <group position={[position.x, position.y, position.z]} rotation={type === 'special' ? toRotation(specialRotation) : toRotation(rotation)} scale={type === 'special' ? [specialScale.x || 1, specialScale.y || 1, specialScale.z || 1] : [1, 1, 1]}>
+                            <mesh castShadow receiveShadow>
+                                <primitive object={csgGeometry} />
+                                <meshStandardMaterial
+                                    color="#CD853F"
+                                    metalness={material.metalness}
+                                    roughness={material.roughness}
+                                    clearcoat={material.clearcoat}
+                                    clearcoatRoughness={material.clearcoatRoughness}
+                                />
+                            </mesh>
+                        </group>
+                    );
+                } else {
+                    warnBooleanOnce(
+                        `column-${type}-${pattern.shape}-${operationType}`,
+                        `[CSG] Column 布尔运算失败，已回退叠加渲染。type=${type}, shape=${pattern.shape}, op=${operationType}`
+                    );
+                }
+            }
+        } else if (pattern.shape !== 'none' && !['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType)) {
+            warnBooleanOnce(
+                `column-unsupported-${pattern.shape}-${operationType}`,
+                `[CSG] Column 暂不支持 ${pattern.shape} 的布尔运算，已回退叠加渲染。op=${operationType}`
+            );
         }
 
         return (
@@ -1520,12 +2360,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
             />
 
             {/* 加粗坐标轴 - 使用LineSegments，不会被导出 */}
-            {createAxisLines(600, 3).map((axis, index) => (
+            {showAxes && createAxisLines(600, 3).map((axis, index) => (
                 <primitive key={`axis-${index}`} object={axis} />
             ))}
 
             {/* XY平面网格 - 使用LineSegments绘制，不会被导出 */}
-            <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />
+            {showGrid && <primitive object={createGridLines(500, 100)} position={[0, 0, 0]} />}
 
             {/* 坐标轴标签 */}
             <DreiText position={[50, 0, 0]} fontSize={3} color="red" anchorX="left">X</DreiText>
@@ -1548,6 +2388,11 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false }) {
 }
 
 function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) {
+    const [showAxes, setShowAxes] = useState(true);
+    const [showGrid, setShowGrid] = useState(true);
+    const [isHovered, setIsHovered] = useState(false);
+    const hoverTimerRef = useRef(null);
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <Canvas
@@ -1565,58 +2410,186 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
                 }}
                 gl={{ alpha: true, premultipliedAlpha: false }}
             >
-                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} />
+                <SceneContent chess={chess} onModelReady={onModelReady} hdrFile={hdrFile} smoothTexture={smoothTexture} showAxes={showAxes} showGrid={showGrid} />
             </Canvas>
 
             {/* 页面左下角比例尺标签 */}
-            <div style={{
-                position: 'absolute',
-                bottom: '100px',
-                left: '20px',
-                backgroundColor: 'rgba(200, 200, 200, 0.6)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                borderRadius: '12px',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                padding: '0 16px',
-                minWidth: '120px',
-                height: '50px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                fontFamily: 'sans-serif',
-                zIndex: 10,
-                pointerEvents: 'none'
-            }}>
-                <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: '80px',
+                    left: '20px',
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                }}
+            >
+                {/* 悬浮弹出的模态框 */}
+                <div style={{
+                    marginBottom: '12px',
+                    display: 'flex',
+                    gap: '10px',
+                    opacity: isHovered ? 1 : 0,
+                    transform: isHovered ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'all 0.3s ease',
+                    pointerEvents: isHovered ? 'auto' : 'none'
+                }}
+                    onMouseEnter={() => {
+                        // 鼠标进入模态框，取消隐藏定时器
+                        clearTimeout(hoverTimerRef.current);
+                    }}
+                    onMouseLeave={() => {
+                        // 鼠标离开模态框，延迟隐藏
+                        hoverTimerRef.current = setTimeout(() => {
+                            setIsHovered(false);
+                        }, 300);
+                    }}
+                >
+                    {/* 坐标轴开关 */}
                     <div style={{
-                        width: '25px',
-                        height: '2px',
-                        backgroundColor: '#333',
-                        position: 'relative',
-                    }}>
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '8px',
+                        border: '2px solid rgba(255, 255, 255, 0.4)',
+                        padding: '6px 9px',
+                        width: '68px',
+                        height: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        cursor: 'pointer'
+                    }} onClick={() => setShowAxes(!showAxes)}>
+                        <div style={{ fontWeight: '600', color: '#333', fontSize: '11px' }}>坐标轴</div>
                         <div style={{
-                            position: 'absolute',
-                            width: '2px',
-                            height: '5px',
-                            backgroundColor: '#333',
-                            left: '0',
-                            top: '-1.5px'
-                        }} />
-                        <div style={{
-                            position: 'absolute',
-                            width: '2px',
-                            height: '5px',
-                            backgroundColor: '#333',
-                            right: '0',
-                            top: '-1.5px'
-                        }} />
+                            width: '32px',
+                            height: '16px',
+                            backgroundColor: showAxes ? 'rgba(14, 95, 115, 1)' : '#ccc',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            transition: 'background-color 0.3s ease'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                top: '2px',
+                                left: showAxes ? '18px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }} />
+                        </div>
                     </div>
-                    <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
+
+                    {/* 网格开关 */}
+                    <div style={{
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '8px',
+                        border: '2px solid rgba(255, 255, 255, 0.4)',
+                        padding: '6px 9px',
+                        width: '68px',
+                        height: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        cursor: 'pointer'
+                    }} onClick={() => setShowGrid(!showGrid)}>
+                        <div style={{ fontWeight: '600', color: '#333', fontSize: '11px' }}>网格</div>
+                        <div style={{
+                            width: '32px',
+                            height: '16px',
+                            backgroundColor: showGrid ? 'rgba(14, 95, 115, 1)' : '#ccc',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            transition: 'background-color 0.3s ease'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                top: '2px',
+                                left: showGrid ? '18px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Scale指示器 */}
+                <div
+                    className="scale-label"
+                    style={{
+                        position: 'relative',
+                        backgroundColor: 'rgba(200, 200, 200, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderRadius: '12px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        padding: '0 16px',
+                        minWidth: '120px',
+                        height: '50px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        fontFamily: 'sans-serif',
+                        cursor: 'pointer'
+                    }}
+                    onMouseEnter={() => {
+                        // 鼠标进入Scale，取消隐藏定时器并显示模态框
+                        clearTimeout(hoverTimerRef.current);
+                        setIsHovered(true);
+                    }}
+                    onMouseLeave={() => {
+                        // 鼠标离开Scale，延迟隐藏以给用户时间移动到模态框
+                        hoverTimerRef.current = setTimeout(() => {
+                            setIsHovered(false);
+                        }, 100);
+                    }}
+                >
+                    <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>比例（单位为mm）</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{
+                            width: '25px',
+                            height: '2px',
+                            backgroundColor: '#333',
+                            position: 'relative',
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                width: '2px',
+                                height: '5px',
+                                backgroundColor: '#333',
+                                left: '0',
+                                top: '-1.5px'
+                            }} />
+                            <div style={{
+                                position: 'absolute',
+                                width: '2px',
+                                height: '5px',
+                                backgroundColor: '#333',
+                                right: '0',
+                                top: '-1.5px'
+                            }} />
+                        </div>
+                        <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5mm</span>
+                    </div>
                 </div>
             </div>
         </div>

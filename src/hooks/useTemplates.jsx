@@ -90,7 +90,10 @@ export function TemplatesProvider({ children }) {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 10,
-              "depth": 1
+              "depth": 0.1,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
@@ -114,7 +117,10 @@ export function TemplatesProvider({ children }) {
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
-              "depth": 0.5
+              "depth": 0.5,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },
@@ -151,7 +157,7 @@ export function TemplatesProvider({ children }) {
       const templateData = {
         name: '新模板',
         parts: {
-          "base": templateJson?.parts?.base ? JSON.parse(JSON.stringify(templateJson.parts.base)) : {
+          "base": templateJson?.parts?.base ? structuredClone(templateJson.parts.base) : {
             "shape": {
               "type": "cycle",
               "size1": 15,
@@ -167,12 +173,15 @@ export function TemplatesProvider({ children }) {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 10,
-              "depth": 1
+              "depth": 0.1,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
           },
-          "column": templateJson?.parts?.column ? JSON.parse(JSON.stringify(templateJson.parts.column)) : {
+          "column": templateJson?.parts?.column ? structuredClone(templateJson.parts.column) : {
             "shape": {
               "type": "cycle",
               "size1": 10,
@@ -191,11 +200,14 @@ export function TemplatesProvider({ children }) {
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
-              "depth": 0.5
+              "depth": 0.5,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },
-          "decoration": templateJson?.parts?.decoration ? JSON.parse(JSON.stringify(templateJson.parts.decoration)) : {
+          "decoration": templateJson?.parts?.decoration ? structuredClone(templateJson.parts.decoration) : {
             "modelId": "0",
             "size": { "size1": 1, "size2": 1, "size3": 1 },
             "position": { "x": 0, "y": 21, "z": 0 },

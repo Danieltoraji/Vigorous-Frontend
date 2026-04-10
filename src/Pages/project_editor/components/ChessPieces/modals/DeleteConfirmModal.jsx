@@ -16,8 +16,8 @@ const DeleteConfirmModal = ({ piece, onConfirm, onCancel }) => {
   };
 
   return createPortal(
-    <div className="modal-overlay" style={overlayStyle}>
-      <div className="modal-content">
+    <div className="modal-overlay" style={overlayStyle} onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>确认删除</h3>
           <button className="modal-close" onClick={onCancel}>

@@ -103,7 +103,7 @@
   min-height: 400px;
   border-radius: 0;
   overflow: hidden;
-  background: #f0f0eb;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }

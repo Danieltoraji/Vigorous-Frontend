@@ -2,7 +2,9 @@ import {
     Mesh,
     Group,
     BoxGeometry,
-    BufferGeometry
+    BufferGeometry,
+    Box3,
+    Vector3
 } from "three";
 
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
@@ -22,6 +24,15 @@ function validateOrFixGeometry(mesh) {
     } else if (geometry.index !== null) {
         geometry = geometry.toNonIndexed();
     }
+
+    if (geometry && geometry.setDrawRange) {
+        geometry.setDrawRange(0, Infinity);
+    }
+
+    if (geometry && geometry.computeVertexNormals) {
+        geometry.computeVertexNormals();
+    }
+
     return geometry;
 }
 
@@ -87,16 +98,76 @@ export function exportSceneDirect(root, format = "stl") {
 
 
 /**
+ * 获取模型的包围盒尺寸
+ * 
+ * @param {THREE.Group|THREE.Scene} root - 模型根组
+ * @returns {{ width: number, height: number, depth: number, min: Vector3, max: Vector3 }}
+ */
+export function getModelBoundingBox(root) {
+    const box = new Box3();
+    root.updateMatrixWorld(true);
+    root.traverse(obj => {
+        if (obj.isMesh && obj.visible) {
+            const geometry = obj.geometry;
+            if (geometry) {
+                box.expandByObject(obj);
+            }
+        }
+    });
+
+    const size = new Vector3();
+    box.getSize(size);
+
+    return {
+        width: size.x,    // X轴尺寸
+        height: size.y,   // Y轴尺寸（高度）
+        depth: size.z,    // Z轴尺寸
+        min: box.min.clone(),
+        max: box.max.clone()
+    };
+}
+
+
+/**
+ * 创建缩放后的模型副本（用于导出）
+ * 
+ * @param {THREE.Group|THREE.Scene} root - 原模型根组
+ * @param {number} scale - 缩放比例
+ * @returns {THREE.Group} 缩放后的新 Group
+ */
+export function createScaledClone(root, scale) {
+    const cloneGroup = new Group();
+    root.updateMatrixWorld(true);
+
+    root.traverse(obj => {
+        if (obj.isMesh && obj.visible) {
+            const geometry = validateOrFixGeometry(obj).clone();
+            geometry.applyMatrix4(obj.matrixWorld);
+
+            // 应用缩放
+            geometry.scale(scale, scale, scale);
+
+            const newMesh = new Mesh(geometry, obj.material);
+            cloneGroup.add(newMesh);
+        }
+    });
+
+    return cloneGroup;
+}
+
+
+/**
  * 导出 Scene / Group（统一入口函数）
  * 
  * @param {THREE.Group|THREE.Scene} root - 要导出的根组或场景
  * @param {string} format - 导出格式："stl" | "obj" | "json"
+ * @param {number} scale - 缩放比例，默认为 1
  * @returns {Promise<Blob>} 导出的文件 Blob
  * 
  * @example
  * 
  */
-export async function exportScene(jsoninput, root, format = "stl") {
+export async function exportScene(jsoninput, root, format = "stl", scale = 1) {
     format = format.toLowerCase();
     try {
         if (format === "json") {
@@ -111,7 +182,19 @@ export async function exportScene(jsoninput, root, format = "stl") {
             if (!root) {
                 throw new Error('导出失败：root 参数为空');
             }
-            return exportSceneDirect(root, format);
+
+            // 根据缩放参数决定是否创建缩放副本
+            const exportRoot = scale !== 1 ? createScaledClone(root, scale) : root;
+            const blob = exportSceneDirect(exportRoot, format);
+
+            // 如果创建了副本，手动清理
+            if (scale !== 1 && exportRoot !== root) {
+                exportRoot.traverse(obj => {
+                    if (obj.geometry) obj.geometry.dispose();
+                });
+            }
+
+            return blob;
         }
 
         throw new Error(`不支持的格式：${format}。支持的格式：stl, obj, json`);

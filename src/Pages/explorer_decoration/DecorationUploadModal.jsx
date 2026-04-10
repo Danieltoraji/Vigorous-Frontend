@@ -58,23 +58,29 @@ function DecorationUploadModal({ decoration, onClose, onUpdate, onUpload }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const submitData = new FormData()
-    submitData.append('name', formData.name)
-    submitData.append('decoration_tags', JSON.stringify(formData.decoration_tags))
-
-    if (file) {
-      submitData.append('file', file)
-    }
-
     try {
       if (decoration) {
-        // 更新模式
-        await onUpdate({
-          ...decoration,
-          ...formData
-        })
+        // 更新模式：仅提交可编辑字段，避免把 file URL / 只读字段提交到 PATCH。
+        if (file) {
+          const updateFormData = new FormData()
+          updateFormData.append('name', formData.name)
+          updateFormData.append('decoration_tags', JSON.stringify(formData.decoration_tags))
+          updateFormData.append('file', file)
+          await onUpdate(decoration.id, updateFormData)
+        } else {
+          await onUpdate(decoration.id, {
+            name: formData.name,
+            decoration_tags: formData.decoration_tags
+          })
+        }
       } else {
         // 上传模式
+        const submitData = new FormData()
+        submitData.append('name', formData.name)
+        submitData.append('decoration_tags', JSON.stringify(formData.decoration_tags))
+        if (file) {
+          submitData.append('file', file)
+        }
         await onUpload(submitData)
       }
     } catch (error) {

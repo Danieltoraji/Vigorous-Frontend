@@ -224,6 +224,7 @@
   font-size: 14px;
   transition: var(--fluent-transition);
   min-height: 32px;
+  width: 60px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -234,6 +235,34 @@
   background: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.16);
   box-shadow: var(--fluent-shadow-hover);
+}
+
+/* 防止其它页面的全局 .modal-actions .cancel-button 规则污染 project-editor 弹窗 */
+.modal-overlay .modal-actions .cancel-button,
+.modal-overlay .chess-modal-content .modal-actions .cancel-button {
+  flex: 0 0 60px;
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
+  justify-content: center;
+  background: #eeeeee;
+  border: 1px solid #d4d4d4;
+}
+
+.modal-overlay .modal-actions .cancel-button:hover:not(:disabled),
+.modal-overlay .chess-modal-content .modal-actions .cancel-button:hover:not(:disabled) {
+  background: #e4e4e4;
+}
+
+.modal-overlay .modal-actions .cancel-button,
+.modal-overlay .modal-actions .save-button,
+.modal-overlay .modal-actions .delete-button,
+.modal-overlay .modal-actions .confirm-button,
+.modal-overlay .modal-actions .template-import-button {
+  height: 32px;
+  min-height: 32px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .save-button {

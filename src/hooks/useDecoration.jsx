@@ -19,13 +19,13 @@ export function DecorationProvider({ children }) {
       console.log('开始获取装饰数据...');
       const response = await csrfapi.get('/decorations/');
       const data = response.data;
-      
+
       // 数据处理：转换为字典格式
       const decorationsMap = {};
       data.forEach(decoration => {
         decorationsMap[decoration.id] = decoration;
       });
-      
+
       setDecorationData(decorationsMap);
       setLastUpdated(new Date().toISOString());
       setError(null);
@@ -70,19 +70,62 @@ export function DecorationProvider({ children }) {
 
   // B5 方法：更新装饰（修改装饰字段后向后端发送）
   const updateDecoration = async (decorationId, updatedData) => {
+    const buildPayload = (data) => {
+      if (data instanceof FormData) {
+        return data;
+      }
+
+      const payload = {};
+      if (typeof data?.name === 'string') {
+        payload.name = data.name;
+      }
+      if (Array.isArray(data?.decoration_tags)) {
+        payload.decoration_tags = data.decoration_tags;
+      }
+      if (data?.file instanceof File) {
+        payload.file = data.file;
+      }
+      return payload;
+    };
+
+    const payload = buildPayload(updatedData);
     const oldData = decorationData[decorationId];
+
+    const optimisticPatch = payload instanceof FormData
+      ? {
+        ...(payload.has('name') ? { name: payload.get('name') } : {}),
+        ...(payload.has('decoration_tags')
+          ? {
+            decoration_tags: (() => {
+              try {
+                const rawTags = payload.get('decoration_tags');
+                return typeof rawTags === 'string' ? JSON.parse(rawTags) : oldData?.decoration_tags;
+              } catch {
+                return oldData?.decoration_tags;
+              }
+            })(),
+          }
+          : {}),
+      }
+      : payload;
 
     // 乐观更新：立即更新界面
     setDecorationData(prev => ({
       ...prev,
       [decorationId]: {
         ...prev[decorationId],
-        ...updatedData
+        ...optimisticPatch
       }
     }));
 
     try {
-      const response = await csrfapi.patch(`/decorations/${decorationId}/`, updatedData);
+      const response = payload instanceof FormData
+        ? await csrfapi.patch(`/decorations/${decorationId}/`, payload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+        : await csrfapi.patch(`/decorations/${decorationId}/`, payload);
 
       // 用后端返回的数据再次更新（确保一致）
       const updatedFromServer = response.data;
