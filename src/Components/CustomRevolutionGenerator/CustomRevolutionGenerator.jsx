@@ -981,6 +981,9 @@ const generateGeometries = (profilePoints, pathPoints) => {
     return null;
   }
 
+  // 常量定义
+  const AXIS_ATTACHMENT_THRESHOLD = 0.1;  // 轮廓点到轴的距离阈值
+
   try {
     // 轮廓曲线转换 - 添加严格验证
     const profile2D = [];
@@ -1036,10 +1039,38 @@ const generateGeometries = (profilePoints, pathPoints) => {
         if (!coords) continue;
         const x = Math.max(0, Math.min(1200, coords.x));
         const y = Math.max(0, Math.min(675, coords.y));
-        const px = (x - 600) / 100;
-        const pz = (337.5 - y) / 100;
+        const px = (x - 600) / 30;      // 修正：与轮廓Y量纲保持一致
+        const pz = (337.5 - y) / 30;    // 修正：与轮廓Y量纲保持一致
         if (!isNaN(px) && !isNaN(pz) && isFinite(px) && isFinite(pz)) {
           path3D.push({ x: px, z: pz });
+        }
+      }
+
+      // 自动闭合路径曲线：如果首尾点距离较远，则将首点复制到末尾
+      if (path3D.length >= 2) {
+        const firstPoint = path3D[0];
+        const lastPoint = path3D[path3D.length - 1];
+        const distanceSq = Math.pow(firstPoint.x - lastPoint.x, 2) + Math.pow(firstPoint.z - lastPoint.z, 2);
+        const closureThreshold = 0.2;  // 距离阈值（物理坐标）
+
+        if (distanceSq > closureThreshold * closureThreshold) {
+          // 首尾点距离过远，自动添加首点到末尾以闭合路径
+          path3D.push({ x: firstPoint.x, z: firstPoint.z });
+          console.log('[CustomRevolution] Path curve auto-closed: first point replicated at end');
+        }
+      }
+
+      // 添加轴贴：确保轮廓首尾贴在轴上
+      if (profile3D.length > 0) {
+        // 检查首点
+        if (profile3D[0].m > AXIS_ATTACHMENT_THRESHOLD) {
+          profile3D.unshift({ m: 0, n: profile3D[0].n });
+        }
+
+        // 检查末点
+        const lastIdx = profile3D.length - 1;
+        if (profile3D[lastIdx].m > AXIS_ATTACHMENT_THRESHOLD) {
+          profile3D.push({ m: 0, n: profile3D[lastIdx].n });
         }
       }
 
@@ -1086,6 +1117,18 @@ const generateGeometries = (profilePoints, pathPoints) => {
         return null;
       }
 
+      // ========== 第1部分：起点 Cap（轮廓在 path[0]）==========
+      const startCapVertexBase = 0;  // 第一批顶点为起点轮廓
+      for (let j = 0; j < profileSteps - 1; j++) {
+        // 扇形三角化：从轴点向外
+        indices.push(
+          startCapVertexBase + j,
+          startCapVertexBase + j + 1,
+          startCapVertexBase + 0
+        );
+      }
+
+      // ========== 第2部分：侧面网格==========
       for (let i = 0; i < pathSteps - 1; i++) {
         for (let j = 0; j < profileSteps - 1; j++) {
           const a = i * profileSteps + j;
@@ -1094,6 +1137,17 @@ const generateGeometries = (profilePoints, pathPoints) => {
           const d = (i + 1) * profileSteps + (j + 1);
           indices.push(a, b, c, c, b, d);
         }
+      }
+
+      // ========== 第3部分：终点 Cap（轮廓在 path[n-1]）==========
+      const endCapVertexBase = (pathSteps - 1) * profileSteps;  // 最后一批顶点为终点轮廓
+      for (let j = 0; j < profileSteps - 1; j++) {
+        // 扇形三角化（反向顶点顺序以确保法向正确）
+        indices.push(
+          endCapVertexBase + 0,
+          endCapVertexBase + j + 1,
+          endCapVertexBase + j
+        );
       }
 
       const geometry = new THREE.BufferGeometry();
