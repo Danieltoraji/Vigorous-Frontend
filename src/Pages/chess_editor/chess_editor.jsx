@@ -2942,7 +2942,7 @@ modelId 含义：
         </div>
         <div className="header-right">
           <button 
-            className="undo-button" 
+            className="history-button"
             onClick={handleUndo}
             disabled={historyIndex < 0}
             title="撤销 (Ctrl+Z)"
@@ -2950,7 +2950,7 @@ modelId 含义：
             ↶ 撤销
           </button>
           <button 
-            className="redo-button" 
+            className="history-button"
             onClick={handleRedo}
             disabled={historyIndex >= historyStack.length - 1}
             title="重做 (Ctrl+Shift+Z)"
