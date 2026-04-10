@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { ADDITION, INTERSECTION, SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg';
 
-const evaluator = new Evaluator();
-evaluator.useGroups = false;
-evaluator.consolidateGroups = false;
-evaluator.removeUnusedMaterials = false;
+
 const boxA = new THREE.Box3();
 const boxB = new THREE.Box3();
 
@@ -98,6 +95,42 @@ function ensureOutwardFacing(geometry) {
     }
 }
 
+// 将 mesh 的所有变换 bake 到 geometry 中，并清空 mesh 的 transform
+// 这是 CSG 运算前必须的步骤，因为 CSG 库只操作 geometry 顶点坐标，不会自动应用 mesh 的变换
+function bakeMesh(mesh) {
+    if (!mesh || !mesh.geometry) return mesh;
+
+    // 1. 先更新本地矩阵（应用 position/rotation/scale）
+    mesh.updateMatrix();
+
+    // 2. 再更新世界矩阵
+    mesh.updateMatrixWorld(true);
+
+    // 记录变换手性，避免 reset transform 后丢失负缩放信息
+    const determinant = mesh.matrixWorld.determinant();
+
+    // 3. 克隆 geometry 并应用 mesh 的变换矩阵到顶点坐标
+    const bakedGeometry = mesh.geometry.clone();
+    bakedGeometry.applyMatrix4(mesh.matrixWorld);
+
+    if (determinant < 0) {
+        flipGeometryWinding(bakedGeometry);
+    }
+
+    // 4. 更新法向量
+    bakedGeometry.computeVertexNormals();
+
+    // 5. 清空 mesh 的变换（避免 CSG 后的几何体被重复变换）
+    mesh.geometry = bakedGeometry;
+    mesh.position.set(0, 0, 0);
+    mesh.rotation.set(0, 0, 0);
+    mesh.scale.set(1, 1, 1);
+    mesh.updateMatrix();
+    mesh.updateMatrixWorld(true);
+
+    return mesh;
+}
+
 function mapOperation(operationType) {
     switch ((operationType || 'subtract').toLowerCase()) {
         case 'union':
@@ -142,14 +175,6 @@ function createBrushFromMesh(mesh) {
     const geometry = normalizeGeometry(mesh.geometry);
     if (!geometry) return null;
 
-    const worldMatrix = mesh.matrixWorld.clone();
-    const determinant = worldMatrix.determinant();
-
-    geometry.applyMatrix4(worldMatrix);
-    if (determinant < 0) {
-        flipGeometryWinding(geometry);
-    }
-
     ensureOutwardFacing(geometry);
     geometry.computeVertexNormals();
 
@@ -159,13 +184,24 @@ function createBrushFromMesh(mesh) {
 }
 
 export function applyBooleanOperation(meshA, meshB, operationType = 'subtract') {
+    const evaluator = new Evaluator();
+    evaluator.useGroups = false;
+    evaluator.consolidateGroups = false;
+    evaluator.removeUnusedMaterials = false;
     if (!meshA?.geometry || !meshB?.geometry) {
         return null;
     }
 
+    // 关键步骤：在布尔操作前，将所有变换 bake 到 geometry 中
+    // 这样 CSG 库才能正确处理旋转、缩放等变换
+    bakeMesh(meshA);
+    bakeMesh(meshB);
+
+    // 更新世界矩阵
     meshA.updateMatrixWorld(true);
     meshB.updateMatrixWorld(true);
 
+    // 检查包围盒是否相交
     boxA.setFromObject(meshA);
     boxB.setFromObject(meshB);
     if (!boxA.intersectsBox(boxB)) {

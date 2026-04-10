@@ -48,6 +48,17 @@ function getPatternRotation(pattern = {}) {
     return [rotationX, rotationY, rotationZ];
 }
 
+function applyPatternCutterRotation(rotation, pattern = {}, cutterData = null) {
+    const patternRotation = getPatternRotation(pattern);
+    rotation.set(patternRotation[0], patternRotation[1], patternRotation[2]);
+
+    if (Array.isArray(cutterData?.rotation) && cutterData.rotation.length >= 3) {
+        rotation.x += cutterData.rotation[0] || 0;
+        rotation.y += cutterData.rotation[1] || 0;
+        rotation.z += cutterData.rotation[2] || 0;
+    }
+}
+
 function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position = [0, 0, 0], rotation = [-Math.PI / 2, 0, 0] }) {
     const transform = getPatternTransform(pattern);
 
@@ -124,7 +135,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     { name: '右下角', idx: (height - 1) * width * 4 + (width - 1) * 4 },
                     { name: '中心', idx: Math.floor(height / 2) * width * 4 + Math.floor(width / 2) * 4 }
                 ];
-                
+
                 corners.forEach(corner => {
                     const i = corner.idx;
                     console.log(`${corner.name}:`, {
@@ -202,7 +213,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                                         newCol >= 0 && newCol < rawGrayData[row].length) {
                                         const neighborValue = rawGrayData[newRow][newCol];
                                         const neighborIsTransparent = neighborValue === -1;
-                                        
+
                                         // 只平均相同透明状态的像素
                                         if (isTransparent === neighborIsTransparent) {
                                             sum += neighborValue === -1 ? 0 : neighborValue;
@@ -214,12 +225,12 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
 
                             const filteredValue = count > 0 ? (isTransparent ? -1 : sum / count) : centerValue;
                             filteredRow.push(filteredValue);
-                            
+
                             if (filteredValue === -1) smoothedTransparentCount++;
                         }
                         grayDataToUse.push(filteredRow);
                     }
-                    
+
                     console.log('Smooth后透明像素统计:', {
                         原始透明数: transparentCount,
                         Smooth后透明数: smoothedTransparentCount,
@@ -232,11 +243,11 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 let invalidCount = 0;
                 let minHeight = Infinity;
                 let maxHeight = -Infinity;
-                
+
                 for (let row = 0; row < grayDataToUse.length; row++) {
                     for (let col = 0; col < grayDataToUse[row].length; col++) {
                         const gray = grayDataToUse[row][col];
-                        
+
                         // 如果是无效像素（透明），标记为null
                         if (gray === -1) {
                             heightMap.push(null);
@@ -264,7 +275,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     '最低高度_视觉最高': minHeight,
                     '最高高度_视觉最低': maxHeight
                 });
-                
+
                 // 视觉最低点的高度（白色区域，height最大）
                 const visualLowestHeight = maxHeight;
                 // 视觉最高点的高度（黑色区域，height最小）
@@ -340,17 +351,17 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 // ==================== 第二步：确定底面高度 ====================
                 // 底面在视觉最低点高度（白色区域，height最大）
                 const baseHeight = visualLowestHeight; // = maxHeight
-                
+
                 console.log('底面高度设置:', {
                     视觉最低点高度: visualLowestHeight,
                     视觉最高点高度: visualHighestHeight,
                     底面高度: baseHeight
                 });
-                
+
                 // 计算整个纹理的边界框（使用所有有效点）
                 let minX = Infinity, maxX = -Infinity;
                 let minZ = Infinity, maxZ = -Infinity;
-                
+
                 for (let i = 0; i < heightMap.length; i++) {
                     const point = heightMap[i];
                     if (point) {
@@ -362,30 +373,30 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         maxZ = Math.max(maxZ, pz);
                     }
                 }
-                
+
                 console.log('边界框:', { minX, maxX, minZ, maxZ });
 
                 // ==================== 第三步：基于拓扑分析提取浮雕边缘 ====================
                 const edgeUsage = new Map();
-                
+
                 for (let i = 0; i < topIndices.length; i += 3) {
                     const a = topIndices[i];
                     const b = topIndices[i + 1];
                     const c = topIndices[i + 2];
-                    
+
                     // 三个边：a-b, b-c, c-a
                     const edges = [
                         [Math.min(a, b), Math.max(a, b)],
                         [Math.min(b, c), Math.max(b, c)],
                         [Math.min(c, a), Math.max(c, a)]
                     ];
-                    
+
                     edges.forEach(([v1, v2]) => {
                         const key = `${v1}-${v2}`;
                         edgeUsage.set(key, (edgeUsage.get(key) || 0) + 1);
                     });
                 }
-                
+
                 // 筛选边界边（只被一个三角形使用的边）
                 const boundaryEdges = [];
                 edgeUsage.forEach((count, key) => {
@@ -394,12 +405,12 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         boundaryEdges.push([v1, v2]);
                     }
                 });
-                
+
                 console.log('浮雕边缘提取统计:', {
                     总边数: edgeUsage.size,
                     边界边数: boundaryEdges.length
                 });
-                
+
                 // 将边界边首尾相连形成封闭轮廓
                 const contourVertices = [];
                 if (boundaryEdges.length > 0) {
@@ -411,33 +422,33 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                         adjacency.get(v1).push(v2);
                         adjacency.get(v2).push(v1);
                     });
-                    
+
                     // 从第一个顶点开始遍历
                     const visited = new Set();
                     let currentVertex = boundaryEdges[0][0];
                     contourVertices.push(currentVertex);
                     visited.add(currentVertex);
-                    
+
                     while (contourVertices.length < boundaryEdges.length + 1) {
                         const neighbors = adjacency.get(currentVertex) || [];
                         let nextVertex = null;
-                        
+
                         for (const neighbor of neighbors) {
                             if (!visited.has(neighbor)) {
                                 nextVertex = neighbor;
                                 break;
                             }
                         }
-                        
+
                         if (nextVertex === null) break;
-                        
+
                         contourVertices.push(nextVertex);
                         visited.add(nextVertex);
                         currentVertex = nextVertex;
                     }
-                    
+
                     // 不反转轮廓顶点
-                    
+
                     console.log('轮廓顶点数:', contourVertices.length);
                 }
 
@@ -454,41 +465,41 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                             shapePoints.push(new Vector2(px, pz));
                         }
                     });
-                    
+
                     if (shapePoints.length > 2) {
                         const shape = new Shape(shapePoints);
                         bottomGeom = new ShapeGeometry(shape);
-                        
+
                         // 旋转底面使其在XZ平面上
                         bottomGeom.rotateX(-Math.PI / 2);
-                        
+
                         // 平移到底面高度（minHeight）
                         bottomGeom.translate(0, baseHeight, 0);
-                        
+
                         // 删除 uv 属性以与其他几何体兼容
                         if (bottomGeom.attributes.uv) {
                             delete bottomGeom.attributes.uv;
                         }
-                        
+
                         // 计算法线
                         bottomGeom.computeVertexNormals();
-                        
-                if (bottomGeom) {
-                    console.log('底面生成成功（轮廓形状），顶点数:', bottomGeom.attributes.position.count);
-                    // 输出前3个轮廓顶点的高度信息
-                    const firstFewVertices = contourVertices.slice(0, 5);
-                    console.log('前5个轮廓顶点信息:', firstFewVertices.map((idx, i) => {
-                        const p = heightMap[idx];
-                        return p ? `顶点${i}: [x:${p.x}, y:${p.y}, h:${p.height.toFixed(3)}]` : `顶点${i}: null`;
-                    }));
-                } else {
-                    console.warn('底面生成失败！');
-                }
+
+                        if (bottomGeom) {
+                            console.log('底面生成成功（轮廓形状），顶点数:', bottomGeom.attributes.position.count);
+                            // 输出前3个轮廓顶点的高度信息
+                            const firstFewVertices = contourVertices.slice(0, 5);
+                            console.log('前5个轮廓顶点信息:', firstFewVertices.map((idx, i) => {
+                                const p = heightMap[idx];
+                                return p ? `顶点${i}: [x:${p.x}, y:${p.y}, h:${p.height.toFixed(3)}]` : `顶点${i}: null`;
+                            }));
+                        } else {
+                            console.warn('底面生成失败！');
+                        }
                     }
                 }
                 const sidePositions = [];
                 const sideIndices = [];
-                
+
                 if (contourVertices.length > 2) {
                     // 调试：输出轮廓顶点的高度和位置
                     console.log('轮廓顶点数量:', contourVertices.length);
@@ -507,36 +518,36 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     }
                     console.log('前10个轮廓顶点的高度:', sampleHeights);
                     console.log('baseHeight (minHeight):', baseHeight.toFixed(3));
-                    
+
                     for (let i = 0; i < contourVertices.length - 1; i++) {
                         const v1Idx = contourVertices[i];
                         const v2Idx = contourVertices[i + 1];
-                        
+
                         const p1 = heightMap[v1Idx];
                         const p2 = heightMap[v2Idx];
-                        
+
                         if (!p1 || !p2) continue;
-                        
+
                         // 浮雕边缘的XZ坐标（使用p1和p2的平面坐标）
                         const topX1 = -(p1.x - width / 2) * planeSize;
                         const topZ1 = -(p1.y - height / 2) * planeSize;
-                        
+
                         const topX2 = -(p2.x - width / 2) * planeSize;
                         const topZ2 = -(p2.y - height / 2) * planeSize;
-                        
+
                         // 侧壁顶部：连接浮雕边缘点的高度（每个点自己height）
                         const topY1 = p1.height;
                         const topY2 = p2.height;
-                        
+
                         // 侧壁底部：在视觉最低点（baseHeight）
                         const botX1 = topX1;
                         const botY1 = baseHeight;
                         const botZ1 = topZ1;
-                        
+
                         const botX2 = topX2;
                         const botY2 = baseHeight;
                         const botZ2 = topZ2;
-                        
+
                         // 调试：输出前几个侧壁顶点用于验证
                         if (i < 3) {
                             console.log(`侧壁段${i}:`, {
@@ -547,7 +558,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                                 '侧壁高度': topY1 - botY1
                             });
                         }
-                        
+
                         // 添加四个顶点
                         sidePositions.push(
                             topX1, topY1, topZ1,  // 0: 浮雕边缘点1
@@ -555,7 +566,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                             topX2, topY2, topZ2,  // 2: 浮雕边缘点2
                             botX2, botY2, botZ2   // 3: 底面点2
                         );
-                        
+
                         // 添加两个三角形 - 法线朝外
                         const base = sidePositions.length / 3 - 4;
                         sideIndices.push(
@@ -563,7 +574,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                             base + 1, base + 3, base + 2  // 三角形2: 底1->底2->顶2
                         );
                     }
-                    
+
                     console.log('侧面生成成功，三角形数:', sideIndices.length / 3);
                     // 输出侧面前几个顶点用于调试
                     if (sidePositions.length > 0) {
@@ -579,12 +590,12 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                 // ==================== 第五步：合并几何体 ====================
                 // 合并底面、浮雕顶面和侧面，形成完整的封闭实体
                 const geometriesToMerge = [];
-                
+
                 if (bottomGeom) {
                     geometriesToMerge.push(bottomGeom);
                 }
                 geometriesToMerge.push(topGeom);
-                
+
                 if (sidePositions.length > 0) {
                     const sideGeom = new BufferGeometry();
                     sideGeom.setAttribute('position', new Float32BufferAttribute(sidePositions, 3));
@@ -592,15 +603,15 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     sideGeom.computeVertexNormals();
                     geometriesToMerge.push(sideGeom);
                 }
-                
+
                 try {
                     console.log('准备合并几何体...');
                     const mergedGeometry = mergeGeometries(geometriesToMerge);
-                    
+
                     if (mergedGeometry) {
                         console.log('几何体合并成功，重新计算法线...');
                         mergedGeometry.computeVertexNormals();
-                        
+
                         console.log('✅ 封闭几何体创建成功:', {
                             顶点数: mergedGeometry.attributes.position.count,
                             三角形数: mergedGeometry.index ? mergedGeometry.index.count / 3 : mergedGeometry.attributes.position.count / 3
@@ -637,7 +648,7 @@ let axisLinesCache = null;
 const geometryCache = new Map();
 const MAX_CACHE_SIZE = 50;
 
-const getCacheKey = (...args) => args.map(arg => 
+const getCacheKey = (...args) => args.map(arg =>
     typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
 ).join('_');
 
@@ -645,7 +656,7 @@ const getCachedGeometry = (key, createFn) => {
     if (geometryCache.has(key)) {
         return geometryCache.get(key);
     }
-    
+
     // 限制缓存大小，防止内存泄漏
     if (geometryCache.size >= MAX_CACHE_SIZE) {
         const firstKey = geometryCache.keys().next().value;
@@ -655,7 +666,7 @@ const getCachedGeometry = (key, createFn) => {
         }
         geometryCache.delete(firstKey);
     }
-    
+
     const geometry = createFn();
     geometryCache.set(key, geometry);
     return geometry;
@@ -664,7 +675,7 @@ const getCachedGeometry = (key, createFn) => {
 // 创建网格辅助线（LineSegments，不会被导出为模型网格）
 function createGridLines(size = 200, divisions = 100) {
     if (gridLinesCache) return gridLinesCache;
-    
+
     const geometry = new THREE.BufferGeometry();
     const positions = [];
 
@@ -692,7 +703,7 @@ function createGridLines(size = 200, divisions = 100) {
 // 创建 XYZ 坐标轴辅助线（LineSegments，不会被导出为模型网格）
 function createAxisLines(length = 80, thickness = 2) {
     if (axisLinesCache) return axisLinesCache;
-    
+
     const axes = [];
 
     const xGeometry = new THREE.BufferGeometry();
@@ -970,7 +981,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
     // 为台体（上下半径不一致）生成可倒角的圆滑几何体（带缓存）
     const createRoundedFrustumGeometry = (radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments) => {
         const cacheKey = getCacheKey('frustum', radiusTop, radiusBottom, height, bevelSize, radialSegments, bevelSegments);
-        
+
         return getCachedGeometry(cacheKey, () => {
             const safeTop = Math.max(radiusTop || 0, 0.001);
             const safeBottom = Math.max(radiusBottom || 0, 0.001);
@@ -1039,7 +1050,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
     // 为多棱柱台体（上下半径不一致）生成可倒角的圆滑几何体（带缓存）
     const createRoundedPolygonFrustumGeometry = (radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments) => {
         const cacheKey = getCacheKey('polygonFrustum', radiusTop, radiusBottom, height, sides, bevelSize, bevelSegments);
-        
+
         return getCachedGeometry(cacheKey, () => {
             const safeTop = Math.max(radiusTop || 0, 0.001);
             const safeBottom = Math.max(radiusBottom || 0, 0.001);
@@ -1509,21 +1520,15 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
             const cutterData = createPatternGeometryObject();
             if (bodyGeometry && cutterData?.geometry) {
                 const bodyMesh = new THREE.Mesh(bodyGeometry);
-                bodyMesh.position.set(0, height / 2, 0);
+                bodyMesh.position.set(0, baseheight + height / 2, 0);
 
                 const cutterMesh = new THREE.Mesh(cutterData.geometry);
                 const cutterY = cutterData.useDepthHalf
-                    ? position.y + height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
-                    : position.y + height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
-                cutterMesh.position.set(
-                    pattern.position?.x || 0,
-                    cutterY,
-                    pattern.position?.z || 0
-                );
+                    ? baseheight + height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : baseheight + height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                cutterMesh.position.set(pattern.position?.x || 0, cutterY, pattern.position?.z || 0);
                 cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
-                if (cutterData.rotation) {
-                    cutterMesh.rotation.set(cutterData.rotation[0], cutterData.rotation[1], cutterData.rotation[2]);
-                }
+                applyPatternCutterRotation(cutterMesh.rotation, pattern, cutterData);
 
                 const csgGeometry = applyBooleanOperation(bodyMesh, cutterMesh, operationType);
                 if (csgGeometry) {
@@ -1986,13 +1991,11 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
 
                 const cutterMesh = new THREE.Mesh(cutterData.geometry);
                 const cutterY = cutterData.useDepthHalf
-                    ? baseheight + height + position.y - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
-                    : baseheight + height + position.y + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                    ? baseheight + height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : baseheight + height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
                 cutterMesh.position.set(pattern.position?.x || 0, cutterY, pattern.position?.z || 0);
                 cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
-                if (cutterData.rotation) {
-                    cutterMesh.rotation.set(cutterData.rotation[0], cutterData.rotation[1], cutterData.rotation[2]);
-                }
+                applyPatternCutterRotation(cutterMesh.rotation, pattern, cutterData);
 
                 const csgGeometry = applyBooleanOperation(bodyMesh, cutterMesh, operationType);
                 if (csgGeometry) {
@@ -2405,7 +2408,7 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
             </Canvas>
 
             {/* 页面左下角比例尺标签 */}
-            <div 
+            <div
                 style={{
                     position: 'absolute',
                     bottom: '80px',
@@ -2521,7 +2524,7 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
                 </div>
 
                 {/* Scale指示器 */}
-                <div 
+                <div
                     className="scale-label"
                     style={{
                         position: 'relative',
