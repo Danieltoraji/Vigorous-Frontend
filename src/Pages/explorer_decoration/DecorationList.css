@@ -49,40 +49,75 @@
 
 /* 标签筛选侧边栏 */
 .tag-sidebar {
-  width: 200px;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #fafaf8 100%);
-  border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  height: fit-content;
-  position: sticky;
-  top: 100px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  --sidebar-image-width: 25%;
+  --sidebar-image-height: 80%;
+  position: fixed;
+  top: 52%;
+  left: calc(-0.35 * var(--sidebar-image-width));
+  transform: translateY(-50%);
+  z-index: 20;
+  width: var(--sidebar-image-width);
+  height: var(--sidebar-image-height);
+  border: none;
+  background: url("/static/projectEditor/sidebar.png") center right / cover no-repeat;
+  cursor: pointer;
+  transition: left 0.1s ease;
+}
+
+.tag-sidebar.collapsed {
+  left: calc(-0.85 * var(--sidebar-image-width));
+}
+
+.tag-sidebar-content {
+  width: calc(100% - 24px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+  text-align: right;
+}
+
+.tag-sidebar.collapsed .tag-sidebar-content {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .tag-sidebar-title {
   color: #333;
-  font-size: 16px;
+  font-size: 24px;
   font-weight: 600;
-  margin: 0 0 15px 0;
+  margin: 50px 40px 15px 0;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .tag-list {
   display: flex;
+  padding-right: 40px;
+  padding-bottom: 20%;
   flex-direction: column;
+  align-items: flex-end;
+  flex: 1;
+  min-height: 0;
+  max-height: calc(100% - 200px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
   gap: 8px;
+  width: auto;
 }
 
 .tag-item {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
+  text-align: right;
   gap: 8px;
+  width: 50%;
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
+
   transition: all 0.2s;
   background: transparent;
   color: #666;
@@ -104,7 +139,7 @@
   padding: 2px 10px;
   border-radius: 12px;
   font-size: 11px;
-  margin-left: auto;
+  margin-left: 8px;
 }
 
 .tag-item.active .tag-count {
@@ -121,6 +156,38 @@
   display: flex;
   gap: 20px;
   flex: 1;
+  padding-left: 260px;
+  transition: padding-left 0.28s ease;
+}
+
+.content-wrapper.sidebar-collapsed {
+  padding-left: 44px;
+}
+
+@media (max-width: 768px) {
+
+  .content-wrapper,
+  .content-wrapper.sidebar-collapsed {
+    padding-left: 0;
+  }
+
+  .tag-sidebar {
+    position: static;
+    width: 100%;
+    max-height: none;
+    transform: none;
+    cursor: default;
+  }
+
+  .tag-sidebar.collapsed {
+    transform: none;
+  }
+
+  .tag-sidebar-content {
+    width: 100%;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 }
 
 /* 无装饰提示 */

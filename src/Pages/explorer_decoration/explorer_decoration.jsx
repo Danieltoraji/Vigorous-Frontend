@@ -53,9 +53,9 @@ function ExplorerDecoration() {
     setCurrentDecoration(null)
   }
 
-  const handleUpdateDecoration = async (updatedDecoration) => {
+  const handleUpdateDecoration = async (decorationId, updatedDecorationPayload) => {
     try {
-      await updateDecoration(updatedDecoration.id, updatedDecoration)
+      await updateDecoration(decorationId, updatedDecorationPayload)
       setIsUploadModalOpen(false)
       setCurrentDecoration(null)
     } catch (error) {

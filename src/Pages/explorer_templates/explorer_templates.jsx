@@ -27,6 +27,7 @@ function ExplorerTemplates() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
   const [visibilityFilter, setVisibilityFilter] = useState('all') // 'all' | 'mine' | 'public'
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [editName, setEditName] = useState('')
@@ -36,6 +37,7 @@ function ExplorerTemplates() {
   const { userData } = useUser()
   const [moreActionsOpen, setMoreActionsOpen] = useState(null)
   const moreActionsRefs = useRef({})
+  const sidebarRef = useRef(null)
   const navigate = useNavigate()
   const [applyingTemplateId, setApplyingTemplateId] = useState(null)
 
@@ -55,8 +57,36 @@ function ExplorerTemplates() {
     }
   }, [moreActionsOpen])
 
+  useEffect(() => {
+    if (!sidebarOpen) return undefined
+
+    const handleSidebarClickOutside = (event) => {
+      if (window.innerWidth <= 768) {
+        return
+      }
+
+      const clickedInsideSidebar = sidebarRef.current && sidebarRef.current.contains(event.target)
+
+      if (!clickedInsideSidebar) {
+        setSidebarOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleSidebarClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleSidebarClickOutside)
+    }
+  }, [sidebarOpen])
+
   const onBack = () => {
     navigate('/menu')
+  }
+
+  const handleSidebarBackgroundToggle = () => {
+    if (window.innerWidth <= 768) {
+      return
+    }
+    setSidebarOpen(prev => !prev)
   }
 
   // 提取所有标签
@@ -311,62 +341,68 @@ function ExplorerTemplates() {
         <p className='user-welcome'>欢迎您！{userData.username}</p>
       </div>
 
-      <div className="explorer-content">
-        <div className="left-sidebar">
-          <div className="filter-section">
-            <h2>可见性筛选</h2>
-            <div className="tag-filters">
-              <button
-                className={`tag-filter ${visibilityFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setVisibilityFilter('all')}
-              >
-                全部（{Object.keys(templatesData).length}）
-              </button>
-              <button
-                className={`tag-filter ${visibilityFilter === 'mine' ? 'active' : ''}`}
-                onClick={() => setVisibilityFilter('mine')}
-              >
-                仅我的（{mineCount}）
-              </button>
-              <button
-                className={`tag-filter ${visibilityFilter === 'public' ? 'active' : ''}`}
-                onClick={() => setVisibilityFilter('public')}
-              >
-                仅公开（{publicCount}）
-              </button>
-            </div>
-          </div>
-
-          <div className="filter-section">
-            <h2>按标签筛选</h2>
-            <div className="tag-filters">
-              <button
-                className={`tag-filter ${!selectedTag ? 'active' : ''}`}
-                onClick={() => setSelectedTag('')}
-              >
-                全部
-              </button>
-              {Array.from(allTags).map(tag => (
+      <div className={`explorer-content ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+        <div
+          ref={sidebarRef}
+          className={`left-sidebar ${sidebarOpen ? 'open' : 'collapsed'}`}
+          onClick={handleSidebarBackgroundToggle}
+        >
+          <div className="left-sidebar-content" onClick={(event) => event.stopPropagation()}>
+            <div className="filter-section">
+              <h2>可见性筛选</h2>
+              <div className="tag-filters">
                 <button
-                  key={tag}
-                  className={`tag-filter ${selectedTag === tag ? 'active' : ''}`}
-                  onClick={() => setSelectedTag(tag)}
+                  className={`tag-filter ${visibilityFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setVisibilityFilter('all')}
                 >
-                  {tag}
+                  全部（{Object.keys(templatesData).length}）
                 </button>
-              ))}
+                <button
+                  className={`tag-filter ${visibilityFilter === 'mine' ? 'active' : ''}`}
+                  onClick={() => setVisibilityFilter('mine')}
+                >
+                  仅我的（{mineCount}）
+                </button>
+                <button
+                  className={`tag-filter ${visibilityFilter === 'public' ? 'active' : ''}`}
+                  onClick={() => setVisibilityFilter('public')}
+                >
+                  仅公开（{publicCount}）
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="search-section">
-            <h2>查找模板</h2>
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="输入模板名称..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="filter-section">
+              <h2>按标签筛选</h2>
+              <div className="tag-filters">
+                <button
+                  className={`tag-filter ${!selectedTag ? 'active' : ''}`}
+                  onClick={() => setSelectedTag('')}
+                >
+                  全部
+                </button>
+                {Array.from(allTags).map(tag => (
+                  <button
+                    key={tag}
+                    className={`tag-filter ${selectedTag === tag ? 'active' : ''}`}
+                    onClick={() => setSelectedTag(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="search-section">
+              <h2>查找模板</h2>
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="输入模板名称..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
