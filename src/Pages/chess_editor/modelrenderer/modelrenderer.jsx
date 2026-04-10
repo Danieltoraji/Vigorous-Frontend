@@ -1525,12 +1525,12 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
             const cutterData = createPatternGeometryObject();
             if (bodyGeometry && cutterData?.geometry) {
                 const bodyMesh = new THREE.Mesh(bodyGeometry);
-                bodyMesh.position.set(0, baseheight + height / 2, 0);
+                bodyMesh.position.set(0, height / 2, 0);
 
                 const cutterMesh = new THREE.Mesh(cutterData.geometry);
                 const cutterY = cutterData.useDepthHalf
-                    ? baseheight + height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
-                    : baseheight + height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
+                    ? height - (pattern.depth || 0) / 2 + (pattern.position?.y || 0)
+                    : height + (pattern.position?.y || 0) + (cutterData.yOffset || 0);
                 cutterMesh.position.set(pattern.position?.x || 0, cutterY, pattern.position?.z || 0);
                 cutterMesh.scale.set(patternScale[0], patternScale[1], patternScale[2]);
                 applyPatternCutterRotation(cutterMesh.rotation, pattern, cutterData);
