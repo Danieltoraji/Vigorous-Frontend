@@ -2956,7 +2956,7 @@ modelId 含义：
               <h2>导出尺寸设置</h2>
               <button className="close-button" onClick={() => setShowScaleModal(false)}>×</button>
             </div>
-            <div className="modal-content">
+            <div className="export-scale-modal-content">
               {/* 当前尺寸显示 */}
               <div className="current-dimensions">
                 <h4>当前模型尺寸</h4>

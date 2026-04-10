@@ -1196,6 +1196,7 @@ input:checked+.toggle-label:before {
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   width: 90%;
+  height: auto;
   max-width: 400px;
   overflow: hidden;
   animation: slideIn 0.3s ease;
@@ -1249,13 +1250,13 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.modal-content {
+.export-scale-modal-content {
   padding: 30px 20px;
-  width: 100%;
+  width: auto;
   box-sizing: border-box;
 }
 
-.modal-content p {
+.export-scale-modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
@@ -1413,7 +1414,7 @@ input:checked+.toggle-label:before {
   padding: 0;
 }
 
-.texture-selector-content .modal-content {
+.texture-selector-content .export-scale-modal-content {
   padding: 0;
   height: 100%;
   display: flex;
@@ -1465,7 +1466,7 @@ input:checked+.toggle-label:before {
     max-width: none;
   }
 
-  .modal-content {
+  .export-scale-modal-content {
     padding: 20px 15px;
   }
 
@@ -1482,10 +1483,21 @@ input:checked+.toggle-label:before {
   -webkit-backdrop-filter: blur(20px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  width: 90%;
+  width: min(90vw, 450px);
   max-width: 450px;
+  max-height: calc(100vh - 48px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: slideIn 0.3s ease;
+}
+
+.scale-modal .export-scale-modal-content {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 /* 当前尺寸显示 */
@@ -1672,6 +1684,27 @@ input:checked+.toggle-label:before {
   box-shadow: 0 4px 12px rgba(96, 128, 192, 0.3);
 }
 
+@media (max-width: 480px) {
+  .scale-modal {
+    width: min(92vw, 450px);
+    max-width: none;
+    max-height: calc(100vh - 32px);
+  }
+
+  .scale-modal .export-scale-modal-content {
+    padding: 20px 15px;
+  }
+
+  .scale-mode-selector {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+}
+
 /* Toast 提示样式 */
 .toast-success {
   position: fixed;
@@ -1720,7 +1753,7 @@ input:checked+.toggle-label:before {
     max-width: none;
   }
 
-  .modal-content {
+  .export-scale-modal-content {
     padding: 20px 15px;
   }
 
@@ -2174,7 +2207,7 @@ input:checked+.toggle-label:before {
   animation: fadeIn 0.2s ease;
 }
 
-.modal-overlay .modal-content {
+.modal-overlay .texture-selector-content .export-scale-modal-content {
   background: white;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -2395,9 +2428,12 @@ input:checked+.toggle-label:before {
   -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  width: 90%;
+  width: min(90vw, 400px);
   max-width: 400px;
+  max-height: calc(100vh - 48px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: slideIn 0.3s ease;
 }
 
@@ -2449,13 +2485,15 @@ input:checked+.toggle-label:before {
   color: var(--fluent-text);
 }
 
-.modal-content {
+.export-scale-modal-content {
   padding: 30px 20px;
   width: 100%;
   box-sizing: border-box;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.modal-content p {
+.export-scale-modal-content p {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: var(--fluent-text);
@@ -2499,11 +2537,12 @@ input:checked+.toggle-label:before {
 /* 响应式设计 */
 @media (max-width: 480px) {
   .export-modal {
-    width: 95%;
+    width: min(92vw, 400px);
     max-width: none;
+    max-height: calc(100vh - 32px);
   }
 
-  .modal-content {
+  .export-scale-modal-content {
     padding: 20px 15px;
   }
 
