@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
 import { OBJLoader } from 'three-stdlib';
@@ -129,7 +129,6 @@ function Scene({ url, fileType }) {
         panSpeed={1.0}
         target={[0, 0, 0]}
       />
-      <Environment preset="studio" />
     </>
   );
 }
@@ -188,7 +187,8 @@ function DecorationPreviewModal({ isOpen, onClose, decoration }) {
               <Canvas
                 camera={{ position: [18, 14, 18], fov: 45 }}
                 shadows
-                style={{ background: '#f0f0f0' }}
+                gl={{ alpha: true }}
+                style={{ background: 'transparent' }}
               >
                 <Scene url={modelUrl} fileType={fileType} />
               </Canvas>
