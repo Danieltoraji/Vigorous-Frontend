@@ -51,12 +51,12 @@ const EditChessModal = ({ piece, onSave, onCancel }) => {
   };
 
   return createPortal(
-    <div className="modal-overlay" style={overlayStyle}>
-      <div className="chess-modal-content">
+    <div className="modal-overlay" style={overlayStyle} onClick={onCancel}>
+      <div className="chess-modal-content" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="chess-modal-form">
           <div className="chess-modal-header">
             <h3>编辑棋子</h3>
-            <button className="modal-close" onClick={onCancel}>
+            <button type="button" className="modal-close" onClick={onCancel}>
               ×
             </button>
           </div>

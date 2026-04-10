@@ -816,8 +816,9 @@
 }
 
 .template-modal-btn {
-  padding: 12px 24px;
+  padding: 12px 16px;
   border: none;
+  min-width: 60px;
   border-radius: var(--fluent-radius);
   cursor: pointer;
   font-size: 14px;

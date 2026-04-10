@@ -160,8 +160,8 @@ const ImportChessModal = ({ onCancel, projectId }) => {
 
   if (showTemplateSelector) {
     return createPortal(
-      <div className="modal-overlay" style={overlayStyle}>
-        <div className="modal-content template-selector-modal">
+      <div className="modal-overlay" style={overlayStyle} onClick={handleBackToMain}>
+        <div className="modal-content template-selector-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h3>从模板导入</h3>
             <button className="modal-close" onClick={handleBackToMain}>
@@ -308,8 +308,8 @@ const ImportChessModal = ({ onCancel, projectId }) => {
   }
 
   return createPortal(
-    <div className="modal-overlay" style={overlayStyle}>
-      <div className="modal-content">
+    <div className="modal-overlay" style={overlayStyle} onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>导入棋子</h3>
           <button className="modal-close" onClick={onCancel}>

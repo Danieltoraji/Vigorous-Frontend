@@ -1655,6 +1655,7 @@ input:checked+.toggle-label:before {
 .modal-actions .cancel-button,
 .modal-actions .confirm-button {
   flex: 1;
+  width: 60px !important;
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
