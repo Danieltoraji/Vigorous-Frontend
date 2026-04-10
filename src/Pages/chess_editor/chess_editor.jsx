@@ -26,6 +26,13 @@ function ChessEditor() {
   const [selectedComponent, setSelectedComponent] = useState('base'); // 默认选中底座组件
   const [lastSaved, setLastSaved] = useState(new Date().toLocaleString());
 
+  // 撤销功能相关状态
+  const [historyStack, setHistoryStack] = useState([]); // 历史记录栈
+  const [historyIndex, setHistoryIndex] = useState(-1); // 当前历史指针
+  const lastHistoryTimeRef = useRef(0); // 上次记录时间（使用 ref 避免重渲染）
+  const MAX_HISTORY_SIZE = 50; // 最大历史记录数
+  const HISTORY_RECORD_INTERVAL = 500; // 最小记录间隔（毫秒）
+
   // 右侧面板固定宽度
   const [rightWidth, setRightWidth] = useState(450); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
@@ -229,14 +236,118 @@ function ChessEditor() {
     }
   }, [pieceId, navigate]);
 
+  // 强制记录历史快照（无视时间间隔限制）
+  const pushToHistoryImmediate = useCallback((snapshot) => {
+    lastHistoryTimeRef.current = Date.now();
+    
+    setHistoryStack(prev => {
+      const newStack = prev.slice(0, historyIndex + 1);
+      newStack.push(structuredClone(snapshot));
+      
+      // 如果超过最大长度，移除最旧记录（每次最多移除一个，用 if 即可）
+      if (newStack.length > MAX_HISTORY_SIZE) {
+        newStack.shift();
+      }
+      
+      return newStack;
+    });
+    
+    // 确保 historyIndex 正确同步
+    // 新索引 = 当前索引 + 1，但不能超过栈的最大长度 - 1
+    setHistoryIndex(prev => {
+      const newIndex = prev + 1;
+      return Math.min(newIndex, MAX_HISTORY_SIZE - 1);
+    });
+  }, [historyIndex, MAX_HISTORY_SIZE]);
+
+  // 记录历史快照（带时间间隔检查）
+  const pushToHistory = useCallback((snapshot) => {
+    const now = Date.now();
+    const timeSinceLastRecord = now - lastHistoryTimeRef.current;
+    
+    // 如果距离上次记录时间小于间隔阈值，跳过
+    if (timeSinceLastRecord < HISTORY_RECORD_INTERVAL) {
+      return;
+    }
+    
+    // 调用强制记录函数
+    pushToHistoryImmediate(snapshot);
+  }, [HISTORY_RECORD_INTERVAL, pushToHistoryImmediate]);
+
+  // 撤销操作
+  const handleUndo = useCallback(() => {
+    if (historyIndex < 0 || historyStack.length === 0) {
+      showSuccessToast('没有可撤销的操作');
+      return;
+    }
+
+    const previousState = historyStack[historyIndex];
+    
+    // 恢复状态
+    setCurrentChess(previousState);
+    setChessData(prev => ({ ...prev, [previousState.id]: previousState }));
+    
+    // 移动历史指针
+    setHistoryIndex(prev => prev - 1);
+    
+    showSuccessToast('已撤销');
+  }, [historyStack, historyIndex, setChessData, showSuccessToast]);
+
+  // 重做操作
+  const handleRedo = useCallback(() => {
+    // 检查是否有可重做的状态
+    if (historyIndex >= historyStack.length - 1) {
+      showSuccessToast('没有可重做的操作');
+      return;
+    }
+
+    // 获取下一个状态
+    const nextState = historyStack[historyIndex + 1];
+    
+    // 恢复状态
+    setCurrentChess(nextState);
+    setChessData(prev => ({ ...prev, [nextState.id]: nextState }));
+    
+    // 移动历史指针向前
+    setHistoryIndex(prev => prev + 1);
+    
+    showSuccessToast('已重做');
+  }, [historyStack, historyIndex, setChessData, showSuccessToast]);
+
+  // 键盘快捷键支持（Ctrl+Z 撤销，Ctrl+Shift+Z / Ctrl+Y 重做）
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+Z 撤销
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Ctrl+Shift+Z 或 Ctrl+Y 重做
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
+
   // 处理组件选择 - 使用 useCallback 避免重复创建
   const handleComponentSelect = useCallback((componentType) => {
+    // 切换组件前强制记录当前状态（确保切换前的状态可恢复）
+    if (currentChess) {
+      pushToHistoryImmediate(currentChess);
+    }
     setSelectedComponent(componentType);
-  }, []);
+  }, [currentChess, pushToHistoryImmediate]);
 
   // 处理数据更新 - 使用 useCallback 避免重复创建
   const handleDataUpdate = useCallback((path, value) => {
     if (!currentChess) return;
+
+    // 记录当前状态到历史栈（撤销功能）
+    pushToHistory(currentChess);
 
     // 深度克隆当前数据
     const updatedChess = structuredClone(currentChess);
@@ -263,7 +374,7 @@ function ChessEditor() {
       ...prev,
       [currentChess.id]: updatedChess
     }));
-  }, [currentChess, setChessData]);
+  }, [currentChess, setChessData, pushToHistory]);
 
   // 切换平滑纹理时，同时更新到数据中
   const toggleSmoothTexture = useCallback(() => {
@@ -2791,6 +2902,22 @@ modelId 含义：
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
+          <button 
+            className="undo-button" 
+            onClick={handleUndo}
+            disabled={historyIndex < 0}
+            title="撤销 (Ctrl+Z)"
+          >
+            ↶ 撤销
+          </button>
+          <button 
+            className="redo-button" 
+            onClick={handleRedo}
+            disabled={historyIndex >= historyStack.length - 1}
+            title="重做 (Ctrl+Shift+Z)"
+          >
+            ↷ 重做
+          </button>
           <button className="save-button" onClick={handleSave}>保存</button>
           <button className="export-button" onClick={handleExport}>导出</button>
         </div>
