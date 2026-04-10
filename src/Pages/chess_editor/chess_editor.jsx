@@ -33,6 +33,22 @@ function ChessEditor() {
   const MAX_HISTORY_SIZE = 50; // 最大历史记录数
   const HISTORY_RECORD_INTERVAL = 500; // 最小记录间隔（毫秒）
 
+  // 鼠标事件相关 ref（用于新的历史记录触发机制）
+  const mouseDownTimeRef = useRef(0); // 鼠标按下时间戳
+  const isDraggingRef = useRef(false); // 是否正在拖动
+  const isUndoRedoRef = useRef(false); // 是否正在执行撤销/重做操作
+
+  // 深度比较两个对象是否相等
+  const isEqualDeep = useCallback((obj1, obj2) => {
+    if (obj1 === obj2) return true;
+    if (!obj1 || !obj2) return false;
+    try {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    } catch {
+      return false;
+    }
+  }, []);
+
   // 右侧面板固定宽度
   const [rightWidth, setRightWidth] = useState(450); // 右侧面板宽度
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false); // 右侧面板收起状态
@@ -209,8 +225,8 @@ function ChessEditor() {
       const newStack = prev.slice(0, historyIndex + 1);
       newStack.push(structuredClone(snapshot));
       
-      // 如果超过最大长度，移除最旧记录（每次最多移除一个，用 if 即可）
-      if (newStack.length > MAX_HISTORY_SIZE) {
+      // 如果超过最大长度，移除最旧记录
+      while (newStack.length > MAX_HISTORY_SIZE) {
         newStack.shift();
       }
       
@@ -225,19 +241,23 @@ function ChessEditor() {
     });
   }, [historyIndex, MAX_HISTORY_SIZE]);
 
-  // 记录历史快照（带时间间隔检查）
+  // 记录历史快照（带状态比较，避免重复记录）
   const pushToHistory = useCallback((snapshot) => {
-    const now = Date.now();
-    const timeSinceLastRecord = now - lastHistoryTimeRef.current;
+    if (!snapshot) return;
     
-    // 如果距离上次记录时间小于间隔阈值，跳过
-    if (timeSinceLastRecord < HISTORY_RECORD_INTERVAL) {
+    // 获取上一个状态
+    const lastState = historyStack.length > 0 && historyIndex >= 0 
+      ? historyStack[historyIndex] 
+      : null;
+    
+    // 如果状态相同，忽略
+    if (lastState && isEqualDeep(snapshot, lastState)) {
       return;
     }
     
-    // 调用强制记录函数
+    // 状态不同，执行记录
     pushToHistoryImmediate(snapshot);
-  }, [HISTORY_RECORD_INTERVAL, pushToHistoryImmediate]);
+  }, [historyStack, historyIndex, isEqualDeep, pushToHistoryImmediate]);
 
   // 撤销操作
   const handleUndo = useCallback(() => {
@@ -245,6 +265,9 @@ function ChessEditor() {
       showSuccessToast('没有可撤销的操作');
       return;
     }
+
+    // 标记为撤销/重做操作（避免 mouseup 触发历史记录）
+    isUndoRedoRef.current = true;
 
     const previousState = historyStack[historyIndex];
     
@@ -265,6 +288,9 @@ function ChessEditor() {
       showSuccessToast('没有可重做的操作');
       return;
     }
+
+    // 标记为撤销/重做操作（避免 mouseup 触发历史记录）
+    isUndoRedoRef.current = true;
 
     // 获取下一个状态
     const nextState = historyStack[historyIndex + 1];
@@ -308,11 +334,9 @@ function ChessEditor() {
   }, [currentChess, pushToHistoryImmediate]);
 
   // 处理数据更新 - 使用 useCallback 避免重复创建
+  // 注意：历史记录现在由鼠标事件触发，不再在此处记录
   const handleDataUpdate = useCallback((path, value) => {
     if (!currentChess) return;
-
-    // 记录当前状态到历史栈（撤销功能）
-    pushToHistory(currentChess);
 
     // 深度克隆当前数据
     const updatedChess = structuredClone(currentChess);
@@ -339,7 +363,7 @@ function ChessEditor() {
       ...prev,
       [currentChess.id]: updatedChess
     }));
-  }, [currentChess, setChessData, pushToHistory]);
+  }, [currentChess, setChessData]);
 
   // 切换平滑纹理时，同时更新到数据中
   const toggleSmoothTexture = useCallback(() => {
@@ -811,10 +835,37 @@ modelId 含义：
   }, []);
 
 
-  // 添加全局鼠标事件监听器
+  // 鼠标事件监听 - 用于触发历史记录
   useEffect(() => {
+    const handleMouseDown = (e) => {
+      mouseDownTimeRef.current = Date.now();
+      isDraggingRef.current = true;
+    };
 
-  }, [handleMouseMove, handleMouseUp]);
+    const handleMouseUp = (e) => {
+      if (isDraggingRef.current) {
+        // 如果是撤销/重做操作，跳过历史记录
+        if (isUndoRedoRef.current) {
+          isUndoRedoRef.current = false;  // 重置标志
+          isDraggingRef.current = false;
+          return;
+        }
+        
+        // 触发历史记录
+        pushToHistory(currentChess);
+      }
+      
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [currentChess, pushToHistory]);
 
   // 渲染底座组件参数面板 - 使用普通函数以确保状态能正确更新
   const renderBasePanel = () => {
