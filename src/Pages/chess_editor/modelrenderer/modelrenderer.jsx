@@ -2563,7 +2563,7 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
                         }, 100);
                     }}
                 >
-                    <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>Scale</div>
+                    <div style={{ fontWeight: '600', color: '#333', fontSize: '13px' }}>比例（单位为mm）</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <div style={{
                             width: '25px',
@@ -2588,7 +2588,7 @@ function ModelRenderer({ chess, onModelReady, hdrFile, smoothTexture = false }) 
                                 top: '-1.5px'
                             }} />
                         </div>
-                        <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5单位长度</span>
+                        <span style={{ color: '#333', fontSize: '12px', fontWeight: '500' }}>1 ： 5mm</span>
                     </div>
                 </div>
             </div>

@@ -104,7 +104,7 @@ function ChessEditor() {
         const flipValue = !!pattern?.[key];
         return (
           <div className="editor-item" key={key}>
-            <label>{axis} 轴翻转：</label>
+            <label>{axis} 轴：</label>
             <input
               type="checkbox"
               checked={flipValue}
@@ -1843,21 +1843,7 @@ modelId 含义：
           </div>
         </div>
 
-        {/* Side Treatment 部分 */}
-        <div className="editor-section">
-          <h4>侧面处理</h4>
 
-          <div className="editor-item">
-            <label>类型：</label>
-            <select
-              value={getSafeValue(component.sideTreatment, 'none')}
-              onChange={(e) => handleDataUpdate('parts.column.sideTreatment', e.target.value)}
-            >
-              <option value="none">无</option>
-              <option value="groove">凹槽</option>
-            </select>
-          </div>
-        </div>
 
         {/* Pattern 部分 */}
         <div className="editor-section">
@@ -2505,7 +2491,7 @@ modelId 含义：
           )}
 
           <div className="editor-item">
-            <label>X 轴缩放：</label>
+            <label>X 轴：</label>
             <input
               type="range"
               min={fineTuneMode ? fineTuneMin : 0.01}
@@ -2526,7 +2512,7 @@ modelId 含义：
           </div>
 
           <div className="editor-item">
-            <label>Y 轴缩放：</label>
+            <label>Y 轴：</label>
             <input
               type="range"
               min={fineTuneMode ? fineTuneMin : 0.01}
@@ -2547,7 +2533,7 @@ modelId 含义：
           </div>
 
           <div className="editor-item">
-            <label>Z 轴缩放：</label>
+            <label>Z 轴：</label>
             <input
               type="range"
               min={fineTuneMode ? fineTuneMin : 0.01}
