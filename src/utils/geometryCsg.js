@@ -132,7 +132,9 @@ function bakeMesh(mesh) {
 }
 
 function mapOperation(operationType) {
-    switch ((operationType || 'subtract').toLowerCase()) {
+    switch ((operationType || 'none').toLowerCase()) {
+        case 'none':
+            return null;
         case 'union':
             return ADDITION;
         case 'intersect':
@@ -183,12 +185,17 @@ function createBrushFromMesh(mesh) {
     return brush;
 }
 
-export function applyBooleanOperation(meshA, meshB, operationType = 'subtract') {
+export function applyBooleanOperation(meshA, meshB, operationType = 'none') {
     const evaluator = new Evaluator();
     evaluator.useGroups = false;
     evaluator.consolidateGroups = false;
     evaluator.removeUnusedMaterials = false;
     if (!meshA?.geometry || !meshB?.geometry) {
+        return null;
+    }
+
+    const mappedOperation = mapOperation(operationType);
+    if (!mappedOperation) {
         return null;
     }
 
@@ -215,7 +222,7 @@ export function applyBooleanOperation(meshA, meshB, operationType = 'subtract') 
     }
 
     try {
-        const result = evaluator.evaluate(brushA, brushB, mapOperation(operationType));
+        const result = evaluator.evaluate(brushA, brushB, mappedOperation);
         if (!result?.geometry) {
             return null;
         }

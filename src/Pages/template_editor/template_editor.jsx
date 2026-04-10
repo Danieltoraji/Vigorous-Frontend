@@ -661,6 +661,22 @@ modelId 含义：
           </div>
         );
       })}
+
+      <h4>翻转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `flip${axis}`;
+        const flipValue = !!pattern?.[key];
+        return (
+          <div className="template-editor-item" key={key}>
+            <label>{axis} 轴翻转：</label>
+            <input
+              type="checkbox"
+              checked={flipValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, e.target.checked)}
+            />
+          </div>
+        );
+      })}
     </div>
   ), [handleDataUpdate]);
 
@@ -949,7 +965,7 @@ modelId 含义：
               min="0"
               max="5"
               step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
+              value={getSafeValue(pattern.depth, getSafeValue(pattern.shape, 'text') === 'text' ? 0.1 : 1)}
               onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
             />
             <input
@@ -957,7 +973,7 @@ modelId 含义：
               min="0"
               max="5"
               step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
+              value={getSafeValue(pattern.depth, getSafeValue(pattern.shape, 'text') === 'text' ? 0.1 : 1)}
               onChange={(e) => handleDataUpdate('parts.base.pattern.depth', parseFloat(e.target.value))}
               className="template-number-input"
             />
@@ -1543,7 +1559,7 @@ modelId 含义：
               min="0"
               max="5"
               step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
+              value={getSafeValue(pattern.depth, getSafeValue(pattern.shape, 'text') === 'text' ? 0.1 : 1)}
               onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
             />
             <input
@@ -1551,7 +1567,7 @@ modelId 含义：
               min="0"
               max="5"
               step="0.1"
-              value={getSafeValue(pattern.depth, 1)}
+              value={getSafeValue(pattern.depth, getSafeValue(pattern.shape, 'text') === 'text' ? 0.1 : 1)}
               onChange={(e) => handleDataUpdate('parts.column.pattern.depth', parseFloat(e.target.value))}
               className="template-number-input"
             />
@@ -1808,15 +1824,7 @@ modelId 含义：
               选择模型
             </button>
           </div>
-          <div className="template-editor-item">
-            <button
-              className="template-btn template-btn-primary"
-              onClick={() => setShowAIGenerator(!showAIGenerator)}
-              style={{ width: '100%', marginTop: '8px' }}
-            >
-              {showAIGenerator ? '收起 AI 生成器' : '✨ AI 智能生成'}
-            </button>
-          </div>
+
 
           {/* AI 生成器面板 */}
           {showAIGenerator && (

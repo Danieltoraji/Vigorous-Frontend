@@ -90,7 +90,10 @@ export function TemplatesProvider({ children }) {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 10,
-              "depth": 1
+              "depth": 0.1,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
@@ -114,7 +117,10 @@ export function TemplatesProvider({ children }) {
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
-              "depth": 0.5
+              "depth": 0.5,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },
@@ -167,7 +173,10 @@ export function TemplatesProvider({ children }) {
               "shape": "text",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 10,
-              "depth": 1
+              "depth": 0.1,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "none", "depth": 0 },
             "position": { "x": 0, "y": 0, "z": 0 }
@@ -191,7 +200,10 @@ export function TemplatesProvider({ children }) {
               "geometryType": "Cube",
               "position": { "x": 0, "y": 0, "z": 0 },
               "size": 5,
-              "depth": 0.5
+              "depth": 0.5,
+              "flipX": false,
+              "flipY": false,
+              "flipZ": false
             },
             "edge": { "type": "smooth", "depth": 0.2 }
           },

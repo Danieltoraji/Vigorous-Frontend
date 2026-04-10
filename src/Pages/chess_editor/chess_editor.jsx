@@ -97,6 +97,22 @@ function ChessEditor() {
           </div>
         );
       })}
+
+      <h4>翻转</h4>
+      {['X', 'Y', 'Z'].map((axis) => {
+        const key = `flip${axis}`;
+        const flipValue = !!pattern?.[key];
+        return (
+          <div className="editor-item" key={key}>
+            <label>{axis} 轴翻转：</label>
+            <input
+              type="checkbox"
+              checked={flipValue}
+              onChange={(e) => handleDataUpdate(`${patternPath}.${key}`, e.target.checked)}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -104,9 +120,10 @@ function ChessEditor() {
     <div className="editor-item">
       <label>布尔操作：</label>
       <select
-        value={getSafeValue(pattern?.boolean?.operationType, 'subtract')}
+        value={getSafeValue(pattern?.boolean?.operationType, 'none')}
         onChange={(e) => handleDataUpdate(`${patternPath}.boolean.operationType`, e.target.value)}
       >
+        <option value="none">无</option>
         <option value="union">并集</option>
         <option value="subtract">差集</option>
         <option value="intersect">交集</option>
@@ -2378,15 +2395,6 @@ modelId 含义：
               onClick={() => setShowDecorationModal(true)}
             >
               选择模型
-            </button>
-          </div>
-          <div className="editor-item">
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowAIGenerator(!showAIGenerator)}
-              style={{ width: '100%', marginTop: '8px' }}
-            >
-              {showAIGenerator ? '收起 AI 生成器' : '✨ AI 智能生成'}
             </button>
           </div>
 

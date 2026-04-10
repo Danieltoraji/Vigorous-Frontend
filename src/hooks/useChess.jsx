@@ -128,9 +128,9 @@ export function ChessProvider({ children }) {
               "position": { "x": 0, "y": 0, "z": 0 },
               "textureFile": "000",
               "size": 10,
-              "depth": 1,
+              "depth": 0.1,
               "boolean": {
-                "operationType": "subtract"
+                "operationType": "none"
               },
               "bold": false,
               "underline": false,
@@ -169,7 +169,7 @@ export function ChessProvider({ children }) {
               "size": 5,
               "depth": 0.5,
               "boolean": {
-                "operationType": "subtract"
+                "operationType": "none"
               },
               "bold": false,
               "underline": false,
@@ -234,9 +234,9 @@ export function ChessProvider({ children }) {
               "position": { "x": 0, "y": 0, "z": 0 },
               "textureFile": "00000",
               "size": 10,
-              "depth": 1,
+              "depth": 0.1,
               "boolean": {
-                "operationType": "subtract"
+                "operationType": "none"
               },
               "bold": false,
               "underline": false,
@@ -275,7 +275,7 @@ export function ChessProvider({ children }) {
               "size": 5,
               "depth": 0.5,
               "boolean": {
-                "operationType": "subtract"
+                "operationType": "none"
               },
               "bold": false,
               "underline": false,

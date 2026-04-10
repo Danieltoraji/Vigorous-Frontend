@@ -37,7 +37,11 @@ function getPatternTransform(pattern = {}) {
     const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
     const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [scaleX, scaleY, scaleZ];
+    const flipX = pattern.flipX ? -1 : 1;
+    const flipY = pattern.flipY ? -1 : 1;
+    const flipZ = pattern.flipZ ? -1 : 1;
+
+    return [scaleX * flipX, scaleY * flipY, scaleZ * flipZ];
 }
 
 function getPatternRotation(pattern = {}) {
@@ -68,7 +72,7 @@ function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position =
                 <Text3D
                     font={pattern.font || DEFAULT_TEXT_FONT_JSON}
                     size={pattern.size || 5}
-                    height={pattern.depth || 1}
+                    height={pattern.depth ?? 0.1}
                     curveSegments={12}
                 >
                     {(pattern.content ?? '').toString()}
@@ -1272,15 +1276,16 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
                 const geometry = new TextGeometry(text, {
                     font,
                     size: pattern.size || 5,
-                    height: pattern.depth || 1,
+                    height: pattern.depth ?? 0.1,
                     curveSegments: 12
                 });
 
+                const textDepth = pattern.depth ?? 0.1;
                 return {
                     geometry,
                     rotation: [-Math.PI / 2, 0, 0],
                     useDepthHalf: false,
-                    yOffset: -((pattern.depth || 1) / 2) + 0.001
+                    yOffset: -(textDepth / 2) + 0.001
                 };
             }
 
@@ -1505,7 +1510,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
                 break;
         }
 
-        const operationType = (pattern.boolean?.operationType || 'subtract').toLowerCase();
+        const operationType = (pattern.boolean?.operationType || 'none').toLowerCase();
         const canBoolean = ['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType) && type !== 'special';
         if (canBoolean) {
             let bodyGeometry = null;
@@ -1747,15 +1752,16 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
                 const geometry = new TextGeometry(text, {
                     font,
                     size: pattern.size || 5,
-                    height: pattern.depth || 1,
+                    height: pattern.depth ?? 0.1,
                     curveSegments: 12
                 });
 
+                const textDepth = pattern.depth ?? 0.1;
                 return {
                     geometry,
                     rotation: [-Math.PI / 2, 0, 0],
                     useDepthHalf: false,
-                    yOffset: -((pattern.depth || 1) / 2) + 0.001
+                    yOffset: -(textDepth / 2) + 0.001
                 };
             }
 
@@ -1972,7 +1978,7 @@ function SceneContent({ chess, onModelReady, hdrFile, smoothTexture = false, sho
                 break;
         }
 
-        const operationType = (pattern.boolean?.operationType || 'subtract').toLowerCase();
+        const operationType = (pattern.boolean?.operationType || 'none').toLowerCase();
         const canBoolean = ['geometry', 'text'].includes(pattern.shape) && ['union', 'subtract', 'intersect'].includes(operationType) && type !== 'special';
         if (canBoolean) {
             let bodyGeometry = null;

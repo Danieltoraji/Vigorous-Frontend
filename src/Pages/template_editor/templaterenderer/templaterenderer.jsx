@@ -33,7 +33,11 @@ function getPatternTransform(pattern = {}) {
     const scaleY = pattern.scaleY !== undefined ? pattern.scaleY : -1;
     const scaleZ = pattern.scaleZ !== undefined ? pattern.scaleZ : 1;
 
-    return [scaleX, scaleY, scaleZ];
+    const flipX = pattern.flipX ? -1 : 1;
+    const flipY = pattern.flipY ? -1 : 1;
+    const flipZ = pattern.flipZ ? -1 : 1;
+
+    return [scaleX * flipX, scaleY * flipY, scaleZ * flipZ];
 }
 
 function getPatternRotation(pattern = {}) {
@@ -53,7 +57,7 @@ function PatternTextMesh({ pattern = {}, material, color = '#CD853F', position =
                 <Text3D
                     font={pattern.font || DEFAULT_TEXT_FONT_JSON}
                     size={pattern.size || 5}
-                    height={pattern.depth || 1}
+                    height={pattern.depth ?? 0.1}
                     curveSegments={12}
                 >
                     {(pattern.content ?? '').toString()}
@@ -130,7 +134,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                     { name: '右下角', idx: (height - 1) * width * 4 + (width - 1) * 4 },
                     { name: '中心', idx: Math.floor(height / 2) * width * 4 + Math.floor(width / 2) * 4 }
                 ];
-                
+
                 corners.forEach(corner => {
                     const i = corner.idx;
                     console.log(`${corner.name}:`, {
@@ -207,7 +211,7 @@ function VoxelGeometry({ textureFile, size = 10, depth = 1, sampleRate = 4, smoo
                                         newCol >= 0 && newCol < rawGrayData[row].length) {
                                         const neighborValue = rawGrayData[newRow][newCol];
                                         const neighborIsTransparent = neighborValue === 0;
-                                        
+
                                         // 只平均相同透明状态的像素
                                         if (isTransparent === neighborIsTransparent) {
                                             sum += neighborValue;
