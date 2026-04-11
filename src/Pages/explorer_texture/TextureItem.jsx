@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import './TextureItem.css'
+import { resolveMediaUrl } from '../../utils/mediaUrl.js'
 
 function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
   const navigate = useNavigate()
@@ -33,6 +34,8 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
     return parts.length > 1 ? parts.pop().toLowerCase() : '';
   };
 
+  const textureFileUrl = resolveMediaUrl(texture.file)
+
   return (
     <div className="texture-item" onClick={() => onEditTexture(texture)}>
       <div className="texture-item-content">
@@ -43,8 +46,8 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
 
         <div className="texture-item-body">
           <div className="texture-preview">
-            {texture.file ? (
-              <img src={texture.file} alt={texture.name} />
+            {textureFileUrl ? (
+              <img src={textureFileUrl} alt={texture.name} />
             ) : (
               <div className="no-preview">无预览</div>
             )}

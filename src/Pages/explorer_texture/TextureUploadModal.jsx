@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './TextureUploadModal.css'
+import { resolveMediaUrl } from '../../utils/mediaUrl.js'
 
 function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
   const [formData, setFormData] = useState({
@@ -9,7 +10,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
   const [file, setFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [tagInput, setTagInput] = useState('')
-  
+
   // 截取功能相关状态
   const [cropMode, setCropMode] = useState(false) // 是否处于截取模式
   const [cropShape, setCropShape] = useState('rectangle') // 截取形状：'rectangle' 或 'circle'
@@ -29,7 +30,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
       })
       // 如果有文件，设置预览和 file 状态
       if (texture.file) {
-        setPreviewUrl(texture.file)
+        setPreviewUrl(resolveMediaUrl(texture.file))
         // 注意：编辑模式下，file 初始为 null，只有用户选择新文件时才会设置
         // 这样提交时如果不选择新文件，就不会包含 file 字段
       }
@@ -84,11 +85,11 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
     try {
       // 如果是编辑模式且 file 为 null，需要先加载预览图
       let imageToProcess = previewUrl
-      
+
       const img = new Image()
       img.crossOrigin = 'anonymous'
       img.src = previewUrl
-      
+
       await new Promise((resolve, reject) => {
         img.onload = () => {
           console.log('图片加载成功，尺寸:', img.width, 'x', img.height)
@@ -99,21 +100,21 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           reject(error)
         }
       })
-      
+
       const canvas = document.createElement('canvas')
       canvas.width = img.width
       canvas.height = img.height
       const ctx = canvas.getContext('2d')
-      
+
       // 绘制原图
       ctx.drawImage(img, 0, 0)
-      
+
       // 获取像素数据
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const data = imageData.data
-      
+
       console.log('成功获取像素数据，开始处理...')
-      
+
       // 转换为灰度并反色
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i]
@@ -127,10 +128,10 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         data[i + 1] = inverted // G
         data[i + 2] = inverted // B
       }
-      
+
       // 放回画布
       ctx.putImageData(imageData, 0, 0)
-      
+
       // 生成处理后的 Blob
       canvas.toBlob((blob) => {
         if (!blob) {
@@ -138,20 +139,20 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           alert('图片处理失败，请重试')
           return
         }
-        
+
         console.log('成功生成 Blob:', blob.size, 'bytes, type:', blob.type)
-        
+
         // 创建新的 File 对象（编辑模式下 file 可能为 null）
         const fileName = file?.name || `processed_${Date.now()}.png`
-        const processedFile = new File([blob], fileName, { 
-          type: blob.type 
+        const processedFile = new File([blob], fileName, {
+          type: blob.type
         })
         setFile(processedFile)
-        
+
         // 更新预览为处理后的图片
         const processedUrl = URL.createObjectURL(blob)
         setPreviewUrl(processedUrl)
-        
+
         console.log('图片处理完成，已更新预览，file 对象已设置:', processedFile)
         // alert('✅ 色彩处理成功！图片已经反色（黑变白，白变黑），可以保存了')
       }, file?.type || 'image/png')
@@ -180,7 +181,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         const centerX = rect.width / 2
         const centerY = rect.height / 2
         const size = Math.min(rect.width, rect.height) * 0.6
-        
+
         setCropRect({
           x: centerX - size / 2,
           y: centerY - size / 2,
@@ -199,31 +200,31 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
   // 执行截取操作
   const executeCrop = async () => {
     if (!previewUrl || !canvasRef.current) return
-    
+
     try {
       const imgElement = canvasRef.current
-      
+
       // 获取原始图片
       const img = new Image()
       img.crossOrigin = 'anonymous'
       img.src = previewUrl
-      
+
       await new Promise((resolve, reject) => {
         img.onload = resolve
         img.onerror = reject
       })
-      
+
       // 获取img元素的显示尺寸和位置
       const imgRect = imgElement.getBoundingClientRect()
       const containerRect = containerRef.current.getBoundingClientRect()
-      
+
       // 计算图片在 object-fit: contain 下的实际显示尺寸
       // object-fit: contain 会保持宽高比，在容器内居中显示
       const imgAspectRatio = img.naturalWidth / img.naturalHeight
       const containerAspectRatio = containerRect.width / containerRect.height
-      
+
       let imgDisplayWidth, imgDisplayHeight, imgOffsetX, imgOffsetY
-      
+
       if (imgAspectRatio > containerAspectRatio) {
         // 图片更宽，以宽度为准
         imgDisplayWidth = containerRect.width
@@ -237,7 +238,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         imgOffsetX = (containerRect.width - imgDisplayWidth) / 2
         imgOffsetY = 0
       }
-      
+
       console.log('图片显示信息:', {
         原始尺寸: `${img.naturalWidth}x${img.naturalHeight}`,
         原始宽高比: imgAspectRatio.toFixed(3),
@@ -247,17 +248,17 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         偏移量: `${imgOffsetX.toFixed(0)},${imgOffsetY.toFixed(0)}`,
         填充方式: imgAspectRatio > containerAspectRatio ? '上下填充' : '左右填充'
       })
-      
+
       // 计算缩放比例（基于图片的实际显示尺寸）
       const scaleX = img.naturalWidth / imgDisplayWidth
       const scaleY = img.naturalHeight / imgDisplayHeight
-      
+
       // 调整截取区域坐标（减去图片偏移量）
       const adjustedX = cropRect.x - imgOffsetX
       const adjustedY = cropRect.y - imgOffsetY
       const adjustedWidth = cropRect.width
       const adjustedHeight = cropRect.height
-      
+
       console.log('截取计算:', {
         截取区域: `${cropRect.x},${cropRect.y},${cropRect.width}x${cropRect.height}`,
         调整后区域: `${adjustedX.toFixed(0)},${adjustedY.toFixed(0)},${adjustedWidth.toFixed(0)}x${adjustedHeight.toFixed(0)}`,
@@ -265,42 +266,42 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         是否正方形: cropRect.width === cropRect.height ? '是' : '否',
         缩放比例: `${scaleX.toFixed(2)}x${scaleY.toFixed(2)}`
       })
-      
+
       // 转换为实际像素坐标
       let actualX = adjustedX * scaleX
       let actualY = adjustedY * scaleY
       let actualWidth = adjustedWidth * scaleX
       let actualHeight = adjustedHeight * scaleY
-      
+
       console.log('转换后的实际像素:', {
         actualX: actualX.toFixed(2),
         actualY: actualY.toFixed(2),
         actualWidth: actualWidth.toFixed(2),
         actualHeight: actualHeight.toFixed(2)
       })
-      
+
       // 如果是圆形截取，需要调整为正方形区域
       if (cropShape === 'circle') {
         // 取较小的边长作为正方形的边长
         const minSize = Math.min(actualWidth, actualHeight)
-        
+
         // 计算中心点
         const centerX = actualX + actualWidth / 2
         const centerY = actualY + actualHeight / 2
-        
+
         // 以中心点为准，重新计算正方形的位置
         actualX = centerX - minSize / 2
         actualY = centerY - minSize / 2
         actualWidth = minSize
         actualHeight = minSize
-        
+
         console.log('圆形截取调整为正方形:', {
           中心点: `${centerX.toFixed(0)},${centerY.toFixed(0)}`,
           最终位置: `${actualX.toFixed(0)},${actualY.toFixed(0)}`,
           最终尺寸: `${actualWidth.toFixed(0)}x${actualHeight.toFixed(0)}`
         })
       }
-      
+
       // 创建新的canvas用于截取
       const canvasWidth = Math.round(actualWidth)
       const canvasHeight = Math.round(actualHeight)
@@ -308,7 +309,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
       cropCanvas.width = canvasWidth
       cropCanvas.height = canvasHeight
       const cropCtx = cropCanvas.getContext('2d')
-      
+
       if (cropShape === 'circle') {
         // 圆形截取：先创建圆形路径并裁剪
         cropCtx.beginPath()
@@ -317,38 +318,38 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
         cropCtx.arc(canvasWidth / 2, canvasHeight / 2, radius, 0, Math.PI * 2)
         cropCtx.closePath()
         cropCtx.clip()
-        
+
         // 填充透明背景（确保圆外完全透明）
         cropCtx.clearRect(0, 0, canvasWidth, canvasHeight)
       }
-      
+
       // 绘制截取部分
       cropCtx.drawImage(
         img,
         Math.round(actualX), Math.round(actualY), Math.round(actualWidth), Math.round(actualHeight), // 源图像截取区域
         0, 0, canvasWidth, canvasHeight // 目标canvas区域
       )
-      
+
       // 生成截取后的Blob - 始终使用PNG格式以保留透明度
       cropCanvas.toBlob((blob) => {
         if (!blob) {
           alert('截取失败，请重试')
           return
         }
-        
+
         // 创建新的File对象，强制使用PNG格式
         const originalName = file?.name || `cropped_${Date.now()}`
         const fileName = originalName.replace(/\.[^/.]+$/, '') + '.png'
         const croppedFile = new File([blob], fileName, { type: 'image/png' })
         setFile(croppedFile)
-        
+
         // 更新预览
         const croppedUrl = URL.createObjectURL(blob)
         setPreviewUrl(croppedUrl)
-        
+
         // 退出截取模式
         setCropMode(false)
-        
+
         console.log('✅ 截取完成，输出尺寸:', `${canvasWidth}x${canvasHeight}`, '格式：PNG（保留透明度）')
         console.log('📊 详细对比:', {
           预览中的圆形直径: `${cropRect.width}px (显示区域)`,
@@ -360,7 +361,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
           如果按Y轴计算: `${Math.round(cropRect.height * scaleY)}px`
         })
       }, 'image/png')
-      
+
     } catch (error) {
       console.error('❌ 截取失败:', error)
       alert('截取失败：' + error.message)
@@ -380,7 +381,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
       e: { x: rect.x + rect.width, y: rect.y + rect.height / 2 },
       w: { x: rect.x, y: rect.y + rect.height / 2 }
     }
-    
+
     for (const [handle, pos] of Object.entries(handles)) {
       if (
         Math.abs(x - pos.x) <= handleSize &&
@@ -395,12 +396,12 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
   // 鼠标事件处理函数
   const handleMouseDown = (e) => {
     if (!cropMode) return
-    
+
     const container = containerRef.current
     const rect = container.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
-    
+
     // 检查是否在调整大小的手柄上
     const handle = getResizeHandle(x, y, cropRect)
     if (handle) {
@@ -409,7 +410,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
       setDragStart({ x, y })
       return
     }
-    
+
     // 检查点击是否在截取区域内（移动）
     if (
       x >= cropRect.x &&
@@ -427,26 +428,26 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
 
   const handleMouseMove = (e) => {
     if (!cropMode || !isDragging) return
-    
+
     const container = containerRef.current
     const rect = container.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
-    
+
     if (resizeHandle) {
       // 调整大小
       const dx = x - dragStart.x
       const dy = y - dragStart.y
-      
+
       setCropRect(prev => {
         let newRect = { ...prev }
         const minSize = 50
-        
+
         // 如果是圆形模式，强制保持正方形比例
         if (cropShape === 'circle') {
           // 计算新的尺寸（取dx和dy中较大的变化量）
           let newSize = prev.width
-          
+
           switch (resizeHandle) {
             case 'se': // 右下角
               newSize = Math.max(minSize, prev.width + Math.max(dx, dy))
@@ -479,7 +480,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
               // 对于边手柄，使用对应的变化量
               const delta = ['e', 's'].includes(resizeHandle) ? Math.max(dx, dy) : Math.max(-dx, -dy)
               newSize = Math.max(minSize, prev.width + delta)
-              
+
               if (resizeHandle === 'e' || resizeHandle === 'w') {
                 if (resizeHandle === 'w') {
                   newRect.x = prev.x + (prev.width - newSize)
@@ -532,23 +533,23 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
               break
           }
         }
-        
+
         // 确保不超出容器边界
         newRect.x = Math.max(0, Math.min(newRect.x, rect.width - newRect.width))
         newRect.y = Math.max(0, Math.min(newRect.y, rect.height - newRect.height))
         newRect.width = Math.min(newRect.width, rect.width - newRect.x)
         newRect.height = Math.min(newRect.height, rect.height - newRect.y)
-        
+
         // 圆形模式下再次确保是正方形
         if (cropShape === 'circle') {
           const finalSize = Math.min(newRect.width, newRect.height)
           newRect.width = finalSize
           newRect.height = finalSize
         }
-        
+
         return newRect
       })
-      
+
       setDragStart({ x, y })
     } else {
       // 移动截取区域
@@ -640,7 +641,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                 <label>预览，确认无误，点击下方按钮进行色彩处理（彩色变黑白，黑白变反色）</label>
                 <div className="texture-preview-container">
                   {previewUrl ? (
-                    <div 
+                    <div
                       ref={containerRef}
                       style={{ position: 'relative', width: '100%', height: '100%' }}
                       onMouseDown={handleMouseDown}
@@ -648,19 +649,19 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                       onMouseUp={handleMouseUp}
                       onMouseLeave={handleMouseUp}
                     >
-                      <img 
-                        src={previewUrl} 
-                        alt="预览" 
+                      <img
+                        src={previewUrl}
+                        alt="预览"
                         className="texture-preview-image"
                         ref={canvasRef}
                         style={{ pointerEvents: cropMode ? 'none' : 'auto' }}
                       />
-                      
+
                       {/* 截取区域 */}
                       {cropMode && (
                         <>
                           {/* 半透明遮罩层 - 四个方向 */}
-                          <div 
+                          <div
                             className="crop-mask"
                             style={{
                               position: 'absolute',
@@ -672,7 +673,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                               pointerEvents: 'none'
                             }}
                           />
-                          <div 
+                          <div
                             className="crop-mask"
                             style={{
                               position: 'absolute',
@@ -684,7 +685,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                               pointerEvents: 'none'
                             }}
                           />
-                          <div 
+                          <div
                             className="crop-mask"
                             style={{
                               position: 'absolute',
@@ -696,7 +697,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                               pointerEvents: 'none'
                             }}
                           />
-                          <div 
+                          <div
                             className="crop-mask"
                             style={{
                               position: 'absolute',
@@ -708,9 +709,9 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                               pointerEvents: 'none'
                             }}
                           />
-                          
+
                           {/* 截取区域边框和手柄容器 */}
-                          <div 
+                          <div
                             className="crop-border-container"
                             style={{
                               position: 'absolute',
@@ -722,7 +723,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                             }}
                           >
                             {/* 截取区域边框 */}
-                            <div 
+                            <div
                               className="crop-border"
                               style={{
                                 position: 'absolute',
@@ -738,9 +739,9 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                               }}
                               onMouseDown={handleMouseDown}
                             />
-                            
+
                             {/* 8个调整大小的手柄 */}
-                            <div 
+                            <div
                               className="resize-handle nw"
                               style={{
                                 position: 'absolute',
@@ -760,7 +761,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle ne"
                               style={{
                                 position: 'absolute',
@@ -780,7 +781,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle sw"
                               style={{
                                 position: 'absolute',
@@ -800,7 +801,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle se"
                               style={{
                                 position: 'absolute',
@@ -820,7 +821,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle n"
                               style={{
                                 position: 'absolute',
@@ -841,7 +842,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle s"
                               style={{
                                 position: 'absolute',
@@ -862,7 +863,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle e"
                               style={{
                                 position: 'absolute',
@@ -883,7 +884,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                                 handleMouseDown(e);
                               }}
                             />
-                            <div 
+                            <div
                               className="resize-handle w"
                               style={{
                                 position: 'absolute',
@@ -912,7 +913,7 @@ function TextureUploadModal({ texture, onClose, onUpdate, onUpload }) {
                     <div className="texture-preview-empty">选择文件后显示预览</div>
                   )}
                 </div>
-                
+
                 {/* 截取控制按钮 */}
                 {cropMode ? (
                   <div className="crop-controls">
