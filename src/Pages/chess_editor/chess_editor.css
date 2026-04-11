@@ -71,8 +71,7 @@
 }
 
 .save-button,
-.export-button,
-.undo-button {
+.export-button {
   padding: 8px 16px;
   border: none;
   border-radius: var(--fluent-radius);
@@ -86,36 +85,30 @@
   font-weight: 500;
 }
 
-/* 撤销按钮样式 */
-.undo-button {
+/* 历史操作按钮样式（撤销/重做） */
+.history-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--fluent-radius);
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--fluent-transition);
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.undo-button:hover:not(:disabled) {
+.history-button:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
   box-shadow: var(--fluent-shadow-hover);
 }
 
-.undo-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 重做按钮样式 */
-.redo-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.redo-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: var(--fluent-shadow-hover);
-}
-
-.redo-button:disabled {
+.history-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
