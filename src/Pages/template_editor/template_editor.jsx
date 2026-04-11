@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './template_editor.css';
 import { useTemplates } from '../../hooks/useTemplates.jsx';
+import { useUser } from '../../hooks/useUser.jsx';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ModelRenderer from './templaterenderer/templaterenderer.jsx';
 import CustomRevolutionGenerator from '../../Components/CustomRevolutionGenerator/CustomRevolutionGenerator.jsx';
@@ -11,6 +12,7 @@ import TextureGrid from './TextureGrid.jsx';
 import { exportScene, downloadBlob, generateExportFilename } from '../../utils/exportScene.js';
 function TemplateEditor() {
   const { templatesData, updateTemplate, setTemplatesData, fetchTemplate } = useTemplates();
+  const { userData } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const { id: pieceId } = useParams();
@@ -93,6 +95,12 @@ function TemplateEditor() {
       console.log('正在获取模板：', pieceId);
       const fetchedData = await fetchTemplate(pieceId);
       if (fetchedData) {
+        if (fetchedData.is_public && String(fetchedData.user) !== String(userData?.id)) {
+          alert('不能删除公有棋子');
+          navigate(-1);
+          return;
+        }
+
         console.log('获取成功：', fetchedData);
 
         // 确保 parts 结构存在，如果不存在则初始化
@@ -134,7 +142,7 @@ function TemplateEditor() {
     if (pieceId) {
       fetchData();
     }
-  }, [pieceId, navigate]);
+  }, [pieceId, navigate, userData?.id]);
 
   // 处理组件选择 - 使用 useCallback 避免重复创建
   const handleComponentSelect = useCallback((componentType) => {
@@ -1393,7 +1401,7 @@ modelId 含义：
           </div>
         </div>
 
-       
+
 
         {/* Pattern 部分 */}
         <div className="template-editor-section">

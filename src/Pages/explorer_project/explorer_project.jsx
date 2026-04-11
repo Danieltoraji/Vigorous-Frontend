@@ -65,6 +65,20 @@ function ExplorerProject() {
     }
   }
 
+  const handleDeleteProject = async (projectId) => {
+    alert('删除项目会永久移除项目及其棋子数据，请再次确认。')
+
+    if (!window.confirm('确定要删除这个项目吗？')) {
+      return
+    }
+
+    try {
+      await deleteProject(projectId)
+    } catch (error) {
+      alert('删除失败，请重试')
+    }
+  }
+
   return (
     <div className="explorer-project">
       <div className="explorer-project-bg-layer"></div>
@@ -80,7 +94,7 @@ function ExplorerProject() {
       <ProjectList
         projects={projects}
         onEditProject={handleEditProject}
-        onDeleteProject={deleteProject}
+        onDeleteProject={handleDeleteProject}
         onCreateProject={createProject}
       />
 

@@ -99,6 +99,7 @@ function ExplorerTemplates() {
 
   // 过滤模板并按id降序排序
   const currentUserId = userData?.id
+  const isOwnedByCurrentUser = (template) => String(template?.user) === String(currentUserId)
   const mineCount = Object.values(templatesData).filter(template => template.user === currentUserId).length
   const publicCount = Object.values(templatesData).filter(template => template.is_public).length
 
@@ -120,9 +121,14 @@ function ExplorerTemplates() {
     setMoreActionsOpen(moreActionsOpen === templateId ? null : templateId)
   }
   // 处理删除模板
-  const handleDeleteTemplate = (templateId) => {
+  const handleDeleteTemplate = (template) => {
+    if (template?.is_public && !isOwnedByCurrentUser(template)) {
+      alert('不能删除公有棋子')
+      return
+    }
+
     if (window.confirm('确定要删除这个模板吗？')) {
-      deleteTemplate(templateId)
+      deleteTemplate(template.id)
     }
   }
 
@@ -138,15 +144,17 @@ function ExplorerTemplates() {
 
   // 处理应用模板成功
   const handleApplySuccess = (result) => {
-    const message = result.created_project
-      ? `成功创建项目 "${result.created_project.name}" 并添加棋子`
-      : `成功在 ${result.created_pieces.length} 个项目中添加棋子`;
-    alert(message);
     setApplyingTemplateId(null);
+    alert('已保存，请前往我的项目刷新页面');
   }
 
   // 处理编辑信息
   const handleEditInfo = (template) => {
+    if (template?.is_public && !isOwnedByCurrentUser(template)) {
+      alert('不能删除公有棋子')
+      return
+    }
+
     setEditingTemplate(template)
     setEditName(template.name || '')
     setEditDescription(template.description || '')
@@ -513,7 +521,7 @@ function ExplorerTemplates() {
                             </button>
                             <button
                               className="menu-item delete"
-                              onClick={() => handleDeleteTemplate(template.id)}
+                              onClick={() => handleDeleteTemplate(template)}
                             >
                               删除
                             </button>
@@ -609,7 +617,7 @@ function ExplorerTemplates() {
                                 </button>
                                 <button
                                   className="menu-item delete"
-                                  onClick={() => handleDeleteTemplate(template.id)}
+                                  onClick={() => handleDeleteTemplate(template)}
                                 >
                                   删除
                                 </button>

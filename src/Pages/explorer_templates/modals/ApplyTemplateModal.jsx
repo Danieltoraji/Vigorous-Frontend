@@ -61,15 +61,16 @@ export function ApplyTemplateModal({ isOpen, onClose, presetId, presetName, proj
                 result = response.data;
             }
 
-            // Call success callback with full result
-            if (onApplySuccess) {
-                onApplySuccess(result);
-            }
-
             // Reset and close modal
             setSelectedProjectIds([]);
             setPieceName(presetName || '');
             onClose();
+
+            if (onApplySuccess) {
+                setTimeout(() => {
+                    onApplySuccess(result);
+                }, 0);
+            }
         } catch (err) {
             setError(err.response?.data?.error || err.message || '应用预设失败，请重试');
         } finally {
