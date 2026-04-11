@@ -17,6 +17,10 @@ function ExplorerProject() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentProject, setCurrentProject] = useState(null)
 
+  const getErrorMessage = (error, fallback) => {
+    return error?.response?.data?.error || error?.response?.data?.detail || error?.message || fallback
+  }
+
   const onBack = () => {
     navigate('/menu')
   }
@@ -61,7 +65,7 @@ function ExplorerProject() {
       setIsEditModalOpen(false)
       setCurrentProject(null)
     } catch (error) {
-      alert('更新失败，请重试')
+      alert(getErrorMessage(error, '更新失败，请重试'))
     }
   }
 
@@ -74,8 +78,9 @@ function ExplorerProject() {
 
     try {
       await deleteProject(projectId)
+      alert('删除成功')
     } catch (error) {
-      alert('删除失败，请重试')
+      alert(getErrorMessage(error, '删除失败，请重试'))
     }
   }
 

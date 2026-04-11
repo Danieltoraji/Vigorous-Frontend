@@ -85,7 +85,9 @@ function TextureItem({ texture, onEditTexture, onDeleteTexture }) {
           className="btn btn-outline delete-btn"
           onClick={(e) => {
             e.stopPropagation()
-            onDeleteTexture(texture.id)
+            if (window.confirm('确定要删除这个纹理吗？')) {
+              onDeleteTexture(texture.id)
+            }
           }}
         >
           删除

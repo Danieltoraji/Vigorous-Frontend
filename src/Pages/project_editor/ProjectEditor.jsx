@@ -36,6 +36,7 @@ const ProjectEditor = () => {
   const handleSaveProject = async (updatedData) => {
     try {
       await updateProject(projectId, updatedData);
+      alert('项目已保存')
     } catch (error) {
       alert('保存失败，请重试');
     }

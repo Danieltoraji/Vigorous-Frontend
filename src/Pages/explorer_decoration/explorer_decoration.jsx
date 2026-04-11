@@ -19,6 +19,10 @@ function ExplorerDecoration() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
   const [previewDecoration, setPreviewDecoration] = useState(null)
 
+  const getErrorMessage = (error, fallback) => {
+    return error?.response?.data?.error || error?.response?.data?.detail || error?.message || fallback
+  }
+
   const onBack = () => {
     navigate('/menu')
   }
@@ -58,8 +62,9 @@ function ExplorerDecoration() {
       await updateDecoration(decorationId, updatedDecorationPayload)
       setIsUploadModalOpen(false)
       setCurrentDecoration(null)
+      alert('装饰已保存')
     } catch (error) {
-      alert('更新失败，请重试')
+      alert(getErrorMessage(error, '更新失败，请重试'))
     }
   }
 
@@ -67,8 +72,18 @@ function ExplorerDecoration() {
     try {
       await uploadDecoration(formData)
       setIsUploadModalOpen(false)
+      alert('上传成功')
     } catch (error) {
-      alert('上传失败，请重试')
+      alert(getErrorMessage(error, '上传失败，请重试'))
+    }
+  }
+
+  const handleDeleteDecoration = async (decorationId) => {
+    try {
+      await deleteDecoration(decorationId)
+      alert('删除成功')
+    } catch (error) {
+      alert(getErrorMessage(error, '删除失败，请重试'))
     }
   }
 
@@ -98,7 +113,7 @@ function ExplorerDecoration() {
       <DecorationList
         decorations={decorations}
         onEditDecoration={handleEditDecoration}
-        onDeleteDecoration={deleteDecoration}
+        onDeleteDecoration={handleDeleteDecoration}
         onUploadDecoration={() => setIsUploadModalOpen(true)}
         onPreviewDecoration={handlePreviewDecoration}
       />

@@ -121,14 +121,20 @@ function ExplorerTemplates() {
     setMoreActionsOpen(moreActionsOpen === templateId ? null : templateId)
   }
   // 处理删除模板
-  const handleDeleteTemplate = (template) => {
+  const handleDeleteTemplate = async (template) => {
     if (template?.is_public && !isOwnedByCurrentUser(template)) {
-      alert('不能删除公有棋子')
+      alert('无权限：公有棋子仅作者可编辑或删除')
       return
     }
 
     if (window.confirm('确定要删除这个模板吗？')) {
-      deleteTemplate(template.id)
+      try {
+        await deleteTemplate(template.id)
+        alert('删除成功')
+      } catch (error) {
+        const message = error?.response?.data?.error || error?.response?.data?.detail || error?.message || '删除失败，请重试'
+        alert(message)
+      }
     }
   }
 
@@ -145,13 +151,27 @@ function ExplorerTemplates() {
   // 处理应用模板成功
   const handleApplySuccess = (result) => {
     setApplyingTemplateId(null);
-    alert('已保存，请前往我的项目刷新页面');
+    const createdCount = result?.createdPieces?.length || 0
+    const failedCount = result?.failedProjects?.length || 0
+    const createdProjectName = result?.createdProject?.name
+
+    if (createdProjectName) {
+      alert(`应用成功：已创建项目“${createdProjectName}”，并生成 ${createdCount} 个棋子。请前往我的项目刷新页面。`)
+      return
+    }
+
+    if (failedCount > 0) {
+      alert(`应用完成：成功 ${createdCount} 个，失败 ${failedCount} 个。请前往我的项目刷新页面。`)
+      return
+    }
+
+    alert(`应用成功：已生成 ${createdCount} 个棋子。请前往我的项目刷新页面。`)
   }
 
   // 处理编辑信息
   const handleEditInfo = (template) => {
     if (template?.is_public && !isOwnedByCurrentUser(template)) {
-      alert('不能删除公有棋子')
+      alert('无权限：公有棋子仅作者可编辑或删除')
       return
     }
 
@@ -186,9 +206,11 @@ function ExplorerTemplates() {
         description: editDescription,
         piece_tags: editTagList
       })
+      alert('保存成功')
       handleCloseEditModal()
     } catch (error) {
-      alert('保存失败：' + error.message)
+      const message = error?.response?.data?.error || error?.response?.data?.detail || error?.message || '保存失败，请重试'
+      alert('保存失败：' + message)
     }
   }
 
@@ -255,7 +277,7 @@ function ExplorerTemplates() {
       try {
         const templateJson = JSON.parse(e.target.result)
         await createTemplateFromJson(templateJson)
-        alert('模板导入成功！')
+        alert('导入成功')
         setShowImportModal(false)
       } catch (error) {
         alert('JSON格式错误，请检查文件内容')
@@ -324,7 +346,7 @@ function ExplorerTemplates() {
     }
 
     if (successCount > 0) {
-      alert(`成功导入 ${successCount} 个模板${failCount > 0 ? `，${failCount} 个失败` : ''}`)
+      alert(`导入成功：${successCount} 个${failCount > 0 ? `，失败 ${failCount} 个` : ''}`)
     } else {
       alert('导入失败，请重试')
     }

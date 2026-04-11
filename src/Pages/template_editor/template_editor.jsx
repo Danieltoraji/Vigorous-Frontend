@@ -95,12 +95,6 @@ function TemplateEditor() {
       console.log('正在获取模板：', pieceId);
       const fetchedData = await fetchTemplate(pieceId);
       if (fetchedData) {
-        if (fetchedData.is_public && String(fetchedData.user) !== String(userData?.id)) {
-          alert('不能删除公有棋子');
-          navigate(-1);
-          return;
-        }
-
         console.log('获取成功：', fetchedData);
 
         // 确保 parts 结构存在，如果不存在则初始化
@@ -181,8 +175,15 @@ function TemplateEditor() {
   }, [currentTemplate, setTemplatesData]);
 
   // 处理保存 - 使用 useCallback
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (options = {}) => {
+    const { silent = false } = options;
     if (!currentTemplate) return;
+
+    const isReadOnlyPublicTemplate = currentTemplate.is_public && String(currentTemplate.user) !== String(userData?.id)
+    if (isReadOnlyPublicTemplate) {
+      alert('无权限：公有棋子仅作者可保存')
+      return;
+    }
 
     try {
       // 调用 updateTemplate 方法向后端保存数据
@@ -190,10 +191,14 @@ function TemplateEditor() {
 
       // 更新保存时间
       setLastSaved(new Date().toLocaleString());
+      if (!silent) {
+        showSuccessToast('模板已保存');
+      }
     } catch (error) {
-      alert('保存失败：' + (error.message || '未知错误'));
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.detail || error.message || '未知错误';
+      alert('保存失败：' + errorMessage);
     }
-  }, [currentTemplate, updateTemplate]);
+  }, [currentTemplate, updateTemplate, showSuccessToast, userData?.id]);
 
   // 装饰相关函数
   const getDecorationName = (modelId) => {
@@ -590,7 +595,7 @@ modelId 含义：
   const handleExportAction = async (format) => {
     try {
       // 导出前先保存当前修改，然后获取最新数据
-      await handleSave();
+      await handleSave({ silent: true });
       await fetchData();
 
       let blob;
@@ -602,10 +607,11 @@ modelId 含义：
       filename = generateExportFilename(currentTemplate.name, format);
       downloadBlob(blob, filename);
 
-      alert(`导出成功！文件已下载：${filename}`);
+      showSuccessToast(`导出成功！文件已下载：${filename}`);
     } catch (error) {
       console.error('导出失败:', error);
-      alert('导出失败：' + (error.message || '未知错误'));
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.detail || error.message || '未知错误';
+      alert('导出失败：' + errorMessage);
     } finally {
       setShowExportModal(false);
     }
@@ -2256,6 +2262,12 @@ modelId 含义：
         </main>
 
       </div>
+
+      {showToast && (
+        <div className="toast-success">
+          {toastMessage}
+        </div>
+      )}
 
       {/* 右侧面板切换按钮 */}
       <button

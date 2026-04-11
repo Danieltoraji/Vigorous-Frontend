@@ -120,7 +120,9 @@ function DecorationItem({ decoration, onEditDecoration, onDeleteDecoration, onPr
                 className="menu-item delete"
                 onClick={() => {
                   setMenuOpen(false)
-                  onDeleteDecoration(decoration.id)
+                  if (window.confirm('确定要删除这个装饰吗？')) {
+                    onDeleteDecoration(decoration.id)
+                  }
                 }}
               >
                 删除

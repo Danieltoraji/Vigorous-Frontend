@@ -16,6 +16,9 @@ import './ChessPieces.css';
 const ChessPieces = ({ projectId }) => {
   const { getPiecesByProject, chessData, updateChess, deleteChess, loading, createChess, createChessFromJson } = useChess();
   const navigate = useNavigate();
+  const getErrorMessage = (error, fallback) => {
+    return error?.response?.data?.error || error?.response?.data?.detail || error?.message || fallback
+  }
 
   // 状态管理
   const [viewMode, setViewMode] = useState('card'); // 'card' 或 'list'
@@ -80,8 +83,9 @@ const ChessPieces = ({ projectId }) => {
     try {
       await updateChess(updatedPiece.id, updatedPiece);
       setEditingPiece(null);
+      alert('保存成功');
     } catch (error) {
-      alert('更新失败，请重试');
+      alert(getErrorMessage(error, '更新失败，请重试'));
     }
   };
 
@@ -96,8 +100,9 @@ const ChessPieces = ({ projectId }) => {
       try {
         await deleteChess(deletingPiece.id);
         setDeletingPiece(null);
+        alert('删除成功');
       } catch (error) {
-        alert('删除失败，请重试');
+        alert(getErrorMessage(error, '删除失败，请重试'));
       }
     }
   };

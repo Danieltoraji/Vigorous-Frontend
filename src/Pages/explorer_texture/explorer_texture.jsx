@@ -17,6 +17,10 @@ function ExplorerTexture() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [currentTexture, setCurrentTexture] = useState(null)
 
+  const getErrorMessage = (error, fallback) => {
+    return error?.response?.data?.error || error?.response?.data?.detail || error?.message || fallback
+  }
+
   const onBack = () => {
     navigate('/menu')
   }
@@ -72,9 +76,11 @@ function ExplorerTexture() {
           ...prev,
           [textureId]: response.data
         }));
+        alert('纹理已保存')
       } else {
         // 如果是普通对象（向后兼容）
         await updateTexture(formData.id, formData);
+        alert('纹理已保存')
       }
 
       setIsUploadModalOpen(false)
@@ -83,7 +89,7 @@ function ExplorerTexture() {
       console.error('更新失败:', error)
       console.error('错误响应:', error.response)
       console.error('错误数据:', error.response?.data)
-      alert('更新失败，请重试')
+      alert(getErrorMessage(error, '更新失败，请重试'))
     }
   }
 
@@ -91,8 +97,18 @@ function ExplorerTexture() {
     try {
       await uploadTexture(formData)
       setIsUploadModalOpen(false)
+      alert('上传成功')
     } catch (error) {
-      alert('上传失败，请重试')
+      alert(getErrorMessage(error, '上传失败，请重试'))
+    }
+  }
+
+  const handleDeleteTexture = async (textureId) => {
+    try {
+      await deleteTexture(textureId)
+      alert('删除成功')
+    } catch (error) {
+      alert(getErrorMessage(error, '删除失败，请重试'))
     }
   }
 
@@ -111,7 +127,7 @@ function ExplorerTexture() {
       <TextureList
         textures={textures}
         onEditTexture={handleEditTexture}
-        onDeleteTexture={deleteTexture}
+        onDeleteTexture={handleDeleteTexture}
         onUploadTexture={() => setIsUploadModalOpen(true)}
       />
 

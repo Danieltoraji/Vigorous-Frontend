@@ -18,7 +18,7 @@ function formatDateTime(dateString) {
 function ImportFromProject({ isOpen, onClose, onConfirm }) {
   const { projectData, loading: projectLoading } = useProject()
   const { getPiecesByProject, getChessById, loading: chessLoading } = useChess()
-  
+
   const [selectedProject, setSelectedProject] = useState(null)
   const [pieces, setPieces] = useState([])
   const [selectedPieces, setSelectedPieces] = useState([])
@@ -41,6 +41,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
       setPieces(piecesData || [])
     } catch (error) {
       console.error('获取棋子失败:', error)
+      alert(error?.response?.data?.error || error?.response?.data?.detail || error.message || '获取棋子失败，请重试')
       setPieces([])
     } finally {
       setLoadingPieces(false)
@@ -69,7 +70,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
       alert('请至少选择一个棋子')
       return
     }
-    
+
     try {
       // 使用 getChessById 获取每个选中棋子的完整数据
       const completePieces = []
@@ -77,7 +78,7 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
         const completePiece = await getChessById(piece.id)
         completePieces.push(completePiece)
       }
-      
+
       console.log(completePieces)
       onConfirm(completePieces)
       onClose()
@@ -120,8 +121,8 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
               ) : (
                 <div className="pieces-grid">
                   {pieces.map(piece => (
-                    <div 
-                      key={piece.id} 
+                    <div
+                      key={piece.id}
                       className={`piece-card ${selectedPieces.some(p => p.id === piece.id) ? 'selected' : ''}`}
                       onClick={() => handlePieceSelect(piece)}
                     >
@@ -153,8 +154,8 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
           ) : (
             <div className="projects-grid">
               {projects.map(project => (
-                <div 
-                  key={project.id} 
+                <div
+                  key={project.id}
                   className="project-card"
                   onClick={() => handleProjectClick(project)}
                 >
@@ -203,8 +204,8 @@ function ImportFromProject({ isOpen, onClose, onConfirm }) {
               取消
             </button>
             {selectedProject && (
-              <button 
-                className="btn btn-primary" 
+              <button
+                className="btn btn-primary"
                 onClick={handleConfirm}
                 disabled={selectedPieces.length === 0}
               >

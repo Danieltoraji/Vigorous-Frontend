@@ -61,15 +61,14 @@ export function ApplyTemplateModal({ isOpen, onClose, presetId, presetName, proj
                 result = response.data;
             }
 
-            // Reset and close modal
+            // Reset local form state
             setSelectedProjectIds([]);
             setPieceName(presetName || '');
-            onClose();
 
             if (onApplySuccess) {
-                setTimeout(() => {
-                    onApplySuccess(result);
-                }, 0);
+                onApplySuccess(result);
+            } else {
+                onClose();
             }
         } catch (err) {
             setError(err.response?.data?.error || err.message || '应用预设失败，请重试');
