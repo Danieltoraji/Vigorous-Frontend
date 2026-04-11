@@ -28,7 +28,7 @@ function ChessEditor() {
 
   // 撤销功能相关状态
   const [historyStack, setHistoryStack] = useState([]); // 历史记录栈
-  const [historyIndex, setHistoryIndex] = useState(-1); // 当前历史指针
+  const [historyIndex, setHistoryIndex] = useState(-1); // 当前历史指针，指向当前快照
   const lastHistoryTimeRef = useRef(0); // 上次记录时间（使用 ref 避免重渲染）
   const MAX_HISTORY_SIZE = 50; // 最大历史记录数
   const HISTORY_RECORD_INTERVAL = 500; // 最小记录间隔（毫秒）
@@ -255,48 +255,44 @@ function ChessEditor() {
   // 强制记录历史快照（无视时间间隔限制）
   const pushToHistoryImmediate = useCallback((snapshot) => {
     lastHistoryTimeRef.current = Date.now();
-    
+
     setHistoryStack(prev => {
-      const newStack = prev.slice(0, historyIndex + 1);
+      const nextIndex = Math.max(historyIndex, -1);
+      const newStack = prev.slice(0, nextIndex + 1);
       newStack.push(structuredClone(snapshot));
-      
+
       // 如果超过最大长度，移除最旧记录
       while (newStack.length > MAX_HISTORY_SIZE) {
         newStack.shift();
       }
-      
+
+      const newIndex = newStack.length - 1;
+      setHistoryIndex(newIndex);
       return newStack;
-    });
-    
-    // 确保 historyIndex 正确同步
-    // 新索引 = 当前索引 + 1，但不能超过栈的最大长度 - 1
-    setHistoryIndex(prev => {
-      const newIndex = prev + 1;
-      return Math.min(newIndex, MAX_HISTORY_SIZE - 1);
     });
   }, [historyIndex, MAX_HISTORY_SIZE]);
 
   // 记录历史快照（带状态比较，避免重复记录）
   const pushToHistory = useCallback((snapshot) => {
     if (!snapshot) return;
-    
+
     // 获取上一个状态
-    const lastState = historyStack.length > 0 && historyIndex >= 0 
-      ? historyStack[historyIndex] 
+    const lastState = historyStack.length > 0 && historyIndex >= 0
+      ? historyStack[historyIndex]
       : null;
-    
+
     // 如果状态相同，忽略
     if (lastState && isEqualDeep(snapshot, lastState)) {
       return;
     }
-    
+
     // 状态不同，执行记录
     pushToHistoryImmediate(snapshot);
   }, [historyStack, historyIndex, isEqualDeep, pushToHistoryImmediate]);
 
   // 撤销操作
   const handleUndo = useCallback(() => {
-    if (historyIndex < 0 || historyStack.length === 0) {
+    if (historyIndex <= 0 || historyStack.length === 0) {
       showSuccessToast('没有可撤销的操作');
       return;
     }
@@ -304,15 +300,15 @@ function ChessEditor() {
     // 标记为撤销/重做操作（避免 mouseup 触发历史记录）
     isUndoRedoRef.current = true;
 
-    const previousState = historyStack[historyIndex];
-    
+    const previousState = historyStack[historyIndex - 1];
+
     // 恢复状态
     setCurrentChess(previousState);
     setChessData(prev => ({ ...prev, [previousState.id]: previousState }));
-    
+
     // 移动历史指针
     setHistoryIndex(prev => prev - 1);
-    
+
     showSuccessToast('已撤销');
   }, [historyStack, historyIndex, setChessData, showSuccessToast]);
 
@@ -329,14 +325,14 @@ function ChessEditor() {
 
     // 获取下一个状态
     const nextState = historyStack[historyIndex + 1];
-    
+
     // 恢复状态
     setCurrentChess(nextState);
     setChessData(prev => ({ ...prev, [nextState.id]: nextState }));
-    
+
     // 移动历史指针向前
     setHistoryIndex(prev => prev + 1);
-    
+
     showSuccessToast('已重做');
   }, [historyStack, historyIndex, setChessData, showSuccessToast]);
 
@@ -354,7 +350,7 @@ function ChessEditor() {
         handleRedo();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo, handleRedo]);
@@ -885,11 +881,11 @@ modelId 含义：
           isDraggingRef.current = false;
           return;
         }
-        
+
         // 触发历史记录
         pushToHistory(currentChess);
       }
-      
+
       isDraggingRef.current = false;
     };
 
@@ -2953,7 +2949,7 @@ modelId 含义：
           <span className="last-saved">上次保存：{lastSaved}</span>
         </div>
         <div className="header-right">
-          <button 
+          <button
             className="history-button"
             onClick={handleUndo}
             disabled={historyIndex < 0}
@@ -2961,7 +2957,7 @@ modelId 含义：
           >
             ↶ 撤销
           </button>
-          <button 
+          <button
             className="history-button"
             onClick={handleRedo}
             disabled={historyIndex >= historyStack.length - 1}
