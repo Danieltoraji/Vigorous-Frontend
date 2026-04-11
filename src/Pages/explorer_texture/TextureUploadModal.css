@@ -297,7 +297,8 @@
 }
 
 .shape-btn.active {
-  background: #F5E6CC; /* 奶黄灰色 */
+  background: #F5E6CC;
+  /* 奶黄灰色 */
   color: #333;
   border-color: #E5D5BB;
 }
@@ -436,4 +437,62 @@
 .texture-modal-btn-primary:hover {
   background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
+}
+
+@media (max-width: 768px) {
+  .texture-modal-content {
+    width: 95%;
+    max-height: 92vh;
+  }
+
+  .texture-modal-header {
+    padding: 14px 12px;
+  }
+
+  .texture-modal-header h2 {
+    font-size: 18px !important;
+  }
+
+  .texture-form {
+    padding-top: 72px !important;
+    padding-left: 8% !important;
+    padding-right: 8% !important;
+  }
+
+  .texture-form-body {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .texture-form-actions {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+
+  .texture-modal-btn,
+  .texture-modal-btn-cancel,
+  .texture-modal-btn-confirm {
+    width: 100%;
+  }
+
+  .texture-tag-input-container {
+    flex-direction: column;
+  }
+
+  .crop-buttons-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .texture-form {
+    padding-top: 64px !important;
+    padding-left: 6% !important;
+    padding-right: 6% !important;
+  }
+
+  .texture-form-group input[type="file"] {
+    padding: 12px;
+    font-size: 14px;
+  }
 }

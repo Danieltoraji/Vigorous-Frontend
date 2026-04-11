@@ -76,3 +76,52 @@
 .explorer-texture .back-button:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+@media (max-width: 768px) {
+  .explorer-texture {
+    padding: 92px 12px 24px;
+  }
+
+  .explorer-texture .explorer-header {
+    padding: 10px 12px;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .explorer-texture .header-title::before {
+    height: 1.4em;
+    margin-right: 10px;
+    padding-right: 10px;
+    margin-bottom: 4px;
+  }
+
+  .explorer-texture .explorer-header .header-title {
+    font-size: 18px !important;
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
+
+  .explorer-texture .explorer-header .user-welcome {
+    font-size: 12px;
+    max-width: 55vw;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .explorer-texture .back-button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .explorer-texture .explorer-header .user-welcome {
+    display: none;
+  }
+
+  .explorer-texture .explorer-header .header-title {
+    font-size: 16px !important;
+  }
+}

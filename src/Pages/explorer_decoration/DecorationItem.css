@@ -248,3 +248,39 @@
 .decoration-item-footer .btn-preview:hover {
   background: linear-gradient(135deg, #c0d0e8 0%, #b0c0e0 100%);
 }
+
+@media (max-width: 768px) {
+  .decoration-item {
+    width: 100%;
+    min-height: 300px;
+    padding-top: 60px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .decoration-name {
+    font-size: 20px;
+    max-width: 160px;
+  }
+
+  .file-name {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .decoration-item {
+    padding-top: 52px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .decoration-item-footer {
+    gap: 6px;
+  }
+
+  .decoration-item-footer .btn-preview {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

@@ -57,6 +57,22 @@
 }
 
 @media (max-width: 768px) {
+  .texture-list {
+    max-width: 100%;
+  }
+
+  .texture-list-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 18px;
+  }
+
+  .texture-list-header .btn-primary {
+    width: 100%;
+  }
+
   .texture-explorer-grid {
     grid-template-columns: 1fr;
   }

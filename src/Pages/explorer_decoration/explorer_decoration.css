@@ -104,3 +104,57 @@
   color: #666;
   font-size: 18px;
 }
+
+@media (max-width: 768px) {
+  .explorer-decoration {
+    padding: 92px 12px 72px;
+  }
+
+  .explorer-decoration .explorer-header {
+    padding: 10px 12px;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .explorer-decoration .header-title::before {
+    height: 1.4em;
+    margin-right: 10px;
+    padding-right: 10px;
+    margin-bottom: 4px;
+  }
+
+  .explorer-decoration .explorer-header .header-title {
+    font-size: 18px !important;
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
+
+  .explorer-decoration .explorer-header .user-welcome {
+    font-size: 12px;
+    max-width: 55vw;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .explorer-decoration .back-button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .footer {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .explorer-decoration .explorer-header .user-welcome {
+    display: none;
+  }
+
+  .explorer-decoration .explorer-header .header-title {
+    font-size: 16px !important;
+  }
+}

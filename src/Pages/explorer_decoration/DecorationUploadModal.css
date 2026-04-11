@@ -283,3 +283,45 @@
   background: linear-gradient(135deg, #2f850a 0%, #327234 100%);
   box-shadow: var(--fluent-shadow-hover);
 }
+
+@media (max-width: 768px) {
+  .upload-decoration-modal-content {
+    width: 95%;
+    max-height: 92vh;
+  }
+
+  .upload-decoration-modal-header {
+    padding: 14px 12px;
+  }
+
+  .upload-decoration-modal-header h2 {
+    font-size: 18px !important;
+  }
+
+  .decoration-form {
+    padding-top: 72px !important;
+    padding-left: 8% !important;
+    padding-right: 8% !important;
+  }
+
+  .decoration-form-actions {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+
+  .upload-decoration-modal-btn {
+    width: 100%;
+  }
+
+  .decoration-tag-input-container {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .decoration-form {
+    padding-top: 64px !important;
+    padding-left: 6% !important;
+    padding-right: 6% !important;
+  }
+}
